@@ -13,9 +13,6 @@ class IndexView(APIView):
 
 class NewsView(APIView):
     def get(self, request):
-        # api_data = NewsTitlesView().get(request)
-        # return render(request, 'main/news.html', {'news': api_data.data})
-
         api_data = NewsTitlesView().get(request)
         paginator = Paginator(api_data.data, per_page=5)
         page = request.GET.get('page')
