@@ -1,0 +1,45 @@
+.layout_central_block .footer {
+    width: 100%;
+    position: relative;
+    float: left;
+    margin-top: 3%;
+}
+
+.footer {
+    background-color: white;
+    color: black;
+}
+
+.footer .content {
+    display: flex;
+    justify-content: space-evenly;
+    margin: 1.5rem;
+}
+
+.footer .content p {
+    margin-bottom: 1.3rem;
+    font-family: 'Marmelad', sans-serif;
+}
+
+.footer .content a {
+    text-decoration: none;
+    color: black;
+}
+
+.footer .content a:hover {
+    color: #C59DD4;
+}
+
+.footer .content h4 {
+    margin-bottom: 1.3rem;
+    font-size: 19px;
+}
+
+footer {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+footer hr {
+    margin: 2rem 0;
+}
