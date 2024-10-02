@@ -1,0 +1,73 @@
+{% extends 'main_page/layout.html' %}
+{% load static %}
+
+{% block title %}
+    NoteCloud
+{% endblock %}
+
+{% block content %}
+    <div class="slogan">
+        <h1>NoteCloud</h1><h1>- твои заметки всегда с тобой!</h1>
+    </div>
+    <div class="card1">
+        <h2><i class="fa-regular fa-clipboard"></i> Записывайте</h2>
+        <h3>NoteCloud предоставляет простой и интуитивно понятный интерфейс для создания и организации заметок. Вы можете быстро записывать свои мысли, идеи или важные информационные фрагменты в любое время и в любом месте</h3>
+    </div>
+    <div class="card2">
+        <h2><i class="fa-regular fa-rectangle-list"></i> Создавайте</h2>
+        <h3>NoteCloud позволяет вам создавать структурированные списки задач или дел, которые помогут вам организовать свою работу или повседневные дела. Вы можете отслеживать выполнение задач и удобно управлять своими обязанностями</h3>
+    </div>
+    <div class="card3">
+        <h2><i class="fa-solid fa-users"></i> Вместе</h2>
+        <h3>NoteCloud также предлагает возможность общего доступа к заметкам. Вы можете пригласить других пользователей NoteCloud просматривать и редактировать ваши заметки. Это очень удобно, если вы работаете в команде или хотите совместно работать над проектами или задачами</h3>
+    </div>
+    <div class="card4">
+        <h2><i class="fa-solid fa-cloud-arrow-down"></i> А также</h2>
+        <h3>NoteCloud предлагает удобный способ импортировать и экспортировать заметки из других файловых форматов. Вы можете загружать существующие заметки из различных источников или экспортировать свои заметки для использования в других приложениях или устройствах</h3>
+    </div>
+    <div class="card8">
+        <h2>Мы используем только проверенные и качественные средства для разработки: </h2>
+    </div>
+    <div class="card5">
+        <div class="logotype_django">
+            <a href="https://www.djangoproject.com/"><img src="{% static 'main_page/img/django-logo-negative.png' %}" alt="logotype" border="0px"></a>
+        </div>
+        <h3>Django построен на принципах безопасности, обеспечивая защиту от распространенных угроз и гарантируя стабильную работу сайта.</h3>
+    </div>
+    <div class="card6">
+        <div class="logotype_posgresql">
+            <a href="https://www.postgresql.org/"><img src="{% static 'main_page/img/elephant.png' %}" alt="logotype" border="0px"></a>
+        </div>
+        <h3>PostgreSQL обеспечивает высокий уровень защиты ваших данных, позволяя вам спокойно использовать сайт и не беспокоиться о потере информации. Ваши данные всегда будут в безопасности благодаря мощным функциям резервного копирования и восстановления.</h3>
+    </div>
+    <div class="card7">
+        <div class="logotype_keydb">
+            <a href="https://docs.keydb.dev/"><img src="{% static 'main_page/img/keydb.svg' %}" alt="logotype" border="0px"></a>
+        </div>
+        <h3>Благодаря KeyDB сайт будет работать быстро и без задержек благодаря кэшированию данных, что обеспечивает мгновенный доступ к информации.</h3>
+    </div>
+    <div class="footer">
+      <div class="content">
+        <div class="social-media">
+          <h4>Разработчики</h4>
+          <p>
+            <a href="https://github.com/Varsto04"
+              ><i class="fab fa-github"></i> Github</a
+            >
+          </p>
+        </div>
+        <div class="links">
+          <h4>Другие страницы</h4>
+          <p><a href="/news">Новости</a></p>
+        </div>
+        <div class="details">
+          <h4 class="mail">Email</h4>
+          <p><a href="#">notecloud@<>.com</a></p>
+        </div>
+      </div>
+      <footer>
+        <hr />
+        © 2024 NoteCloud.
+      </footer>
+    </div>
+{% endblock %}
