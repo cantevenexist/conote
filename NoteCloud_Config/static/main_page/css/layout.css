@@ -16,7 +16,7 @@ html, body {
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    height: 60px;
+    height: 50px;
 }
 
 .layout_central_block {
@@ -38,7 +38,10 @@ html, body {
 }
 
 .logotype img {
-    height: 90%;
+    position: absolute;
+    height: 60%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .layout_header .button_area {
@@ -51,40 +54,23 @@ html, body {
     height: 100%;
 }
 
-.button_area .button_area_edit {
-    right: 10%;
+button {
+    font-size: 15px;
+    padding: 0.5em 2em;
+    border: transparent;
+    background: #C3B4E9;
+    color: white;
+    border-radius: 4px;
+}
+
+.button_area button {
+    right: 0%;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
 }
 
-.button_area .button_area_login {
-    right: 0;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.button_edit {
-    font-family: 'Marmelad', sans-serif;
-    font-size: 40px;
-    color: #000000;
-    transition: all .6s ease;
-}
-
-.button_edit:hover, .button_edit a:hover {
-    color: #C59DD4;
-    text-decoration: none;
-}
-
-.button_login {
-    font-family: 'Marmelad', sans-serif;
-    font-size: 40px;
-    color: #000000;
-    transition: all .6s ease;
-}
-
-.button_login:hover, .button_login a:hover {
-    color: #C59DD4;
-    text-decoration: none;
+button:hover {
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, #E3B8DF 0%, #C3B4E9 100%);
 }

@@ -176,3 +176,41 @@ h3 {
         width: 10%;
     }
 }
+
+.button_area .button_area_edit {
+    right: 10%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.button_area .button_area_login {
+    right: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.button_edit {
+    font-family: 'Marmelad', sans-serif;
+    font-size: 40px;
+    color: #000000;
+    transition: all .6s ease;
+}
+
+.button_edit:hover, .button_edit a:hover {
+    color: #C59DD4;
+    text-decoration: none;
+}
+
+.button_login {
+    font-family: 'Marmelad', sans-serif;
+    font-size: 40px;
+    color: #000000;
+    transition: all .6s ease;
+}
+
+.button_login:hover, .button_login a:hover {
+    color: #C59DD4;
+    text-decoration: none;
+}
