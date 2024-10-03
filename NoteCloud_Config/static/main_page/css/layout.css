@@ -1,0 +1,76 @@
+* {
+}
+
+html, body {
+    background-size: 100% 100%;
+    width: 100%;
+    height: 100%;
+    background: white;
+}
+
+.layout_header {
+    border-radius: 0 0 15px 15px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    border: none;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 50px;
+}
+
+.layout_central_block {
+    border: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+}
+
+.layout_header .logotype {
+    float: left;
+    margin-left: 2%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40%;
+    height: 100%;
+}
+
+.logotype img {
+    position: absolute;
+    height: 60%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.layout_header .button_area {
+    position: absolute;
+    right: 0;
+    margin-right: 2%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50%;
+    height: 100%;
+}
+
+button {
+    font-size: 15px;
+    padding: 0.5em 2em;
+    border: transparent;
+    background: #C3B4E9;
+    color: white;
+    border-radius: 4px;
+}
+
+.button_area button {
+    right: 0%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+button:hover {
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, #E3B8DF 0%, #C3B4E9 100%);
+}

@@ -1,0 +1,64 @@
+.layout_central_block .card_content {
+    width: 70%;
+    position: relative;
+    float: left;
+    margin-top: 2%;
+    margin-left: 15%;
+}
+
+.card_content{
+    margin-top: 1%;
+    border-radius: 20px 20px 20px 20px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+}
+
+.card_content .card_content_title {
+    font-size: 30px;
+    margin-top: 1%;
+    margin-left: 2%;
+}
+
+.card_content .card_content_date {
+    font-size: 20px;
+    font-family: 'Marmelad', sans-serif;
+    position: absolute;
+    top: 1%;
+    right: 1%;
+}
+
+.card_content .card_content_content {
+    font-size: 23px;
+    margin-top: 1%;
+    margin-left: 2%;
+    font-family: 'Marmelad', sans-serif;
+}
+
+.back_button_field {
+    border-radius: 0 15px 15px 0;
+    background: #DCDCDC;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 96%;
+    width: 2.5%;
+}
+
+.back_button:hover, .back_button a:hover {
+    color: #C59DD4;
+    text-decoration: none;
+}
+
+.back_button {
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: black;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.card_content a {
+    color: #C59DD4;
+    text-decoration: none;
+}

@@ -1,0 +1,40 @@
+{% extends 'main_page/layout.html' %}
+{% load static %}
+
+{% block title %}
+    NoteCloud
+{% endblock %}
+
+{% block content %}
+    <div class="footer">
+      <div class="content">
+        <div class="social-media">
+          <h4>Разработчики</h4>
+          <p>
+            <a href="https://github.com/Varsto04"
+              ><i class="fab fa-github"></i> Varsto04</a
+            >
+          </p>
+          <p>
+            <a href="https://github.com/cantevenexist"
+              ><i class="fab fa-github"></i> cantevenexist</a
+            >
+          </p>
+        </div>
+        <div class="links">
+          <h4>Другие страницы</h4>
+          <p><a href="/news">Новости</a></p>
+        </div>
+        <div class="details">
+          <h4 class="mail">Email</h4>
+          <p><a href="">feedback@note-cloud.online</a></p>
+          <p><a href="">administration@note-cloud.online</a></p>
+          <p><a href="">authentication@note-cloud.online</a></p>
+        </div>
+      </div>
+      <footer>
+        <hr />
+        © 2024 NoteCloud.
+      </footer>
+    </div>
+{% endblock %}

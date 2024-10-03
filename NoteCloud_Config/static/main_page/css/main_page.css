@@ -1,94 +1,3 @@
-* {
-}
-
-html, body {
-    background-size: 100% 100%;
-    width: 100%;
-    height: 100%;
-    background: white;
-}
-
-.layout_header {
-    border-radius: 0 0 15px 15px;
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    border: none;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    height: 60px;
-}
-
-.layout_central_block {
-    border: none;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-}
-
-.layout_header .logotype {
-    float: left;
-    margin-left: 2%;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40%;
-    height: 100%;
-}
-
-.logotype img {
-    height: 90%;
-}
-
-.layout_header .button_area {
-    position: absolute;
-    right: 0;
-    margin-right: 2%;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 50%;
-    height: 100%;
-}
-
-.button_area .button_area_edit {
-    right: 10%;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.button_area .button_area_login {
-    right: 0;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.button_edit {
-    font-family: 'Marmelad', sans-serif;
-    font-size: 40px;
-    color: #000000;
-    transition: all .6s ease;
-}
-
-.button_edit:hover, .button_edit a:hover {
-    color: #C59DD4;
-    text-decoration: none;
-}
-
-.button_login {
-    font-family: 'Marmelad', sans-serif;
-    font-size: 40px;
-    color: #000000;
-    transition: all .6s ease;
-}
-
-.button_login:hover, .button_login a:hover {
-    color: #C59DD4;
-    text-decoration: none;
-}
-
 .layout_central_block .slogan {
     margin-top: 40px;
     width: 100%;
@@ -244,193 +153,6 @@ h3 {
     text-align: center;
 }
 
-.layout_central_block .footer {
-    width: 100%;
-    position: relative;
-    float: left;
-    margin-top: 3%;
-}
-
-.footer {
-    background-color: white;
-    color: black;
-}
-
-.footer .content {
-    display: flex;
-    justify-content: space-evenly;
-    margin: 1.5rem;
-}
-
-.footer .content p {
-    margin-bottom: 1.3rem;
-    font-family: 'Marmelad', sans-serif;
-}
-
-.footer .content a {
-    text-decoration: none;
-    color: black;
-}
-
-.footer .content a:hover {
-    color: #C59DD4;
-}
-
-.footer .content h4 {
-    margin-bottom: 1.3rem;
-    font-size: 19px;
-}
-
-footer {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-footer hr {
-    margin: 2rem 0;
-}
-
-.layout_central_block .card_news {
-    width: 70%;
-    position: relative;
-    float: left;
-    margin-top: 2%;
-    margin-left: 15%;
-}
-
-.card_news {
-    margin-top: 1%;
-    border-radius: 20px 20px 20px 20px;
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-}
-
-.card_news .card_news_arrow {
-    position: absolute;
-    background: none;
-    padding: 0.4rem;
-    border-top-left-radius: var(--border-radius);
-    border-bottom-right-radius: var(--border-radius);
-    bottom: 0;
-    right: 0;
-    transition: 0.2s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 25px;
-}
-
-.card_news .card_news_title {
-    font-size: 30px;
-    margin-top: 1%;
-    margin-left: 2%;
-}
-
-.card_news .card_news_date {
-    font-size: 20px;
-    margin-top: 1%;
-    margin-left: 2%;
-    font-family: 'Marmelad', sans-serif;
-}
-
-.card_news_arrow:hover, .card_news_arrow a:hover {
-    color: #C59DD4;
-    text-decoration: none;
-}
-
-.card_news_arrow {
-    background: none;
-    border: none;
-    color: black;
-}
-
-.layout_central_block .card_content {
-    width: 70%;
-    position: relative;
-    float: left;
-    margin-top: 2%;
-    margin-left: 15%;
-}
-
-.card_content{
-    margin-top: 1%;
-    border-radius: 20px 20px 20px 20px;
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-}
-
-.card_content .card_content_title {
-    font-size: 30px;
-    margin-top: 1%;
-    margin-left: 2%;
-}
-
-.card_content .card_content_date {
-    font-size: 20px;
-    font-family: 'Marmelad', sans-serif;
-    position: absolute;
-    top: 1%;
-    right: 1%;
-}
-
-.card_content .card_content_content {
-    font-size: 23px;
-    margin-top: 1%;
-    margin-left: 2%;
-    font-family: 'Marmelad', sans-serif;
-}
-
-.back_button_field {
-    border-radius: 0 15px 15px 0;
-    background: #DCDCDC;
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 96%;
-    width: 2.5%;
-}
-
-.back_button:hover, .back_button a:hover {
-    color: #C59DD4;
-    text-decoration: none;
-}
-
-.back_button {
-    background: none;
-    border: none;
-    font-size: 30px;
-    color: black;
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.card_content a {
-    color: #C59DD4;
-    text-decoration: none;
-}
-
-.pagination {
-    position: fixed;
-    bottom: 0;
-    margin-bottom: 5px;
-    left: 50%;
-    transform: translate(-50%, 0);
-    display: flex;
-    justify-content: center;
-    z-index: 10;
-}
-
-.pagination a {
-    display: inline-block;
-    margin: 0 5px;
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    text-decoration: none;
-    color: #333;
-    background-color: #fff;
-    transition: background-color 0.3s ease;
-}
-
 @media (max-width: 800px) {
     .layout_central_block .card1 {
         width: 96%;
@@ -453,4 +175,42 @@ footer hr {
     .back_button_field {
         width: 10%;
     }
+}
+
+.button_area .button_area_edit {
+    right: 10%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.button_area .button_area_login {
+    right: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.button_edit {
+    font-family: 'Marmelad', sans-serif;
+    font-size: 40px;
+    color: #000000;
+    transition: all .6s ease;
+}
+
+.button_edit:hover, .button_edit a:hover {
+    color: #C59DD4;
+    text-decoration: none;
+}
+
+.button_login {
+    font-family: 'Marmelad', sans-serif;
+    font-size: 40px;
+    color: #000000;
+    transition: all .6s ease;
+}
+
+.button_login:hover, .button_login a:hover {
+    color: #C59DD4;
+    text-decoration: none;
 }
