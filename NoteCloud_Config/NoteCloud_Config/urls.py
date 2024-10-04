@@ -23,4 +23,5 @@ handler404 = 'main_page.views.custom_404'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main_page.urls')),
+    path('news/', include('news.urls')),
 ]
