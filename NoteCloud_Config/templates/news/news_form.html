@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if form.instance.id %}Редактирование{% else %}Создание{% endif %} новости</title>
+</head>
+<body>
+    <h1>{% if form.instance.id %}Редактирование{% else %}Создание{% endif %} новости</h1>
+    <form method="post" enctype="multipart/form-data">  <!-- Добавлено enctype -->
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Сохранить</button>
+    </form>
+    <a href="{% url 'list_news' %}">Назад к списку новостей</a>
+</body>
+</html>

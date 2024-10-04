@@ -6,5 +6,21 @@
 {% endblock %}
 
 {% block content %}
-    <p>Новости</p>
+    <h1>Список новостей</h1>
+    <a href="{% url 'create_news' %}">Добавить новость</a>
+    <div>
+      {% for item in news %}
+            <strong>{{ item.title }}</strong> - {{ item.created_at }}
+            <div>
+              {% if item.image %}
+                  <img src="{{ item.image.url }}" alt="{{ item.title }}" width="100">  <!-- Отображение изображения -->
+              {% endif %}
+            </div>
+            <div>
+              {{ item.content}}
+            </div>
+            <a href="{% url 'edit_news' item.id %}">Редактировать</a>
+            <a href="{% url 'delete_news' item.id %}">Удалить</a>  <!-- Ссылка для удаления -->
+    {% endfor %}
+      </div>
 {% endblock %}
