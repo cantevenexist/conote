@@ -27,7 +27,7 @@
             {% if user.is_authenticated %}
                 <a href="user/login"><button class="button_login">{{ user.username }}</button></a>
             {% else %}
-                <a href="user/login">
+                <a href="/accounts/login/">
                     <button>Войти</button>
                 </a>
             {% endif %}
