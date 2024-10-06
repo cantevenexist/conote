@@ -25,13 +25,20 @@
         </div>
         <div class="button_area">
             {% if user.is_authenticated %}
-                <a href="user/login"><button class="button_login">{{ user.username }}</button></a>
+                <a href="user/login"><button class="button_login" onclick="toggleDiv()">{{ user.username }}</button></a>
             {% else %}
                 <a href="/accounts/login/">
-                    <button>Войти</button>
+                    <button class="button_login">Войти</button>
                 </a>
             {% endif %}
         </div>
+    </div>
+    <div class="user_settings_panel" id="user_settings_panel">
+        <ul class="user_settings_panel_ul">
+            <li>Профиль</li>
+            <li>Настройки</li>
+            <li><a href="/accounts/logout/">Выход</a></li>
+        </ul>
     </div>
     <div class="layout_central_block">
         {% block content %}
@@ -51,5 +58,15 @@
 
     const layoutCentralBlock = document.querySelector('.layout_central_block');
     layoutCentralBlock.style.maxWidth = getScreenPixelWidth() + 'px';
+</script>
+<script>
+    function toggleDiv() {
+        var user_settings_panel = document.getElementById("user_settings_panel");
+        if (user_settings_panel.classList.contains("show")) {
+            user_settings_panel.classList.remove("show");
+        } else {
+            user_settings_panel.classList.add("show");
+        }
+    }
 </script>
 </html>
