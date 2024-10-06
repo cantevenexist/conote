@@ -16,9 +16,6 @@ class NewsCreateView(CreateView):
     template_name = 'news/news_form.html'
     success_url = reverse_lazy('list_news')
 
-    def form_valid(self, form):
-        return super().form_valid(form)
-
 class NewsUpdateView(UpdateView):
     model = News
     form_class = NewsForm
