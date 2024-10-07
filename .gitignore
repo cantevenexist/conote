@@ -2,3 +2,5 @@
 /.env.db
 /.env.cache_db
 /.env.email
+*.pyc
+__pycache__/
