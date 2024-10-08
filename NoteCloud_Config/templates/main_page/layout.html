@@ -25,7 +25,7 @@
         </div>
         <div class="button_area">
             {% if user.is_authenticated %}
-                <a href="user/login"><button class="button_login" onclick="toggleDiv()">{{ user.username }}</button></a>
+                <button class="button_login" onclick="toggleDiv()">{{ user.username }}</button>
             {% else %}
                 <a href="/accounts/login/">
                     <button class="button_login">Войти</button>

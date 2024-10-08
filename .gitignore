@@ -4,3 +4,4 @@
 /.env.email
 *.pyc
 __pycache__/
+/.venv
