@@ -1,0 +1,169 @@
+* {
+}
+
+html, body {
+    background-size: 100% 100%;
+    width: 100%;
+    height: 100%;
+    background: white;
+}
+
+.layout_central_block {
+    border: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 7%;
+    width: 60%;
+    box-shadow: 15px 15px 30px #bebebe, -15px -15px 30px #ffffff;
+    border-radius: 15px 15px 15px 15px;
+    align-items: center;
+    justify-content: center;
+}
+
+label[for="id_login"] {
+    display: none;
+}
+
+label[for="id_password"] {
+    display: none;
+}
+
+label[for="id_username"] {
+    display: none;
+}
+
+label[for="id_email"] {
+    display: none;
+}
+
+label[for="id_password1"] {
+    display: none;
+}
+
+label[for="id_password2"] {
+    display: none;
+}
+
+.layout_central_block input[id="id_login"] {
+    width: 50%;
+}
+
+.layout_central_block input[id="id_password"] {
+    width: 50%;
+}
+
+.rainy-weather {
+    margin: 3em auto;
+    width: 310px;
+    height: 180px;
+    position: relative;
+}
+
+.cloud-main {
+    width: 310px;
+    height: 120px;
+    background: #ccc;
+    border-radius: 100em;
+    position: absolute;
+    z-index: 100;
+    top: 50px;
+    box-shadow: 0 3px 5px rgba(0,0,0, 0.3);
+    background: linear-gradient(#F2F2F2 70%, #E5E5E5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cloud-center {
+    width: 140px;
+    height: 180px;
+    margin: 0 auto;
+    background: #F2F2F2;
+    position: absolute;
+    border-radius: 100em;
+    top: -30px;
+    right: 50px;
+}
+
+.cloud-left {
+    width: 90px;
+    height: 130px;
+    margin: 0 auto;
+    background: #F2F2F2;
+    position: absolute;
+    border-radius: 100em;
+    top: 0;
+    right: 160px;
+}
+
+a {
+    font-family: 'Marmelad', sans-serif;
+    color: #C59DD4;
+    transition: all .6s ease;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #000000;
+    text-decoration: none;
+}
+
+h {
+    font-size: 50px;
+    font-family: 'Marmelad', sans-serif;
+    color: #C59DD4;
+}
+
+h1 {
+    font-size: 30px;
+    font-family: 'Marmelad', sans-serif;
+    color: #000000;
+}
+
+p {
+    font-size: 25px;
+    font-family: 'Marmelad', sans-serif;
+    color: #000000;
+}
+
+input {
+    font-size: 20px;
+    font-family: 'Marmelad', sans-serif;
+}
+
+button {
+    font-size: 15px;
+    padding: 0.5em 2em;
+    border: transparent;
+    background: #C3B4E9;
+    color: white;
+    border-radius: 4px;
+}
+
+.button_area button {
+    right: 0%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+button:hover {
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, #E3B8DF 0%, #C3B4E9 100%);
+}
+
+@media (max-width: 769px) {
+    .layout_central_block {
+        width: 100%;
+        top: 0%;
+        box-shadow: none;
+    }
+    .layout_central_block input[id="id_login"] {
+        width: 96%;
+    }
+
+    .layout_central_block input[id="id_password"] {
+        width: 96%;
+    }
+}

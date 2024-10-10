@@ -1,4 +1,7 @@
-.env.dev
-.env.db
-.env.cache_db
-.env.email
+/.env.dev
+/.env.db
+/.env.cache_db
+/.env.email
+*.pyc
+__pycache__/
+/.venv

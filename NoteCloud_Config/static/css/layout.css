@@ -53,23 +53,57 @@ html, body {
     height: 100%;
 }
 
-button {
+.button_login {
     font-size: 15px;
     padding: 0.5em 2em;
     border: transparent;
     background: #C3B4E9;
     color: white;
     border-radius: 4px;
+    font-family: 'Marmelad', sans-serif;
 }
 
-.button_area button {
+.button_area .button_login {
     right: 0%;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
 }
 
-button:hover {
-    background: rgb(2,0,36);
+.button_login:hover {
+    color: white;
     background: linear-gradient(90deg, #E3B8DF 0%, #C3B4E9 100%);
+    cursor: pointer;
+}
+
+#user_settings_panel {
+    width: 160px;
+    position: fixed;
+    top: 48px;
+    right: 10px;
+    background-color: white;
+    padding: 10px;
+    display: none;
+    z-index: 1000;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    border-radius: 0 0 10px 10px;
+}
+
+#user_settings_panel.show {
+    display: block;
+}
+
+li {
+    list-style: none;
+    font-size: 18px;
+    font-family: 'Marmelad', sans-serif;
+}
+
+.user_settings_panel_ul a {
+    text-decoration: none;
+    color: black;
+}
+
+.user_settings_panel_ul a:hover {
+    color: #E3B8DF;
 }

@@ -10,14 +10,14 @@ html, body {
 
 .rainy-weather {
     margin: 3em auto;
-    width: 350px;
+    width: 310px;
     height: 400px;
     position: relative;
 }
 
 .cloud-main {
-    width: 350px;
-    height: 130px;
+    width: 310px;
+    height: 120px;
     background: #ccc;
     border-radius: 100em;
     position: absolute;
@@ -31,7 +31,7 @@ html, body {
 }
 
 .cloud-center {
-    width: 180px;
+    width: 140px;
     height: 180px;
     margin: 0 auto;
     background: #F2F2F2;
@@ -42,7 +42,7 @@ html, body {
 }
 
 .cloud-left {
-    width: 130px;
+    width: 90px;
     height: 130px;
     margin: 0 auto;
     background: #F2F2F2;
