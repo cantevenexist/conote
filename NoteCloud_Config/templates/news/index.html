@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+  Блог NoteCloud
+{% endblock %}
+
+{% block content %}
+  <p>Новости</p>
+  <a href="{% url 'news_create' %}">Добавить новость</a>
+  <div style="display:grid;">
+      {% for item in news %}
+        {{ item.title }}
+        
+        <p>{{ item.updated_at|date:"d.m.Y, H:i" }}</p>
+        
+        {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" style="max-width: 300px;">
+        {% endif %}
+        
+        {{ item.preview_content }}
+        
+        <a href="{% url 'news_detail' item.slug %}">Подробнее</a>
+        <a href="{% url 'news_edit' item.slug %}">Изменить</a>
+        <a href="{% url 'news_delete' item.slug %}">Удалить</a>
+        </br>
+      {% endfor %}
+  </div>
+{% endblock %}
