@@ -4,10 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import HttpResponseRedirect, Http404
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from .models import News
-from .forms import NewsForm
+from .models import News, Comment
+from .forms import NewsForm, CommentForm
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
@@ -18,9 +19,9 @@ class NewsListView(ListView):
     context_object_name = 'news'
 
     def get_queryset(self):
-            # Сортируем по дате создания (например, поле created_at) в порядке убывания
-            return News.objects.order_by('-created_at')
-            
+        # Сортируем по дате создания (например, поле created_at) в порядке убывания
+        return News.objects.order_by('-created_at')
+
 class NewsDetailView(DetailView):
     model = News
     template_name = 'news/detail.html'
@@ -30,13 +31,18 @@ class NewsDetailView(DetailView):
         slug = self.kwargs.get('slug')
         return get_object_or_404(News, slug=slug)
 
-class NewsCreateView(CreateView):
+class NewsCreateView(LoginRequiredMixin, CreateView):
     model = News
     form_class = NewsForm
     template_name = 'news/news_form.html'
     success_url = reverse_lazy('news_list')
 
-class NewsUpdateView(UpdateView):
+    def form_valid(self, form):
+        # Устанавливаем автора новости на текущего авторизованного пользователя
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+        
+class NewsUpdateView(LoginRequiredMixin, UpdateView):
     model = News
     form_class = NewsForm
     template_name = 'news/news_form.html'
@@ -46,7 +52,7 @@ class NewsUpdateView(UpdateView):
         slug = self.kwargs.get('slug')
         return get_object_or_404(News, slug=slug)
 
-class NewsDeleteView(DeleteView):
+class NewsDeleteView(LoginRequiredMixin, DeleteView):
     model = News
     template_name = 'news/news_confirm_delete.html'
     success_url = reverse_lazy('news_list')

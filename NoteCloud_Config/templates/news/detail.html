@@ -8,7 +8,7 @@
 {% block content %}
     <p>Новости</p>
     <div style="display:grid;">
-        {{ news.title }}
+        {{ news.title }} - {{ news.author.username }} - {{ news.updated_at|date:"d.m.Y, H:i" }}
         {% if news.image %}
             <img src="{{ news.image.url }}" alt="{{ news.title }}" style="max-width: 300px;">
         {% endif %}
@@ -16,4 +16,21 @@
         <a href="{% url 'news_edit' news.slug %}">Изменить</a>
         <a href="{% url 'news_delete' news.slug %}">Удалить</a>
     </div>
+
+    <p>Комментарии</p>
+    {% for comment in comments %}
+        <div>
+            <strong>{{ comment.author.username }}</strong> ({{ comment.created_at }})<br>
+            {{ comment.content }}
+        </div>
+        {% empty %}
+        <p>Нет комментариев.</p>
+    {% endfor %}
+
+    <p>Добавить комментарий</p`>
+    {% if user.is_authenticated %}
+   
+    {% else %}
+        <p>Для добавления комментариев необходимо авторизоваться</p`>
+    {% endif %}
 {% endblock %}

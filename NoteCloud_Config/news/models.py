@@ -1,7 +1,11 @@
+import os
 from django.db import models
 from django.utils.text import slugify
 from transliterate import translit
-import os
+from django.conf import settings
+from django.contrib.auth import get_user_model
+
+User = get_user_model()  # Получаем модель пользователя
 
 class News(models.Model):
     title = models.CharField(max_length=200)
@@ -11,6 +15,7 @@ class News(models.Model):
     slug = models.SlugField(max_length=200, unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -41,3 +46,13 @@ class News(models.Model):
                     os.remove(old_image.path)
 
         super().save(*args, **kwargs)  # Вызываем метод save родительского класса
+
+
+class Comment(models.Model):
+    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments')
+    author_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.author} on {self.news.title}"

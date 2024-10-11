@@ -7,12 +7,15 @@
 
 {% block content %}
   <p>Новости</p>
-  <a href="{% url 'news_create' %}">Добавить новость</a>
+  {% if user.is_authenticated %}
+    <a href="{% url 'news_create' %}">Добавить новость</a>
+  {% else %}
+      <p>Для добавления новости необходимо авторизоваться</p`>
+  {% endif %}
+
   <div style="display:grid;">
       {% for item in news %}
-        {{ item.title }}
-        
-        <p>{{ item.updated_at|date:"d.m.Y, H:i" }}</p>
+        {{ item.title }} - {{ item.author.username }} - {{ item.updated_at|date:"d.m.Y, H:i" }}
         
         {% if item.image %}
             <img src="{{ item.image.url }}" alt="{{ item.title }}" style="max-width: 300px;">
