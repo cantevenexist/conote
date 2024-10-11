@@ -18,19 +18,37 @@
     </div>
 
     <p>Комментарии</p>
+
+    {% if user.is_authenticated %}
+    <p>Добавить комментарий</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if form.errors %}
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+            <ul>
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <button type="submit">Отправить комментарий</button>
+    </form>
+    {% else %}
+        <p>Для добавления комментариев необходимо авторизоваться</p`>
+    {% endif %}
+
     {% for comment in comments %}
         <div>
-            <strong>{{ comment.author.username }}</strong> ({{ comment.created_at }})<br>
-            {{ comment.content }}
+            {{ comment.content }} - {{ comment.author.username }} - {{ comment.created_at|date:"d.m.Y, H:i" }}<br>
         </div>
         {% empty %}
         <p>Нет комментариев.</p>
     {% endfor %}
-
-    <p>Добавить комментарий</p`>
-    {% if user.is_authenticated %}
-   
-    {% else %}
-        <p>Для добавления комментариев необходимо авторизоваться</p`>
-    {% endif %}
 {% endblock %}

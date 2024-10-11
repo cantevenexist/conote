@@ -31,6 +31,26 @@ class NewsDetailView(DetailView):
         slug = self.kwargs.get('slug')
         return get_object_or_404(News, slug=slug)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CommentForm()
+        context['comments'] = self.object.comments.all()  # Получаем все комментарии для текущей новости
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = CommentForm(request.POST)
+
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.news = self.object
+            comment.author = request.user  # Используем request.user для получения текущего пользователя
+            comment.save()
+            return redirect('news_detail', slug=self.object.slug)
+
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
 class NewsCreateView(LoginRequiredMixin, CreateView):
     model = News
     form_class = NewsForm
