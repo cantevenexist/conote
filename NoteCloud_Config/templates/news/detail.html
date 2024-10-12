@@ -26,7 +26,7 @@
     
     <div id="commentsList">
         {% for comment in comments %}
-            <li>{{ comment.content }} - {{ comment.author.username }} {{ comment.created_at|date:"d.m.Y, H:i" }}</li>
+            <li>{{ comment.content }} - {{ comment.author.username }} - {{ comment.created_at|date:"d.m.Y, H:i" }}</li>
         {% endfor %}
     </div>
     
@@ -49,7 +49,7 @@
                             const commentsList = $('#commentsList');
                             commentsList.empty();  // Очищаем текущий список
                             response.comments.forEach(function(comment) {
-                                commentsList.append('<li>' + comment.content + ' - ' + comment.author + ' ' + comment.created_at + '</li>');
+                                commentsList.append('<li>' + comment.content + ' - ' + comment.author + ' - ' + comment.created_at + '</li>');
                             });
                         }
                     },
