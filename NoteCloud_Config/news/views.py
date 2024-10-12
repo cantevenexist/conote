@@ -47,8 +47,21 @@ class NewsDetailView(DetailView):
             comment.author = request.user  # Используем request.user для получения текущего пользователя
             comment.save()
 
-        context = self.get_context_data(object=self.object, form=form)
-        return self.render_to_response(context)
+            # Возвращаем JSON-ответ
+            comments = self.object.comments.all().order_by('-created_at')  # Обновляем список комментариев
+            return JsonResponse({
+                'success': True,
+                'comments': [
+                    {
+                        'content': comment.content,
+                        'author': comment.author.username,
+                        'created_at': comment.created_at.strftime('%d.%m.%Y, %H:%M'),  # Форматируем дату в d.m.Y, H:i
+                    }
+                    for comment in comments
+                ],
+            })
+
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
 class NewsCreateView(LoginRequiredMixin, CreateView):
     model = News

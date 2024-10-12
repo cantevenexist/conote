@@ -18,17 +18,47 @@
     </div>
 
     <p>Комментарии</p>
-    <form id="comment-form" method="post" action="{% url 'news_detail' news.slug %}">
+    <form id="commentForm" method="POST">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Добавить комментарий</button>
     </form>
-
-    <div id="comments">
+    
+    <div id="commentsList">
         {% for comment in comments %}
-            <div class="comment">
-                {{ comment.author.username }} - {{ comment.content }} - {{ comment.created_at }}
-            </div>
+            <li>{{ comment.content }} - {{ comment.author.username }} {{ comment.created_at|date:"d.m.Y, H:i" }}</li>
         {% endfor %}
     </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#commentForm').on('submit', function(event) {
+                event.preventDefault();  // Отменяем стандартное поведение формы
+    
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),  // URL, на который будет отправлен запрос
+                    data: $(this).serialize(),  // Сериализуем данные формы
+                    success: function(response) {
+                        if (response.success) {
+                            // Очищаем форму
+                            $('#commentForm')[0].reset();
+    
+                            // Обновляем список комментариев
+                            const commentsList = $('#commentsList');
+                            commentsList.empty();  // Очищаем текущий список
+                            response.comments.forEach(function(comment) {
+                                commentsList.append('<li>' + comment.content + ' - ' + comment.author + ' ' + comment.created_at + '</li>');
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        // Обработка ошибок
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}
