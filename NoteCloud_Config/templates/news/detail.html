@@ -18,37 +18,47 @@
     </div>
 
     <p>Комментарии</p>
-
-    {% if user.is_authenticated %}
-    <p>Добавить комментарий</p>
-    <form method="post">
+    <form id="commentForm" method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        {% if form.errors %}
-            <ul>
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                {% endfor %}
-            </ul>
-            <ul>
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        <button type="submit">Отправить комментарий</button>
+        <button type="submit">Добавить комментарий</button>
     </form>
-    {% else %}
-        <p>Для добавления комментариев необходимо авторизоваться</p`>
-    {% endif %}
-
-    {% for comment in comments %}
-        <div>
-            {{ comment.content }} - {{ comment.author.username }} - {{ comment.created_at|date:"d.m.Y, H:i" }}<br>
-        </div>
-        {% empty %}
-        <p>Нет комментариев.</p>
-    {% endfor %}
+    
+    <div id="commentsList">
+        {% for comment in comments %}
+            <li>{{ comment.content }} - {{ comment.author.username }} - {{ comment.created_at|date:"d.m.Y, H:i" }}</li>
+        {% endfor %}
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#commentForm').on('submit', function(event) {
+                event.preventDefault();  // Отменяем стандартное поведение формы
+    
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),  // URL, на который будет отправлен запрос
+                    data: $(this).serialize(),  // Сериализуем данные формы
+                    success: function(response) {
+                        if (response.success) {
+                            // Очищаем форму
+                            $('#commentForm')[0].reset();
+    
+                            // Обновляем список комментариев
+                            const commentsList = $('#commentsList');
+                            commentsList.empty();  // Очищаем текущий список
+                            response.comments.forEach(function(comment) {
+                                commentsList.append('<li>' + comment.content + ' - ' + comment.author + ' - ' + comment.created_at + '</li>');
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        // Обработка ошибок
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

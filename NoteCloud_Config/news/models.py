@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from transliterate import translit
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()  # Получаем модель пользователя
 
@@ -22,11 +23,17 @@ class News(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            # Преобразуем заголовок в латиницу
-            transliterated_title = translit(self.title, 'ru', reversed=True)  # Транслитерация
-            self.slug = slugify(transliterated_title, allow_unicode=False)  # Генерация slug
+            try:
+                transliterated_title = translit(self.title, 'ru', reversed=True)
+                self.slug = slugify(transliterated_title, allow_unicode=False)
+            except Exception:
+                timestamp = timezone.now().strftime("%H.%M.%S-%d.%m.%Y") 
+                self.slug = slugify(f"{timestamp}", allow_unicode=False)
             
-            # Проверяем уникальность slug
+            if not self.slug:
+                timestamp = timezone.now().strftime("%H.%M.%S-%d.%m.%Y")
+                self.slug = slugify(f"{timestamp}", allow_unicode=False)
+
             original_slug = self.slug
             counter = 1
             while News.objects.filter(slug=self.slug).exists():

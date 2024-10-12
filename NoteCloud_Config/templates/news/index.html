@@ -15,6 +15,7 @@
 
   <div style="display:grid;">
       {% for item in news %}
+        </br>
         {{ item.title }} - {{ item.author.username }} - {{ item.updated_at|date:"d.m.Y, H:i" }}
         
         {% if item.image %}
@@ -26,7 +27,6 @@
         <a href="{% url 'news_detail' item.slug %}">Подробнее</a>
         <a href="{% url 'news_edit' item.slug %}">Изменить</a>
         <a href="{% url 'news_delete' item.slug %}">Удалить</a>
-        </br>
       {% endfor %}
   </div>
 {% endblock %}

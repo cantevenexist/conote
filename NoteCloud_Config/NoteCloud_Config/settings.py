@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main_page',
     'news',
+    'warns',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
