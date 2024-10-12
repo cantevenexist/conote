@@ -2,7 +2,7 @@ import os
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -34,7 +34,7 @@ class NewsDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
-        context['comments'] = self.object.comments.all()  # Получаем все комментарии для текущей новости
+        context['comments'] = self.object.comments.all().order_by('-created_at')  # Получаем все комментарии для текущей новости от новых к старым
         return context
 
     def post(self, request, *args, **kwargs):
@@ -46,7 +46,6 @@ class NewsDetailView(DetailView):
             comment.news = self.object
             comment.author = request.user  # Используем request.user для получения текущего пользователя
             comment.save()
-            return redirect('news_detail', slug=self.object.slug)
 
         context = self.get_context_data(object=self.object, form=form)
         return self.render_to_response(context)
