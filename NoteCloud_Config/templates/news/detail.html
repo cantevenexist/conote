@@ -26,7 +26,10 @@
     
     <div id="commentsList">
         {% for comment in comments %}
-            <li>{{ comment.content }} - {{ comment.author.username }} - {{ comment.created_at|date:"d.m.Y, H:i" }}</li>
+            <li id="comment-{{ comment.id }}">
+                {{ comment.content }} - {{ comment.author.username }} - {{ comment.created_at|date:"d.m.Y, H:i" }}
+                <button class="deleteComment" data-id="{{ comment.id }}">Удалить</button>
+            </li>
         {% endfor %}
     </div>
     
@@ -49,8 +52,34 @@
                             const commentsList = $('#commentsList');
                             commentsList.empty();  // Очищаем текущий список
                             response.comments.forEach(function(comment) {
-                                commentsList.append('<li>' + comment.content + ' - ' + comment.author + ' - ' + comment.created_at + '</li>');
+                                commentsList.append('<li id="comment-' + comment.id + '">' + comment.content + ' - ' + comment.author + ' - ' + comment.created_at + ' <button class="deleteComment" data-id="' + comment.id + '">Удалить</button></li>');
                             });
+                        }
+                    },
+                    error: function(xhr) {
+                        // Обработка ошибок
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+    
+            // Обработчик для кнопок удаления комментариев
+            $(document).on('click', '.deleteComment', function() {
+                const commentId = $(this).data('id');
+    
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ request.path }}',  // Используйте текущий URL
+                    data: {
+                        'comment_id': commentId,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'  // Не забудьте передать CSRF-токен
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Удаляем комментарий из списка
+                            $('#comment-' + commentId).remove();
+                        } else {
+                            console.error(response.error);
                         }
                     },
                     error: function(xhr) {
@@ -61,4 +90,5 @@
             });
         });
     </script>
+    
 {% endblock %}

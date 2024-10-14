@@ -39,6 +39,9 @@ class NewsDetailView(DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        if request.POST.get('comment_id'):  # Проверяем, был ли отправлен ID комментария для удаления
+            return self.delete_comment(request)
+        
         form = CommentForm(request.POST)
 
         if form.is_valid():
@@ -53,15 +56,25 @@ class NewsDetailView(DetailView):
                 'success': True,
                 'comments': [
                     {
+                        'id': comment.id,  # Добавляем ID комментария для удаления
                         'content': comment.content,
                         'author': comment.author.username,
-                        'created_at': comment.created_at.strftime('%d.%m.%Y, %H:%M'),  # Форматируем дату в d.m.Y, H:i
+                        'created_at': comment.created_at.strftime('%d.%m.%Y, %H:%M'),
                     }
                     for comment in comments
                 ],
             })
 
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+    def delete_comment(self, request):
+        comment_id = request.POST.get('comment_id')
+        try:
+            comment = self.object.comments.get(id=comment_id)
+            comment.delete()
+            return JsonResponse({'success': True})
+        except Comment.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Комментарий не найден'}, status=404)
 
 class NewsCreateView(LoginRequiredMixin, CreateView):
     model = News
