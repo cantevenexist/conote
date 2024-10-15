@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Редактировать{% else %}Добавить{% endif %} новость
+{% endblock %}
+
+{% block content %}
+<p>{% if object %}Редактировать{% else %}Добавить{% endif %} новость</p>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+</form>
+<a href="{% url 'news_list' %}">Назад</a>
+{% endblock %}
+
+
