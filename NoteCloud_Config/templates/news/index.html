@@ -2,31 +2,33 @@
 {% load static %}
 
 {% block title %}
-  Блог NoteCloud
+    Блог NoteCloud
+{% endblock %}
+
+{% block head %}
 {% endblock %}
 
 {% block content %}
-  <p>Новости</p>
-  {% if user.is_authenticated %}
-    <a href="{% url 'news_create' %}">Добавить новость</a>
-  {% else %}
-      <p>Для добавления новости необходимо авторизоваться</p`>
-  {% endif %}
+    <p>Новости</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'news_create' %}">Добавить новость</a>
+    {% else %}
+        <p>Для добавления новости необходимо авторизоваться</p>
+    {% endif %}
 
-  <div style="display:grid;">
-      {% for item in news %}
-        </br>
-        {{ item.title }} - {{ item.author.username }} - {{ item.updated_at|date:"d.m.Y, H:i" }}
-        
-        {% if item.image %}
-            <img src="{{ item.image.url }}" alt="{{ item.title }}" style="max-width: 300px;">
-        {% endif %}
-        
-        {{ item.preview_content }}
-        
-        <a href="{% url 'news_detail' item.slug %}">Подробнее</a>
-        <a href="{% url 'news_edit' item.slug %}">Изменить</a>
-        <a href="{% url 'news_delete' item.slug %}">Удалить</a>
-      {% endfor %}
-  </div>
+    <div style="display:grid;">
+        {% for item in news %}
+            {{ item.title }} - {{ item.author.username }} - {{ item.updated_at|date:"d.m.Y, H:i" }}
+
+            {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.title }}" style="max-width: 300px;">
+            {% endif %}
+
+            {{ item.preview_content }}
+
+            <a href="{% url 'news_detail' item.slug %}">Подробнее</a>
+            <a href="{% url 'news_edit' item.slug %}">Изменить</a>
+            <a href="{% url 'news_delete' item.slug %}">Удалить</a>
+        {% endfor %}
+    </div>
 {% endblock %}

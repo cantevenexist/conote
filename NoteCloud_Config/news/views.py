@@ -10,8 +10,6 @@ from django.urls import reverse_lazy
 from .models import News, Comment
 from .forms import NewsForm, CommentForm
 
-def custom_404(request, exception):
-    return render(request, '404.html', status=404)
 
 class NewsListView(ListView):
     model = News
@@ -21,6 +19,7 @@ class NewsListView(ListView):
     def get_queryset(self):
         # Сортируем по дате создания (например, поле created_at) в порядке убывания
         return News.objects.order_by('-created_at')
+
 
 class NewsDetailView(DetailView):
     model = News
@@ -76,6 +75,7 @@ class NewsDetailView(DetailView):
         except Comment.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Комментарий не найден'}, status=404)
 
+
 class NewsCreateView(LoginRequiredMixin, CreateView):
     model = News
     form_class = NewsForm
@@ -86,7 +86,8 @@ class NewsCreateView(LoginRequiredMixin, CreateView):
         # Устанавливаем автора новости на текущего авторизованного пользователя
         form.instance.author = self.request.user
         return super().form_valid(form)
-        
+
+
 class NewsUpdateView(LoginRequiredMixin, UpdateView):
     model = News
     form_class = NewsForm
@@ -96,6 +97,7 @@ class NewsUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self):
         slug = self.kwargs.get('slug')
         return get_object_or_404(News, slug=slug)
+
 
 class NewsDeleteView(LoginRequiredMixin, DeleteView):
     model = News

@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'main_page',
     'news',
     'warns',
+    'user_profiles',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -86,7 +87,7 @@ DATABASES = {
     "default": {
         "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
         "NAME": os.environ.get("SQL_DATABASE", BASE_DIR / "db.sqlite3"),
-        "USER": os.environ.get("SQL_USER", "notecloud_admin"),
+        "USER": os.environ.get("SQL_USER", "root"),
         "PASSWORD": os.environ.get("SQL_PASSWORD", "admin"),
         "HOST": os.environ.get("SQL_HOST", "localhost"),
         "PORT": os.environ.get("SQL_PORT", "5432"),
@@ -124,6 +125,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'ru-RU'
+
+LOCALE_PATHS = [os.path.join(BASE_DIR, "locale"), ]
 
 TIME_ZONE = 'UTC'
 
@@ -171,3 +174,24 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = int(os.environ.get("EMAIL_USE_TLS", default=1))
+
+
+# AWS settings
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
+AWS_DEFAULT_ACL = None
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_QUERYSTRING_AUTH = False
+
+# s3 static settings
+AWS_STATIC_LOCATION = 'static'
+STATICFILES_STORAGE = 'backend.storages.StaticStorage'
+
+# s3 media settings
+AWS_MEDIA_LOCATION = 'media'
+DEFAULT_FILE_STORAGE = 'backend.storages.PublicMediaStorage'

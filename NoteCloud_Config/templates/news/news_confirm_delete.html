@@ -5,13 +5,15 @@
     Удалить новость
 {% endblock %}
 
-{% block content %}
-  <p>Удалить новость</p>
-<p>Вы уверены, что хотите удалить "{{ object.title }}"?</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Удалить</button>
-    <a href="{% url 'news_list' %}">Отмена</a>
-</form>
+{% block head %}
 {% endblock %}
 
+{% block content %}
+    <p>Удалить новость</p>
+    <p>Вы уверены, что хотите удалить "{{ object.title }}"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Удалить</button>
+        <a href="{% url 'news_list' %}">Отмена</a>
+    </form>
+{% endblock %}
