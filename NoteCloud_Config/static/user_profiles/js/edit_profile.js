@@ -53,7 +53,7 @@ document.getElementById('profile-form').addEventListener('submit', function(even
 
     const formData = new FormData(this);
     if (croppedBlob) {
-        formData.append('avatar', croppedBlob, 'cropped-avatar.png');
+        formData.append('avatar', croppedBlob);
     }
 
     fetch(this.action, {
