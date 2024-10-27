@@ -9,26 +9,35 @@
 {% endblock %}
 
 {% block content %}
-    <p>Новости</p>
+
+<p>Новости</p>
+<div>
+  <div class="news_block">
     {% if user.is_authenticated %}
-        <a href="{% url 'news_create' %}">Добавить новость</a>
-    {% else %}
-        <p>Для добавления новости необходимо авторизоваться</p>
+      <a href="{% url 'news_create' %}"><button><img class="add_post_icon" style="display: none;"src="{% static 'news/img/create.svg' %}" alt="add_post_block_icon"><p class="">Добавить новость</p></button></a>
     {% endif %}
-
-    <div style="display:grid;">
-        {% for item in news %}
-            {{ item.title }} - {{ item.author.username }} - {{ item.updated_at|date:"d.m.Y, H:i" }}
-
-            {% if item.image %}
-                <img src="{{ item.image.url }}" alt="{{ item.title }}" style="max-width: 300px;">
-            {% endif %}
-
-            {{ item.preview_content }}
-
-            <a href="{% url 'news_detail' item.slug %}">Подробнее</a>
-            <a href="{% url 'news_edit' item.slug %}">Изменить</a>
-            <a href="{% url 'news_delete' item.slug %}">Удалить</a>
-        {% endfor %}
-    </div>
+    {% for item in news %}
+      <div class="news_post">
+        
+        <div class="title">
+          <strong>{{ item.title }}</strong> - {{ item.author.username }} - {{ item.updated_at|date:"d.m.Y, H:i" }}
+        </div>
+        
+        <div class="image_container">
+          {% if item.image %}
+              <img class="image" src="{{ item.image.url }}" alt="{{ item.title }}">
+          {% endif %}
+        </div>
+        
+        <div class="preview_content">
+          {{ item.preview_content }}
+        </div>
+        
+        <a href="{% url 'news_detail' item.slug %}">Подробнее</a>
+        <a href="{% url 'news_edit' item.slug %}">Изменить</a>
+        <a href="{% url 'news_delete' item.slug %}">Удалить</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 {% endblock %}
