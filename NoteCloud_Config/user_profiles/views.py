@@ -1,14 +1,19 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from .models import UserProfile
 from .serializers import UserProfileSerializer
+from .forms import ProfileForm
+from django.contrib.auth.models import User
 
 
 class ProfileView(APIView):
-    def get(self, request):
-        return render(request, 'profile/profile.html')
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        user_profile = get_object_or_404(UserProfile, user=user)
+        form = ProfileForm(instance=user_profile)
+        return render(request, 'profile/profile.html', {'form': form, 'username': user_profile.user.username})
 
 
 class SettingsView(APIView):

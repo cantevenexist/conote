@@ -6,5 +6,22 @@
 {% endblock %}
 
 {% block content %}
-
+    <h1>Профиль {{ username }}</h1>
+    <form>
+        <div id="image-container">
+            {% if form.instance.avatar %}
+            <div>
+                <img id="avatar-preview" src="{{ form.instance.avatar.url }}" alt="Avatar" width="256" height="256">
+            </div>
+            {% else %}
+            <div class="default_avatar" style="background-color: #dedede; width: 256px; height: 256px;">
+                <i class="fa-solid fa-user" style="color: #6f7276; font-size: 150px;"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div>
+            <label>О себе:</label>
+            <h2>{{ form.instance.about_me }}</h2>
+        </div>
+    </form>
 {% endblock %}
