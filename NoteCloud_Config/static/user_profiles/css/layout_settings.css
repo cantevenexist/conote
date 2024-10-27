@@ -1,0 +1,8 @@
+.layout_central_block .account_settings_panel {
+    width: 40%;
+    float: left;
+}
+.layout_central_block .detailed_settings_layout {
+    width: 60%;
+    float: left;
+}

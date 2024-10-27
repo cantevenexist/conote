@@ -1,0 +1,49 @@
+{% extends 'profile/layout_settings.html' %}
+{% load static %}
+
+{% block head2 %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+    <link rel="stylesheet" href="{% static 'user_profiles/css/edit_profile.css' %}">
+{% endblock %}
+
+{% block setting %}
+    <h1>Изменить профиль</h1>
+    <form id="profile-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div id="image-container">
+            {% if user_profile.avatar %}
+            <div>
+                <img id="avatar-preview" src="{{ user_profile.avatar.url }}" alt="Avatar" width="256" height="256">
+            </div>
+            {% else %}
+            <div class="default_avatar" style="background-color: #dedede; width: 256px; height: 256px;">
+                <i class="fa-solid fa-user" style="color: #6f7276; font-size: 150px;"></i>
+            </div>
+            {% endif %}
+        </div>
+        {% if user_profile.avatar %}
+            <button type="submit" name="delete_avatar" formmethod="POST">Удалить фотографию</button>
+        {% endif %}
+        <div>
+            <label for="avatar">Выберите изображение:</label>
+            <input type="file" id="id_avatar" name="avatar" accept="image/*">
+        </div>
+        <div>
+            <label for="id_about_me">О себе:</label>
+            <textarea id="id_about_me" name="about_me" placeholder="Здесь еще пусто...">{{ user_profile.about_me|default:"" }}</textarea>
+        </div>
+        <input type="hidden" id="crop-data" name="crop_data">
+        <button type="button" id="crop-button">Обрезать изображение</button>
+        <button type="submit">Сохранить изменения</button>
+    </form>
+    <div id="crop-modal" style="display:none;">
+        <h2>Обрезать изображение</h2>
+        <img id="image-to-crop" style="max-width: 100%;" />
+        <button id="confirm-crop">Подтвердить обрезку</button>
+    </div>
+{% endblock %}
+
+{% block javascript2 %}
+    <script src="{% static 'user_profiles/js/edit_profile.js' %}"></script>
+{% endblock %}

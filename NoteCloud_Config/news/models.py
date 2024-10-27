@@ -8,6 +8,7 @@ from django.utils import timezone
 
 User = get_user_model()  # Получаем модель пользователя
 
+
 class News(models.Model):
     title = models.CharField(max_length=200)
     preview_content = models.TextField(null=True, blank=True)

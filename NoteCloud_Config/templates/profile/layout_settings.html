@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+    NoteCloud [Настройки профиля]
+{% endblock %}
+
+{% block head %}
+    {% block head2 %}
+    {% endblock %}
+    <link rel="stylesheet" href="{% static 'user_profiles/css/layout_settings.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="account_settings_panel" id="account_settings_panel">
+        <ul class="account_settings_panel_ul">
+            <a href="/accounts/settings/edit_profile"><li class="settings-item">Данные профиля</li></a>
+            <a href="/accounts/settings/security"><li class="settings-item">Пароль и аутентификация</li></a>
+            <a href="/accounts/settings/notifications"><li class="settings-item">Уведомления</li></a>
+            <a href="/accounts/settings/emails"><li class="settings-item">Emails</li></a>
+            <a href="/accounts/settings/delete"><li class="settings-item">Удалить аккаунт</li></a>
+        </ul>
+    </div>
+    <div class="detailed_settings_layout">
+        {% block setting %}
+        {% endblock %}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script src="{% static 'user_profiles/js/layout_settings.js' %}"></script>
+    {% block javascript2 %}
+    {% endblock %}
+{% endblock %}

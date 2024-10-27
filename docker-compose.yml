@@ -12,25 +12,16 @@ services:
       - ./.env.email
     depends_on:
       - db
-      - cache
   db:
     image: postgres:16.4-alpine3.20
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data
     env_file:
       - ./.env.db
     ports:
       - "5432:5432"
-  cache:
-    image: eqalpha/keydb:latest
-    command: keydb-server --save 20 1 --loglevel warning
-    volumes:
-      - cache_data:/data
-    env_file:
-      - ./.env.cache_db
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-  cache_data:
+     driver: local
