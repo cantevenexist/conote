@@ -36,9 +36,10 @@ html, body {
         width:  175px;
     }
     
-    .logotype img {
+    .logotype svg {
         position: absolute;
         height: 70%;
+        width: auto;
         top: 50%;
         transform: translateY(-50%);
     }
@@ -72,7 +73,7 @@ html, body {
         font-size: 0; /* Скрываем текст */
     }
 
-    .button_header .image {
+    .button_header .icon {
         margin-right: 5px;
         position: absolute;
         top: 10px;
@@ -82,7 +83,9 @@ html, body {
         transition: transform 0.5s ease;
     }
     
+
     .button_header.active .user_menu {transform: rotate(180deg);}
+    .button_header .user_board{opacity: 0;}
     .logout{background-color: rgb(255, 50, 50);}
     
     .button_area .button_header {
@@ -169,9 +172,10 @@ html, body {
         height: 100%;
     }
     
-    .logotype img {
+    .logotype svg {
         position: absolute;
         height: 60%;
+        width: auto;
         top: 50%;
         transform: translateY(-50%);
     }
@@ -219,14 +223,15 @@ html, body {
         color: white;
     }
     
-    .button_header .image {
+    .button_header .icon {
         display: block;
         position: absolute;
         top: 5px;
         left: 5px;
         width: 20px;
         height: 20px;
-        transition: transform 0.5s ease;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+        opacity: 1;
     }
     
     .line {
@@ -238,11 +243,60 @@ html, body {
         transition: height 0.3s, background-color 0.3s; /* Плавный переход */
     }
 
+    @keyframes bell {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+    @keyframes board {
+        0% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+        100% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+    }
+
+    @keyframes boards {
+        0% {opacity: 0; transform: translateY(-4px);}
+        40% {opacity: 0; transform: translateY(-4px);}
+        80% {opacity: 0.5; transform: translateY(2px);}
+        100% {opacity: 1; transform: translateY(0);}
+    }
+    
+    @keyframes reverseboard {
+        0% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+        100% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+    }
+
+    @keyframes reverseboards {
+        0% {opacity: 1; transform: translateY(0);}
+        100% {opacity: 0; transform: translateY(100%);}
+    }
+
+    @keyframes help {
+        0% { transform: translate(0); }
+        25% { transform: translate(-1px, 1px); }
+        50% { transform: translate(1px, -1px); }
+        75% { transform: translate(-1px, -1px); }
+        100% { transform: translate(0); }
+    }
+      
     .layout_header .button_header:hover {transform: translate(5px, -50%);}
     .button_header.active .user_menu {transform: rotate(180deg);}
     .button_header:hover .line {height: 100%; background-color: rgba(0, 0, 0, 0.8);}
+    
+    .button_header:hover .user_board{animation: board 0.5s forwards;}
+    .button_header .user_boards{opacity: 0;}
+    .button_header:hover .user_boards{animation: boards 0.5s forwards;}
+    .button_header:not(:hover) .user_board {animation: reverseboard 0.5s forwards;}
+    .button_header:not(:hover) .user_boards {animation: reverseboards 0.5s forwards;}
+
     .button_header:hover .user_default{transform: scale(1.2);}
+    .button_header:hover .user_notifications{animation: bell 0.5s;}
     .button_header:hover .user_settings{transform: rotate(360deg);}
+    .button_header:hover .user_help{animation: help 0.5s forwards;}
     .button_header:hover .user_logout{transform: translateX(5px);}
     
     .logout {
