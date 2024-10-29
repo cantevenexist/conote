@@ -1,28 +1,9 @@
+/* Mobile */
 @media (max-width: 425.9px) {
-    .news_block {
-        display: block;
-    }
     
-    .news_post {
-        display: flex;
-        flex-direction: column; 
-        align-items: center;
-        justify-content: center;
-        max-width: 100%;
-    }
 }
 
-@media (min-width: 426px){
-    .news_block {
-        display: block;
-    }
-
-    .news_post {
-        display: flex;
-        flex-direction: column; 
-        align-items: center;
-        justify-content: center;
-        max-width: 100%;
-    }
+/* Desktop */
+@media (min-width: 426px) {
+    
 }
-
