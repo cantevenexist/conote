@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const images = document.querySelectorAll('.button_header img');
+    const avatar = document.querySelectorAll('.avatar_area img');
     const logotype = document.querySelectorAll('.logotype img');
-    images.forEach(function(img) {img.setAttribute('draggable', 'false');});
+    avatar.forEach(function(img) {img.setAttribute('draggable', 'false');});
     logotype.forEach(function(img) {img.setAttribute('draggable', 'false');});
 });
 

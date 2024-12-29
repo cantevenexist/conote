@@ -10,11 +10,11 @@ User = get_user_model()  # Получаем модель пользовател�
 
 
 class News(models.Model):
-    title = models.CharField(max_length=200)
-    preview_content = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=255)
+    preview_content = models.CharField(max_length=500, null=True, blank=True)
     content = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='news_images/', null=True, blank=True)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    slug = models.SlugField(max_length=300, unique=True, blank=True) # Допуск для slug больше на 45символов чем название для успешного его создания если сработало исключение
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -59,7 +59,7 @@ class News(models.Model):
 class Comment(models.Model):
     news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
+    content = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

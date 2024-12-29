@@ -9,34 +9,33 @@
 {% endblock %}
 
 {% block content %}
-<p>Новости</p>
-<div class="news_block">
+<div class="news_block no_select">
+  <p>Новости</p>
   {% if user.is_authenticated %}
-    <a href="{% url 'news_create' %}">
-      <button class="add_post"><p>Добавить новость</p></button>
-    </a>
+    <div class="news_action_buttons_container">
+      <button class="news_action_button link" data-url="{% url 'news_create' %}"><p>Добавить новость</p></button>
+    </div>
   {% endif %}
 
   {% for item in news %}
-    <a href="{% url 'news_detail' item.slug %}" class="news_post_link">
+    <div tabindex="0" class="news_post_link link" data-url="{% url 'news_detail' item.slug %}">
       <div class="news_post">
-        <div class="title">
-          <strong>{{ item.title }}</strong>
-          <p class="author">{{ item.author.username }}</p>
-          <p class="date">{{ item.updated_at|date:"d.m.Y, H:i" }}</p>
-        </div>
+        <div class="title"><strong>{{ item.title }}</strong><p class="author">{{ item.author.username }}</p><p class="date time" data-time="{{ item.updated_at|date:"Y-m-d\TH:i:s" }}"></p></div>
         
         {% if item.image %}
         <div class="image_container">
-              <img class="image" src="{{ item.image.url }}" alt="{{ item.title }}" draggable="false">
+          <img class="image" src="{{ item.image.url }}" alt="{{ item.title }}" draggable="false">
         </div>
         {% endif %}
 
-        <div class="preview_content">
-          {{ item.preview_content }}
-        </div>
+        {% if item.preview_content %}
+        <div class="preview_content">{{ item.preview_content }}</div>
+        {% endif %}
+
       </div>
-    </a>
+    </div>
   {% endfor %}
 </div>
+{% endblock %}
+{% block javascript %}
 {% endblock %}

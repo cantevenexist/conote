@@ -9,13 +9,21 @@
 {% endblock %}
 
 {% block content %}
-    <p>{% if object %}Редактировать{% else %}Добавить{% endif %} новость</p>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Сохранить</button>
+        <div class="news_block_detail">
+            <p>{% if object %}Редактировать{% else %}Добавить{% endif %} новость</p>
+            <div class="news_action_buttons_container">
+                <button class='news_action_button'type="submit">Сохранить</button>
+                <div class="separator"></div>
+                <div tabindex="0" class='news_action_button' onclick="goBack()">Назад</div>
+            </div>
+            <div class="news_post_link news_post">
+                <div class="title">{{ form.title }}</div>
+                <div class="image_container">{{ form.image }}</div>
+                <div class="preview_content">{{ form.preview_content }}</div>
+                <div class="content">{{ form.content }}</div>
+            </div>
+        </div>
     </form>
-    <a href="{% url 'news_list' %}">Назад</a>
 {% endblock %}
-
-

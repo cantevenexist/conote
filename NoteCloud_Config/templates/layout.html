@@ -15,13 +15,16 @@
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
     <link rel="stylesheet" href="{% static 'main_page/css/index.css' %}">
     <link rel="stylesheet" href="{% static 'news/css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'news/css/detail.css' %}">
     <link rel="stylesheet" href="{% static 'css/404.css' %}">
     {% block head %}{% endblock %}
 </head>
 <body>
+<div class="no_select">
     <div class="layout_header">
         <div class="logotype">
-            <a href="/"><svg width="2500" height="500" viewBox="0 0 2500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <a href="/">
+                <svg width="2500" height="500" viewBox="0 0 2500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g filter="url(#filter0_i_11_10)">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M185.75 456.85C214.683 472.95 247.7 481 284.8 481C309.3 481 333.333 476.917 356.9 468.75C380.467 460.583 401.817 449.383 420.95 435.15L381.05 367.25C369.85 378.217 356.667 386.85 341.5 393.15C326.333 399.45 310.233 402.6 293.2 402.6C259.133 402.6 232.183 393.15 212.35 374.25C192.75 355.117 182.95 328.75 182.95 295.15C182.95 272.517 187.383 253.267 196.25 237.4C205.117 221.533 217.717 209.4 234.05 201C250.617 192.6 270.333 188.4 293.2 188.4C308.367 188.4 322.833 190.85 336.6 195.75C350.6 200.417 363.083 207.65 374.05 217.45L415.7 149.9C398.2 136.367 378.95 126.333 357.95 119.8C336.95 113.267 314.2 110 289.7 110C261.467 110 235.333 114.667 211.3 124C187.5 133.1 166.733 146.05 149 162.85C131.267 179.417 117.5 199.017 107.7 221.65C97.9 244.05 93 268.667 93 295.5C93 330.967 101.283 362.7 117.85 390.7C134.417 418.467 157.05 440.517 185.75 456.85ZM762.895 441.34C769.239 436.408 775.236 431.078 780.887 425.35C797.92 408.083 811.103 388.367 820.437 366.2C830.003 343.8 834.787 320.233 834.787 295.5C834.787 261.9 826.503 230.983 809.937 202.75C793.603 174.517 770.97 152 742.037 135.2C713.337 118.4 680.437 110 643.337 110C615.337 110 589.67 115.017 566.337 125.05C543.003 134.85 522.703 148.383 505.437 165.65C488.403 182.683 475.22 202.4 465.887 224.8C456.553 247.2 451.887 270.767 451.887 295.5C451.887 329.1 460.053 360.017 476.387 388.25C488.422 408.881 503.814 426.536 522.563 441.213C555.383 417.543 595.469 403.322 638.837 402.535C620.908 401.964 604.791 397.669 590.487 389.65C575.087 380.783 562.953 368.417 554.087 352.55C545.22 336.45 540.787 317.433 540.787 295.5C540.787 273.567 545.103 254.55 553.737 238.45C562.603 222.35 574.737 209.983 590.137 201.35C605.77 192.717 623.503 188.4 643.337 188.4C663.17 188.4 680.787 192.717 696.187 201.35C711.587 209.983 723.72 222.35 732.587 238.45C741.453 254.55 745.887 273.567 745.887 295.5C745.887 317.433 741.453 336.45 732.587 352.55C723.72 368.417 711.47 380.783 695.837 389.65C681.457 397.712 665.144 402.009 646.898 402.543C690.169 403.423 730.157 417.677 762.895 441.34ZM998.133 120.5H908.533V470.5H998.133V276.95C998.133 260.15 1001.63 245.333 1008.63 232.5C1015.63 219.667 1025.32 209.75 1037.68 202.75C1050.28 195.517 1064.63 191.9 1080.73 191.9C1105.47 191.9 1124.72 198.9 1138.48 212.9C1152.25 226.9 1159.13 245.8 1159.13 269.6V470.5H1248.73V241.6C1248.73 219.667 1243.6 198.667 1233.33 178.6C1223.07 158.533 1207.32 142.083 1186.08 129.25C1165.08 116.417 1138.48 110 1106.28 110C1085.75 110 1066.03 114.2 1047.13 122.6C1028.47 130.767 1012.13 144.067 998.133 162.5V120.5ZM1343.87 388.25C1360.2 416.25 1382.72 438.767 1411.42 455.8C1440.35 472.6 1473.48 481 1510.82 481C1538.82 481 1564.48 476.1 1587.82 466.3C1611.15 456.267 1631.33 442.617 1648.37 425.35C1665.4 408.083 1678.58 388.367 1687.92 366.2C1697.48 343.8 1702.27 320.233 1702.27 295.5C1702.27 261.9 1693.98 230.983 1677.42 202.75C1661.08 174.517 1638.45 152 1609.52 135.2C1580.82 118.4 1547.92 110 1510.82 110C1482.82 110 1457.15 115.017 1433.82 125.05C1410.48 134.85 1390.18 148.383 1372.92 165.65C1355.88 182.683 1342.7 202.4 1333.37 224.8C1324.03 247.2 1319.37 270.767 1319.37 295.5C1319.37 329.1 1327.53 360.017 1343.87 388.25ZM1563.32 389.65C1547.92 398.283 1530.3 402.6 1510.47 402.6C1490.87 402.6 1473.37 398.283 1457.97 389.65C1442.57 380.783 1430.43 368.417 1421.57 352.55C1412.7 336.45 1408.27 317.433 1408.27 295.5C1408.27 273.567 1412.58 254.55 1421.22 238.45C1430.08 222.35 1442.22 209.983 1457.62 201.35C1473.25 192.717 1490.98 188.4 1510.82 188.4C1530.65 188.4 1548.27 192.717 1563.67 201.35C1579.07 209.983 1591.2 222.35 1600.07 238.45C1608.93 254.55 1613.37 273.567 1613.37 295.5C1613.37 317.433 1608.93 336.45 1600.07 352.55C1591.2 368.417 1578.95 380.783 1563.32 389.65ZM1836.65 450.2C1857.65 470.733 1886.11 481 1922.05 481C1936.98 481 1951.33 479.133 1965.1 475.4C1978.86 471.667 1990.88 467.117 2001.15 461.75L1987.15 390.35C1981.08 393.383 1974.43 395.833 1967.2 397.7C1960.2 399.567 1952.73 400.5 1944.8 400.5C1929.16 400.5 1916.91 395.95 1908.05 386.85C1899.18 377.517 1894.75 361.65 1894.75 339.25V193.3H1986.8V120.5H1894.75V19H1805.15V120.5H1731.3V193.3H1805.15V357.1C1805.15 398.633 1815.65 429.667 1836.65 450.2ZM2137.71 457.9C2166.41 473.3 2199.78 481 2237.81 481C2254.38 481 2271.64 479.25 2289.61 475.75C2307.81 472.25 2325.08 467.233 2341.41 460.7C2357.74 454.167 2371.39 446.467 2382.36 437.6L2350.86 374.95C2334.99 386.383 2317.84 395.017 2299.41 400.85C2280.98 406.683 2261.73 409.6 2241.66 409.6C2219.03 409.6 2199.31 405.75 2182.51 398.05C2165.94 390.117 2153.11 379.267 2144.01 365.5C2135.14 351.733 2130.83 335.633 2131.06 317.2H2404.76C2409.43 287.567 2408.61 260.267 2402.31 235.3C2396.24 210.1 2385.51 188.167 2370.11 169.5C2354.94 150.6 2335.81 136.017 2312.71 125.75C2289.61 115.25 2263.36 110 2233.96 110C2206.89 110 2181.93 114.55 2159.06 123.65C2136.43 132.75 2116.59 145.7 2099.56 162.5C2082.76 179.067 2069.69 198.667 2060.36 221.3C2051.26 243.933 2046.71 268.783 2046.71 295.85C2046.71 332.717 2054.64 365.033 2070.51 392.8C2086.61 420.567 2109.01 442.267 2137.71 457.9ZM2317.96 253.5H2136.31C2138.88 229.933 2148.79 211.5 2166.06 198.2C2183.33 184.667 2205.26 177.9 2231.86 177.9C2258.69 177.9 2279.58 184.667 2294.51 198.2C2309.44 211.5 2317.26 229.933 2317.96 253.5Z" fill="url(#paint0_linear_11_10)"/>
                 </g>
@@ -47,9 +50,26 @@
                 </linearGradient>
                 </defs>
                 </svg>
-                </a>
+            </a>
         </div>
-        
+        {% if user.is_authenticated %}
+        <div class="avatar_area">
+            {% if user_profile.avatar %}
+            <div class="default_avatar">
+                <img id="avatar-preview" src="{{ user_profile.avatar.url }}" alt="Avatar">
+            </div>
+            {% else %}
+            <div class="default_avatar">
+                <svg  width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g id="System / Camera">
+                    <path id="Vector" d="M9.48898 7H6.2002C5.08009 7 4.51962 7 4.0918 7.21799C3.71547 7.40973 3.40973 7.71547 3.21799 8.0918C3 8.51962 3 9.08009 3 10.2002V15.8002C3 16.9203 3 17.4796 3.21799 17.9074C3.40973 18.2837 3.71547 18.5905 4.0918 18.7822C4.5192 19 5.07899 19 6.19691 19H17.8031C18.921 19 19.48 19 19.9074 18.7822C20.2837 18.5905 20.5905 18.2837 20.7822 17.9074C21 17.48 21 16.921 21 15.8031V10.1969C21 9.07899 21 8.5192 20.7822 8.0918C20.5905 7.71547 20.2837 7.40973 19.9074 7.21799C19.4796 7 18.9203 7 17.8002 7H14.5108M9.48898 7H9.55078M9.48898 7C9.50151 7.00001 9.51468 7 9.52857 7L9.55078 7M9.48898 7C9.38286 6.99995 9.32339 6.99941 9.27637 6.99414C8.68878 6.92835 8.28578 6.36908 8.40918 5.79084C8.42066 5.73703 8.44336 5.66894 8.4883 5.53412L8.49023 5.52841C8.54156 5.37443 8.56723 5.29743 8.59558 5.22949C8.88586 4.53389 9.54322 4.06083 10.2949 4.00541C10.3683 4 10.449 4 10.6113 4H13.3886C13.5509 4 13.6322 4 13.7057 4.00541C14.4574 4.06083 15.114 4.53389 15.4043 5.22949C15.4326 5.29743 15.4584 5.37434 15.5098 5.52832C15.556 5.66699 15.5791 5.73636 15.5908 5.79093C15.7142 6.36917 15.3118 6.92835 14.7242 6.99414C14.6772 6.99941 14.6171 6.99995 14.5108 7M9.55078 7H14.449M14.449 7H14.5108M14.449 7L14.4712 7C14.4851 7 14.4983 7.00001 14.5108 7M12 16C10.3431 16 9 14.6569 9 13C9 11.3431 10.3431 10 12 10C13.6569 10 15 11.3431 15 13C15 14.6569 13.6569 16 12 16Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="stroke: #6f7276;"/>
+                    </g>
+                </svg>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
         <div class="button_area">
             {% if user.is_authenticated %}
                 <button class="button_header" onclick="toggleMenu()" id="toggle_button">
@@ -64,7 +84,7 @@
             {% else %}
                 <a href="/accounts/login/">
                     <button class="button_header"><div class="line"></div>
-                        <svg class="icon user_default" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="icon user_profile" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g id="User / User_03">
                             <path id="Vector" d="M18 19C18 16.7909 15.3137 15 12 15C8.68629 15 6 16.7909 6 19M12 12C9.79086 12 8 10.2091 8 8C8 5.79086 9.79086 4 12 4C14.2091 4 16 5.79086 16 8C16 10.2091 14.2091 12 12 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </g>
@@ -78,7 +98,7 @@
 
     <div class="user_settings_panel" id="user_settings_panel">
         <div class="user_settings_container">
-            <a><button class="button_header"><div class="line"></div>
+            <button class="button_header" onclick="window.location.href='/';"><div class="line"></div>
                 <svg class="icon user_board" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="Media / Stop">
                     <path id="Vector" d="M5 8.2002V15.8002C5 16.9203 5 17.4796 5.21799 17.9074C5.40973 18.2837 5.71547 18.5905 6.0918 18.7822C6.5192 19 7.07899 19 8.19691 19H15.8036C16.9215 19 17.4805 19 17.9079 18.7822C18.2842 18.5905 18.5905 18.2837 18.7822 17.9074C19 17.48 19 16.921 19 15.8031V8.19691C19 7.07899 19 6.5192 18.7822 6.0918C18.5905 5.71547 18.2842 5.40973 17.9079 5.21799C17.4801 5 16.9203 5 15.8002 5H8.2002C7.08009 5 6.51962 5 6.0918 5.21799C5.71547 5.40973 5.40973 5.71547 5.21799 6.0918C5 6.51962 5 7.08009 5 8.2002Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -89,25 +109,28 @@
                     <path id="Vector" d="M21 12L12 18L3 12M21 16L12 22L3 16M21 8L12 14L3 8L12 2L21 8Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
                 </svg>
-                <p>Мои доски</p></button></a>
+                <p>Мои доски</p>
+            </button>
             <div class="separator"></div>
-            <a><button class="button_header"><div class="line"></div>
-                <svg class="icon user_default" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button class="button_header" onclick="window.location.href='/';"><div class="line"></div>
+                <svg class="icon user_profile" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="User / User_03">
                     <path id="Vector" d="M18 19C18 16.7909 15.3137 15 12 15C8.68629 15 6 16.7909 6 19M12 12C9.79086 12 8 10.2091 8 8C8 5.79086 9.79086 4 12 4C14.2091 4 16 5.79086 16 8C16 10.2091 14.2091 12 12 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
                 </svg>
-                <p>Профиль</p></button></a>
+                <p>Профиль</p>
+            </button>
             <div class="separator"></div>
-            <a><button class="button_header"><div class="line"></div>
+            <button class="button_header" onclick="window.location.href='/';"><div class="line"></div>
                 <svg class="icon user_notifications" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="Communication / Bell">
                     <path id="Vector" d="M15 17V18C15 19.6569 13.6569 21 12 21C10.3431 21 9 19.6569 9 18V17M15 17H9M15 17H18.5905C18.973 17 19.1652 17 19.3201 16.9478C19.616 16.848 19.8475 16.6156 19.9473 16.3198C19.9997 16.1643 19.9997 15.9715 19.9997 15.5859C19.9997 15.4172 19.9995 15.3329 19.9863 15.2524C19.9614 15.1004 19.9024 14.9563 19.8126 14.8312C19.7651 14.7651 19.7048 14.7048 19.5858 14.5858L19.1963 14.1963C19.0706 14.0706 19 13.9001 19 13.7224V10C19 6.134 15.866 2.99999 12 3C8.13401 3.00001 5 6.13401 5 10V13.7224C5 13.9002 4.92924 14.0706 4.80357 14.1963L4.41406 14.5858C4.29476 14.7051 4.23504 14.765 4.1875 14.8312C4.09766 14.9564 4.03815 15.1004 4.0132 15.2524C4 15.3329 4 15.4172 4 15.586C4 15.9715 4 16.1642 4.05245 16.3197C4.15225 16.6156 4.3848 16.848 4.68066 16.9478C4.83556 17 5.02701 17 5.40956 17H9" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
                 </svg>
-                <p>Уведомления</p></button></a>
+                <p>Уведомления</p>
+            </button>
             <div class="separator"></div>
-            <a><button class="button_header"><div class="line"></div> 
+            <button class="button_header" onclick="window.location.href='/accounts/settings/';"><div class="line"></div> 
                 <svg class="icon user_settings" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="Interface / Settings">
                     <g id="Vector">
@@ -116,31 +139,143 @@
                     </g>
                     </g>
                 </svg>
-                <p>Настройки</p></button></a>
+                <p>Настройки</p>
+            </button>
             <div class="separator"></div>
-            <a><button class="button_header"><div class="line"></div>
+            <button class="button_header" onclick="window.location.href='/';"><div class="line"></div>
                 <svg class="icon user_help" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="Warning / Help">
                     <path id="Vector" d="M8.19531 8.76498C8.42304 8.06326 8.84053 7.43829 9.40137 6.95899C9.96221 6.47968 10.6444 6.16501 11.373 6.0494C12.1017 5.9338 12.8486 6.02202 13.5303 6.3042C14.2119 6.58637 14.8016 7.05166 15.2354 7.64844C15.6691 8.24521 15.9295 8.95008 15.9875 9.68554C16.0455 10.421 15.8985 11.1581 15.5636 11.8154C15.2287 12.4728 14.7192 13.0251 14.0901 13.4106C13.4611 13.7961 12.7377 14.0002 12 14.0002V14.9998M12.0498 19V19.1L11.9502 19.1002V19H12.0498Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
                 </svg>
-                <p>Помощь</p></button></a>
+                <p>Помощь</p>
+            </button>
             <div class="separator"></div>
-            <a href="/accounts/logout/"><button class="button_header logout"><div class="line"></div>
+            <button class="button_header logout" onclick="window.location.href='/accounts/logout/';"><div class="line"></div>
                 <svg class="icon user_logout" style="filter: brightness(0) invert(1);" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="Interface / Log_Out">
                     <path id="Vector" d="M12 15L15 12M15 12L12 9M15 12H4M9 7.24859V7.2002C9 6.08009 9 5.51962 9.21799 5.0918C9.40973 4.71547 9.71547 4.40973 10.0918 4.21799C10.5196 4 11.0801 4 12.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H12.1969C11.079 20 10.5192 20 10.0918 19.7822C9.71547 19.5905 9.40973 19.2839 9.21799 18.9076C9 18.4798 9 17.9201 9 16.8V16.75" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
                 </svg>
-                <p>Выход</p></button></a>
+                <p>Выход</p>
+            </button>
         </div>
     </div>
+</div>
 
+<div class="scrollable-container ">
     <div class="layout_central_block">
         {% block content %}
         {% endblock %}
     </div>
-    <script src="{% static 'js/layout.js' %}"></script>
-    {% block javascript %}{% endblock %}
+</div>
+
+<script src="{% static 'js/layout.js' %}">
+    // Menu button, draggable false
+</script>
+
+<script>
+    // Функция для локализации времени
+    function localizeCommentTimes() {
+        // Находим все элементы с классом 'time'
+        const timeElements = document.querySelectorAll('.time');
+
+        timeElements.forEach(function(element) {
+            const serverTime = element.getAttribute('data-time');
+
+            // Преобразуем строку времени в объект Date
+            const utcDate = new Date(serverTime);
+
+            // Получаем смещение временной зоны (в минутах) для текущего времени устройства
+            const timezoneOffset = utcDate.getTimezoneOffset();
+
+            // Добавляем смещение к времени
+            const localDate = new Date(utcDate.getTime() - timezoneOffset * 60000); // 60000 - миллисекунды в минуте
+
+            // Преобразуем в локальное время пользователя, включая год
+            const localTime = localDate.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+
+            // Обновляем содержимое элемента с локализованным временем
+            element.textContent = localTime;
+        });
+    }
+
+    // Вызовите эту функцию сразу после загрузки страницы или вручную
+    document.addEventListener('DOMContentLoaded', function() {
+        localizeCommentTimes();
+    });
+</script>
+<script>
+    // Метод goBack, который возвращает пользователя на предыдущую страницу
+    function goBack() {
+        window.history.back();
+    }
+</script>
+<script>
+    // Animation link
+    // Works with click and focus Enter key
+    document.querySelectorAll('.link').forEach(link => {
+    // Общая функция для обработки перехода по ссылке
+    const handleLinkAction = (event) => {
+        if (event.type === 'keydown' && event.key !== 'Enter') return; // Игнорировать другие клавиши
+
+        event.preventDefault(); // Отменяем стандартное поведение ссылки
+        const url = link.getAttribute('data-url'); // Получаем URL из атрибута
+
+        // Добавляем класс fade-out к родительскому блоку news_block
+        const newsBlock = document.querySelector('.layout_central_block');
+        newsBlock.classList.add('fade_out');
+
+        // Слушаем событие unload (когда страница начала покидаться)
+        window.addEventListener('unload', () => {
+            newsBlock.classList.remove('fade_out'); // Убираем класс fade-out при переходе
+        });
+
+        // Переходим по ссылке после небольшой задержки, чтобы успела анимация
+        setTimeout(() => {
+            window.location.href = url; // Переход по ссылке
+        }, 300); // Задержка для анимации
+    };
+
+    link.addEventListener('click', handleLinkAction);
+    link.addEventListener('keydown', handleLinkAction);
+});
+</script>
+<script>
+    // Autoexpand textarea
+    const textareas = document.querySelectorAll('textarea'); // Находим все текстовые поля
+
+    // Функция для установки высоты текстового поля
+    function adjustHeight(textarea) {
+        // Устанавливаем высоту в 'auto', чтобы сбросить размер
+        textarea.style.height = 'auto';
+    
+    // Устанавливаем высоту равной scrollHeight
+    // Если высота увеличилась, то она будет соответствовать содержимому
+    if (textarea.scrollHeight > textarea.clientHeight) {
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+}
+
+    // Проходим по всем текстовым полям
+    textareas.forEach(function(textarea) {
+        // Применяем функцию adjustHeight при загрузке страницы
+        adjustHeight(textarea);
+
+    // Добавляем обработчик события на ввод текста
+    textarea.addEventListener('input', function() {
+        adjustHeight(this);
+    });
+});
+
+</script>
+{% block javascript %}
+{% endblock %}
 </body>
 </html>

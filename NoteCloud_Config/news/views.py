@@ -1,4 +1,5 @@
 import os
+import random
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -34,6 +35,25 @@ class NewsDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
         context['comments'] = self.object.comments.all().order_by('-created_at')  # Получаем все комментарии для текущей новости от новых к старым
+        
+        # Список сообщений для случая, если комментариев нет
+        no_comments_messages = [
+            "Здесь пока тишина, не стесняйтесь быть первым!",
+            "Ожидаем ваших мыслей — оставьте первый комментарий!",
+            "Комментов нет, но ваш может стать первым!",
+            "Тишина… Сделайте её громче своим комментарием!",
+            "Пока пусто — напишите, что думаете!",
+            "Никто не написал... Возможно, вы станете первым!",
+            "Здесь пока нет обсуждения, добавьте свой комментарий!",
+            "Пока что пусто, но ваша мысль может всё изменить!",
+            "Здесь ещё нет комментариев — начинайте разговор!",
+            "Все молчат… Может, это ваш шанс высказаться?"
+        ]
+        
+        # Если комментариев нет, выбираем случайное сообщение
+        if not context['comments']:
+            context['random_message'] = random.choice(no_comments_messages)
+
         return context
 
     def post(self, request, *args, **kwargs):
