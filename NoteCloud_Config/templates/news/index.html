@@ -9,16 +9,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="news_block no_select">
+<div class="news_block">
   <p>Новости</p>
   {% if user.is_authenticated %}
-    <div class="news_action_buttons_container">
+    <div class="news_action_buttons_container no_select">
       <button class="news_action_button link" data-url="{% url 'news_create' %}"><p>Добавить новость</p></button>
     </div>
   {% endif %}
 
   {% for item in news %}
-    <div tabindex="0" class="news_post_link link" data-url="{% url 'news_detail' item.slug %}">
+    <div tabindex="0" class="news_post_link link no_select" data-url="{% url 'news_detail' item.slug %}">
       <div class="news_post">
         <div class="title"><strong>{{ item.title }}</strong><p class="author">{{ item.author.username }}</p><p class="date time" data-time="{{ item.updated_at|date:"Y-m-d\TH:i:s" }}"></p></div>
         

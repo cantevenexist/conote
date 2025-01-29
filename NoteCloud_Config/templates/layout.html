@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Istok+Web:ital,wght@1,700&family=Marmelad&family=Rubik+Mono+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.6.0/css/all.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
@@ -176,7 +177,7 @@
 
 <script>
     // Функция для локализации времени
-    function localizeCommentTimes() {
+    function localizeTime() {
         // Находим все элементы с классом 'time'
         const timeElements = document.querySelectorAll('.time');
 
@@ -185,7 +186,6 @@
 
             // Преобразуем строку времени в объект Date
             const utcDate = new Date(serverTime);
-
             // Получаем смещение временной зоны (в минутах) для текущего времени устройства
             const timezoneOffset = utcDate.getTimezoneOffset();
 
@@ -208,7 +208,7 @@
 
     // Вызовите эту функцию сразу после загрузки страницы или вручную
     document.addEventListener('DOMContentLoaded', function() {
-        localizeCommentTimes();
+        localizeTime();
     });
 </script>
 <script>
@@ -218,6 +218,8 @@
     }
 </script>
 <script>
+    // DATA-URL LINKS
+
     // Animation link
     // Works with click and focus Enter key
     document.querySelectorAll('.link').forEach(link => {
@@ -232,8 +234,8 @@
         const newsBlock = document.querySelector('.layout_central_block');
         newsBlock.classList.add('fade_out');
 
-        // Слушаем событие unload (когда страница начала покидаться)
-        window.addEventListener('unload', () => {
+        // Слушаем событие beforeunload (когда страница начала покидаться)
+        window.addEventListener('beforeunload', () => {
             newsBlock.classList.remove('fade_out'); // Убираем класс fade-out при переходе
         });
 
