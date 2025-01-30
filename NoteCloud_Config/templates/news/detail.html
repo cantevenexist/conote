@@ -13,9 +13,9 @@
 <div class="news_block_detail">
     <p>Новости</p>
     <div class="news_action_buttons_container no_select">
-        <div tabindex="0" class='news_action_button link' data-url="{% url 'news_edit' news.slug %}">Изменить</div>
+        <button tabindex="0" class='news_action_button link' data-url="{% url 'news_edit' news.slug %}">Изменить</button>
         <div class="separator"></div>
-        <div tabindex="0" class='news_action_button link' data-url="{% url 'news_delete' news.slug %}">Удалить</div>
+        <button tabindex="0" class='news_action_button link' data-url="{% url 'news_delete' news.slug %}">Удалить</button>
     </div>
     
     <div class="news_post_link news_post">
