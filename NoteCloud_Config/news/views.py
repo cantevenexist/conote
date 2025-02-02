@@ -3,7 +3,7 @@ import random
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponseRedirect, Http404, JsonResponse
+from django.http import HttpResponseRedirect, Http404, JsonResponse, HttpResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -14,17 +14,23 @@ from .forms import NewsForm, CommentForm
 
 class NewsListView(ListView):
     model = News
-    template_name = 'news/index.html'
+    template_name = 'news/index.html'  # Полный шаблон
     context_object_name = 'news'
 
     def get_queryset(self):
-        # Сортируем по дате создания (например, поле created_at) в порядке убывания
         return News.objects.order_by('-created_at')
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.headers.get('HX-Request'):
+            # Возвращаем только контент для HTMX
+            return render(self.request, 'news/partials/index.html', context)
+        # Возвращаем полную страницу
+        return super().render_to_response(context, **response_kwargs)
 
 
 class NewsDetailView(DetailView):
     model = News
-    template_name = 'news/detail.html'
+    template_name = 'news/detail.html'  # Полный шаблон
     context_object_name = 'news'
 
     def get_object(self):
@@ -95,6 +101,13 @@ class NewsDetailView(DetailView):
         except Comment.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Комментарий не найден'}, status=404)
 
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.headers.get('HX-Request'):
+            # Возвращаем только контент для HTMX
+            return render(self.request, 'news/partials/detail.html', context)
+        # Возвращаем полную страницу
+        return super().render_to_response(context, **response_kwargs)
+
 
 class NewsCreateView(LoginRequiredMixin, CreateView):
     model = News
@@ -105,7 +118,23 @@ class NewsCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         # Устанавливаем автора новости на текущего авторизованного пользователя
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        # Проверяем, был ли запрос сделан через htmx
+        if self.request.headers.get('HX-Request'):
+            # Возвращаем только контент для HTMX (например, обновленный список новостей)
+            return render(self.request, 'news/partials/news_list.html', {'news_list': News.objects.all()})
+        
+        # Возвращаем полную страницу
+        return response
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.headers.get('HX-Request'):
+            # Возвращаем только контент для HTMX
+            return render(self.request, 'news/partials/news_form.html', context)
+        # Возвращаем полную страницу
+        return super().render_to_response(context, **response_kwargs)
+
 
 
 class NewsUpdateView(LoginRequiredMixin, UpdateView):
@@ -117,6 +146,13 @@ class NewsUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self):
         slug = self.kwargs.get('slug')
         return get_object_or_404(News, slug=slug)
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.headers.get('HX-Request'):
+            # Возвращаем только контент для HTMX
+            return render(self.request, 'news/partials/news_form.html', context)
+        # Возвращаем полную страницу
+        return super().render_to_response(context, **response_kwargs)
 
 
 class NewsDeleteView(LoginRequiredMixin, DeleteView):
@@ -135,4 +171,14 @@ class NewsDeleteView(LoginRequiredMixin, DeleteView):
         # Удаляем изображение, если оно существует
         if image_path and os.path.isfile(image_path):
             os.remove(image_path)
+        if request.headers.get('HX-Request'):
+            # Возвращаем ответ для HTMX
+            return HttpResponse('Success', status=204)  # 204 No Content
         return HttpResponseRedirect(self.success_url)
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.headers.get('HX-Request'):
+            # Возвращаем только контент для HTMX
+            return render(self.request, 'news/partials/news_confirm_delete.html', context)
+        # Возвращаем полную страницу
+        return super().render_to_response(context, **response_kwargs)
