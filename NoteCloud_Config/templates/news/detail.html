@@ -11,6 +11,7 @@
 
 {% block content %}
 <div class="news_block_detail">
+    {% if user.is_authenticated %}
     <div class="news_action_buttons_container no_select">
         <a tabindex="0" class='news_action_button' href="{% url 'news_edit' news.slug %}" hx-get="{% url 'news_edit' news.slug %}" hx-target="#page-content" hx-push-url="true">Изменить</a>
         <div class="separator"></div>
@@ -18,7 +19,8 @@
         <div class="separator"></div>
         <a onclick="goBack()" class='news_action_button'>Назад</a>
     </div>
-    
+    {% endif%}
+
     <div class="news_post_link news_post">
         <div class="title"><strong>{{ news.title }}</strong><p class="author">{{ news.author.username }}</p><p class="date time"data-time="{{ news.updated_at|date:"Y-m-d\TH:i:s" }}"></p></div>
         
@@ -100,7 +102,6 @@
 
     // Проверяем, существуют ли необходимые элементы
     if (!commentInput || !sendCommentButton || !commentInputArea) {
-        console.warn("Элементы для работы с комментариями не найдены.");
         return; // Если элементы не найдены, прекращаем выполнение функции
     }
     
