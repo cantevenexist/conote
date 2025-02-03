@@ -225,29 +225,50 @@ $(document).ready(function() {
 
     // Обработчик для кнопок удаления комментариев
     $(document).on('click', '.comment_delete_button', function() {
-        const commentId = $(this).data('id');
+    const commentId = $(this).data('id');
 
-        $.ajax({
-            type: 'POST',
-            url: '{{ request.path }}',  // Используйте текущий URL
-            data: {
-                'comment_id': commentId,
-                'csrfmiddlewaretoken': '{{ csrf_token }}'  // Не забудьте передать CSRF-токен
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Удаляем комментарий из списка
-                    $('#comment-' + commentId).remove();
-                } else {
-                    console.error(response.error);
-                }
-            },
-            error: function(xhr) {
-                // Обработка ошибок
-                console.error(xhr.responseText);
+    // Проверяем, что ID комментария существует
+    if (!commentId) {
+        alert('ID комментария не найден.');
+        return;
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: '{{ request.path }}', // Используйте текущий URL
+        data: {
+            'comment_id': commentId,
+            'csrfmiddlewaretoken': '{{ csrf_token }}' // Передаём CSRF-токен
+        },
+        success: function(response) {
+            if (response.success) {
+                // Удаляем комментарий из списка
+                $('#comment-' + commentId).remove();
+                // alert('Комментарий успешно удалён.');
+            } else {
+                alert('Ошибка при удалении комментария: ' + response.error);
+                console.error('Server Response:', response);
             }
-        });
+        },
+        error: function(xhr) {
+            try {
+                // Попытка разобрать JSON-ответ
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse.error) {
+                    alert('Ошибка сервера: ' + errorResponse.error);
+                } else {
+                    alert('Произошла ошибка при удалении комментария.');
+                }
+            } catch (e) {
+                // Если ответ не в формате JSON
+                alert('Не удалось получить ответ от сервера.');
+            }
+
+            // Логирование подробностей ошибки
+            console.error('AJAX Error:', xhr.status, xhr.statusText, xhr.responseText);
+        }
     });
+});
 });
 }());
 </script>
