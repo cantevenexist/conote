@@ -6,8 +6,8 @@
     <form method="POST">
         {% csrf_token %}
         <label class="switch">
-            <h3>Отключить уведомления</h3>
-            <input type="checkbox" name="disable_notifications" {% if disable_notifications %}checked{% endif %}>
+            <h3>Отключить сообщения с новостями NoteCloud</h3>
+            <input type="checkbox" name="disabling_news_messages" {% if disabling_news_messages %}checked{% endif %}>
             <span class="slider"></span>
         </label>
 

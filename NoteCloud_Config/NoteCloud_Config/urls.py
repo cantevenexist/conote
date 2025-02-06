@@ -25,7 +25,7 @@ handler404 = 'main_page.views.custom_404'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main_page.urls')),
-    path('accounts/', include('allauth.urls')),
-    path('accounts/', include('user_profiles.urls')),
+    path('account/settings/', include('allauth.urls')),
+    path('', include('user_profiles.urls')),
     path('news/', include('news.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

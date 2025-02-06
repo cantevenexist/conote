@@ -1,0 +1,26 @@
+{% extends 'profile/layout_settings.html' %}
+{% load static %}
+
+{% block setting %}
+    <h1>Изменить настройки приватности</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label class="switch">
+            <h3>Отключить просмотр подписчиков для других пользователей</h3>
+            <input type="checkbox" name="disable_subscribers_view" {% if disable_subscribers_view %}checked{% endif %}>
+            <span class="slider"></span>
+        </label>
+        <label class="switch2">
+            <h3>Отключить просмотр подписок для других пользователей</h3>
+            <input type="checkbox" name="disable_subscriptions_view" {% if disable_subscriptions_view %}checked{% endif %}>
+            <span class="slider"></span>
+        </label>
+        <label class="switch3">
+            <h3>Отключить просмотр профиля для неавториованных пользователей</h3>
+            <input type="checkbox" name="disable_profile_view" {% if disable_profile_view %}checked{% endif %}>
+            <span class="slider"></span>
+        </label>
+
+        <button type="submit">Сохранить изменения</button>
+    </form>
+{% endblock %}

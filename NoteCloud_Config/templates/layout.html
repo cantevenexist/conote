@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Istok+Web:ital,wght@1,700&family=Marmelad&family=Rubik+Mono+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.6.0/css/all.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'main_page/css/main_page.css' %}">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
@@ -27,7 +28,7 @@
             {% if user.is_authenticated %}
                 <button class="button_login" onclick="toggleDiv()">{{ user.username }}</button>
             {% else %}
-                <a href="/accounts/login/">
+                <a href="/account/login/">
                     <button class="button_login">Войти</button>
                 </a>
             {% endif %}
@@ -35,10 +36,10 @@
     </div>
     <div class="user_settings_panel" id="user_settings_panel">
         <ul class="user_settings_panel_ul">
-            <li><a href="/accounts/profile/{{ user.username }}">Профиль</a></li>
-            <li><a href="">Уведомления</a></li>
-            <li><a href="/accounts/settings">Настройки</a></li>
-            <li><a href="/accounts/logout">Выход</a></li>
+            <li><a href="/profile/{{ user.username }}">Профиль</a></li>
+            <li><a href="/">Уведомления</a></li>
+            <li><a href="/account/settings">Настройки</a></li>
+            <li><a href="/account/logout">Выход</a></li>
         </ul>
     </div>
     <div class="layout_central_block">
