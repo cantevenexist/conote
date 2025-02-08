@@ -91,6 +91,13 @@ document.getElementById('profile-form').addEventListener('submit', function(even
 
 function submitForm() {
     const formData = new FormData(document.getElementById('profile-form'));
+
+    const newUsername = document.getElementById('id_username').value;
+    const currentUsername = document.getElementById('current-username').value;
+    if (newUsername === currentUsername) {
+        formData.delete('username');
+    }
+
     if (cropper) {
         const canvas = cropper.getCroppedCanvas({
             width: 256,
