@@ -3,8 +3,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{% block title %}{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,36 +11,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Istok+Web:ital,wght@1,700&family=Marmelad&family=Rubik+Mono+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.6.0/css/all.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'main_page/css/main_page.css' %}">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'main_page/css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'news/css/index.css' %}">
     <link rel="stylesheet" href="{% static 'css/404.css' %}">
     {% block head %}{% endblock %}
 </head>
 <body>
     <div class="layout_header">
         <div class="logotype">
-            <a href="/"><img src="{% static 'main_page/img/logo_web.png' %}" alt="logotype" border="0px"></a>
+            <a href="/"><img src="{% static 'main_page/img/logo.svg' %}" alt="logotype"></a>
         </div>
+        
         <div class="button_area">
             {% if user.is_authenticated %}
-                <button class="button_login" onclick="toggleDiv()">{{ user.username }}</button>
+                <button class="button_header" onclick="toggleDiv()" id="toggle_button"><div class="line"></div><img class="image user_menu" style="filter: brightness(0) invert(1);" src="{% static 'main_page/img/user_menu.svg' %}" alt="user_menu"><p>{{ user.username }}</p></button>
             {% else %}
-                <a href="/account/login/">
-                    <button class="button_login">Войти</button>
+                <a href="/accounts/login/">
+                    <button class="button_header"><div class="line"></div><img class="image user_default" style="filter: brightness(0) invert(1);" src="{% static 'main_page/img/user_default.svg' %}" alt="user_default"><p class="show_or_not_text">Войти</p></button>
                 </a>
             {% endif %}
         </div>
     </div>
+
+
     <div class="user_settings_panel" id="user_settings_panel">
-        <ul class="user_settings_panel_ul">
-            <li><a href="/profile/{{ user.username }}">Профиль</a></li>
-            <li><a href="/">Уведомления</a></li>
-            <li><a href="/account/settings">Настройки</a></li>
-            <li><a href="/account/logout">Выход</a></li>
-        </ul>
+        <div class="user_settings_container">
+            <a><button class="button_header"><div class="line"></div><img class="image user_default" style="filter: brightness(0) invert(1);" src="{% static 'main_page/img/user_default.svg' %}" alt="user_default"><p>Профиль</p></button></a>
+            <div class="separator"></div>
+            <a><button class="button_header"><div class="line"></div><img class="image user_settings" style="filter: brightness(0) invert(1);" src="{% static 'main_page/img/user_settings.svg' %}" alt="settings"><p>Настройки</p></button></a>
+            <div class="separator"></div>
+            <a href="/accounts/logout/"><button class="button_header logout"><div class="line"></div><img class="image user_logout" style="filter: brightness(0) invert(1);" src="{% static 'main_page/img/user_logout.svg' %}" alt="logout"><p>Выход</p></button></a>
+        </div>
     </div>
+
     <div class="layout_central_block">
         {% block content %}
         {% endblock %}
@@ -49,4 +53,27 @@
 </body>
 <script src="{% static 'js/layout.js' %}"></script>
 {% block javascript %}{% endblock %}
+<script>
+    function toggleDiv() {
+    var user_settings_panel = document.getElementById("user_settings_panel");
+    var toggle_button = document.getElementById("toggle_button");
+
+    // Переключаем отображение панели
+    user_settings_panel.classList.toggle("show");
+    // Переключаем анимацию кнопки
+    toggle_button.classList.toggle('active');
+}
+
+// Обработчик кликов вне панели и кнопки
+window.onclick = function(event) {
+    var user_settings_panel = document.getElementById("user_settings_panel");
+    var toggle_button = document.getElementById("toggle_button");
+
+    // Проверяем, что клик был вне панели и кнопки
+    if (!user_settings_panel.contains(event.target) && !toggle_button.contains(event.target)) {
+        user_settings_panel.classList.remove("show");
+        toggle_button.classList.remove('active'); // Убираем класс активности у кнопки
+    }
+} 
+</script>
 </html>

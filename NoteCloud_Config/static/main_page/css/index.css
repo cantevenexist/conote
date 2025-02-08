@@ -1,3 +1,20 @@
+@media (max-width: 425.9px) {
+    .footer .content {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        margin: 1.5rem;
+    }
+}
+
+@media (min-width: 426px){
+    .footer .content {
+        display: flex;
+        justify-content: space-evenly;
+        margin: 1.5rem;
+    }
+}
+
 .layout_central_block .footer {
     width: 100%;
     position: relative;
@@ -8,12 +25,6 @@
 .footer {
     background-color: white;
     color: black;
-}
-
-.footer .content {
-    display: flex;
-    justify-content: space-evenly;
-    margin: 1.5rem;
 }
 
 .footer .content p {
@@ -27,7 +38,7 @@
 }
 
 .footer .content a:hover {
-    color: #E3B8DF;
+    color: #74C4F2;
 }
 
 .footer .content h4 {
