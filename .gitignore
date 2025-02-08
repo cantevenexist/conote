@@ -7,3 +7,4 @@ __pycache__/
 /.venv
 /.env.s3
 media
+migrations
