@@ -1,0 +1,514 @@
+/* Mobile */
+@media (orientation: portrait) {
+  /* Основной контейнер для новостей */
+  .news_block_detail  {
+      max-width: 100%; /* Ширина 100% для мобильных */
+      margin: 0 auto;
+      padding: 10px; /* Уменьшенные отступы */
+      font-family: Arial, sans-serif;
+      opacity: 0; /* Начальное состояние */
+      transform: translateY(20px); /* Сдвиг вниз */
+      animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+  }
+
+  /* Структура поста */
+  .news_block_detail .news_post {
+      display: flex;
+      overflow-wrap: break-word;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      margin: 10px 0; /* Уменьшенный отступ */
+      padding: 10px; /* Увеличенный внутренний отступ */
+      background-color: white;
+      border-radius: 15px;
+      border: 1px solid #e0e0e0; /* Граница */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+      opacity: 0; /* Начальное состояние */
+      transform: translateY(10px); /* Сдвиг вниз */
+      animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+      transition: transform 0.2s; /* Анимация при наведении */
+  }
+
+  /* Эффект при наведении */
+  .news_block_detail .news_post:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Разделитель между новостями */
+  .news_block_detail .news_post::after {
+      content: '';
+      display: block;
+      height: 1px;
+      background: #e0e0e0; /* Цвет линии */
+      margin: 10px 0 0 0; /* Отступ сверху */
+  }
+  
+  .news_block_detail .news_comment_container {
+    display: flex;
+    overflow-wrap: break-word;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    margin: 10px 0; /* Уменьшенный отступ */
+    padding: 10px; /* Увеличенный внутренний отступ */
+    background-color: white;
+    border-radius: 15px;
+    border: 1px solid #e0e0e0; /* Граница */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+    opacity: 0; /* Начальное состояние */
+    transform: translateY(10px); /* Сдвиг вниз */
+    animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+    transition: transform 0.2s; /* Анимация при наведении */
+  }
+
+  .news_block_detail .news_comment_container:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .news_block_detail .send_comment_container{
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .comment_separator {
+    width: 100%;
+    content: '';
+    display: block;
+    height: 1px;
+    background: #e0e0e0; /* Цвет линии */
+    margin: 7px 0 7px 0; /* Отступ сверху */
+  }
+  
+  .send_comment_container .textarea {
+    border-radius: 5px;
+    padding-left: 2.5px;
+    border-color: #e0e0e0;
+    resize: none; /* Запрещаем изменять размер */
+    overflow-y: hidden; /* Скрываем вертикальную прокрутку */
+    min-height: 26px; /* Минимальная высота */
+    width: 100%; /* Заполняет доступную ширину */
+  }
+
+  .form_comment {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .form_comment_shifted {
+    animation: marginrightform 0.6s forwards;
+  }
+
+  .form_comment_shifted_restore {
+    animation: marginrestoreform 0.6s forwards;
+  }
+  
+  .button_send_comment{
+    position: absolute;
+    top: 0;
+    right: 0; 
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    background-color: #86A8EC;
+    border: transparent;
+    border-radius: 7.5px;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+    pointer-events: none; /* Кнопка не активна, пока не появится */
+  }
+  
+  .button_send_comment.show {
+    animation: showbutton 0.6s forwards;
+    pointer-events: auto; /* Кнопка становится активной */
+  }
+
+  .button_send_comment.hide {
+    animation: hidebutton 0.6s forwards;
+    pointer-events: none; /* Кнопка становится активной */
+  }
+
+  .button_send_comment .icon {
+    stroke: white;
+    width: 25px;
+    height: 25px;
+    transform: translate(2.5px, 2.5px);
+  }
+
+  .button_send_comment.show .icon {
+    animation: iconshow 0.6s forwards;
+  }
+
+  .button_send_comment.restore .icon {
+    animation: iconrestore 0.6s forwards;
+  }
+
+  @keyframes showbutton {
+    0% {opacity: 0;}
+    50% {opacity: 0;}
+    100% {opacity: 1;}
+  }
+
+  @keyframes hidebutton {
+    0% {opacity: 1;}
+    50% {opacity: 0;}
+    100% {opacity: 0;}
+  }
+
+  @keyframes marginrightform {
+    0% {margin-right: 0;}
+    50% {margin-right: 40px;}
+    100% {margin-right: 40px;}
+  }
+
+  @keyframes marginrestoreform {
+    0% {margin-right: 40px;}
+    50% {margin-right: 40px;}
+    100% {margin-right: 0;}
+  }
+
+  @keyframes iconshow {
+    0% {transform: translate(0,0) scale(0%) rotate(0deg);}
+    50% {transform: translate(-20px,20px) scale(0%) rotate(0deg);}
+    100% {transform: translate(0,0) scale(100%) rotate(0deg);}
+  }
+
+  @keyframes iconrestore {
+    0% {transform: translate(0,0) scale(100%) rotate(0deg);}
+    50% {transform: translate(20px,-20px) scale(0%) rotate(0deg);}
+    100% {transform: translate(0,0) scale(0%) rotate(0deg);}
+  }
+
+
+
+  
+  .comment_area_container{
+    background-color: transparent;
+  }
+  
+  .comment_area_container p{
+    margin: 0;
+  }
+
+  .comment_area_container .author_container{
+    position: relative;
+  }
+
+  .comment_area_container .author_container p{
+    margin-right: 60px;
+  }
+
+  .comment_action_buttons_container {
+    position: absolute;
+    display: flex;
+    gap: 6px;
+    right: 0;
+    top:0;
+  }
+
+  .comment_action_button {
+    background-color: transparent;
+    height: 24px;
+    width: 24px;
+    padding: 0;
+    margin: 0;
+    border: transparent; 
+  }
+
+  .comment_action_button .icon {
+    stroke: #777;
+    width: 24px;
+    height: 24px;
+  }
+  .comment_action_button.author_report_button .icon {
+    width: 18px;
+    height: 18px;
+  }
+  .comment_action_button:hover.author_profile_button .icon{
+    stroke: rgb(100, 220, 100);
+  }
+
+  .comment_action_button:hover.author_report_button .icon{
+    stroke: rgb(255, 180, 50);
+  }
+
+  .comment_action_button:hover.comment_delete_button .icon{
+    stroke: rgb(255, 50, 50);
+  }
+
+  .comment_area_container .content {
+    text-indent: 0; /* Убирает отступ на первой строке */
+    white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
+    word-wrap: break-word; /* Переносит длинные слова */
+    overflow-wrap: break-word; /* Переносит слова на новой строке */
+    text-align: justify;
+    display: flex;
+    flex-direction: column;
+    font-size: 15px;
+    color: #333;
+  }
+
+  .comment_area_container .date {
+    font-size: 12px; /* Уменьшенный размер шрифта */
+    color: #999;
+  }
+}
+
+/* Desktop */
+@media (orientation: landscape) {
+  /* Основной контейнер для новостей */
+  .news_block_detail {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      opacity: 0; /* Начальное состояние */
+      transform: translateY(20px); /* Сдвиг вниз */
+      animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+  }
+
+  /* Ссылки на новости */
+  .news_block_detail .news_post_link {
+    display: flex;
+    overflow-wrap: break-word;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    margin: 25px 0;
+    padding: 20px;
+    background-color: white;
+    border-radius: 30px;
+    border: 1px solid #e0e0e0; /* Граница */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+    position: relative; /* Для псевдоэлемента */
+    opacity: 0; /* Начальное состояние */
+    transform: translateY(20px); /* Сдвиг вниз */
+    animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .news_block_detail .news_post_link:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Разделитель между новостями */
+  .news_block_detail .news_post_link::after {
+      content: '';
+      display: block;
+      height: 1px;
+      background: #e0e0e0; /* Цвет линии */
+      margin: 15px 0 0 0; /* Отступ сверху */
+  }
+
+  .news_block_detail .news_comment_container {
+    display: flex;
+    overflow-wrap: break-word;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    margin: 25px 0;
+    padding: 20px;
+    background-color: white;
+    border-radius: 30px;
+    border: 1px solid #e0e0e0; /* Граница */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+    position: relative; /* Для псевдоэлемента */
+    opacity: 0; /* Начальное состояние */
+    transform: translateY(20px); /* Сдвиг вниз */
+    animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .news_block_detail .news_comment_container:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .news_block_detail .send_comment_container{
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .comment_separator {
+    width: 100%;
+    content: '';
+    display: block;
+    height: 1px;
+    background: #e0e0e0; /* Цвет линии */
+    margin: 12px 0 12px 0; /* Отступ сверху */
+  }
+
+  .send_comment_container .textarea {
+    border-radius: 10px;
+    padding-left: 5px;
+    border-color: #e0e0e0;
+    resize: none; /* Запрещаем изменять размер */
+    overflow-y: hidden; /* Скрываем вертикальную прокрутку */
+    min-height: 26px; /* Минимальная высота */
+    width: 100%; /* Заполняет доступную ширину */
+  }
+
+  .form_comment {
+    width: 100%;
+    margin: 0;
+  }
+  
+  .form_comment_shifted {
+    animation: marginrightform 0.6s forwards;
+  }
+
+  .form_comment_shifted_restore {
+    animation: marginrestoreform 0.6s forwards;
+  }
+
+  .button_send_comment{
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    background-color: #86A8EC;
+    border: transparent;
+    border-radius: 7.5px;
+    overflow: hidden;
+    pointer-events: none; /* Кнопка не активна, пока не появится */
+  }
+  
+  .button_send_comment.show {
+    animation: showbutton 0.6s forwards;
+    pointer-events: auto; /* Кнопка становится активной */
+  }
+
+  .button_send_comment.hide {
+    animation: hidebutton 0.6s forwards;
+    pointer-events: none; /* Кнопка становится активной */
+  }
+
+  .button_send_comment .icon {
+    stroke: white;
+    width: 25px;
+    height: 25px;
+    transform: translate(2.5px, 2.5px);
+  }
+
+  .button_send_comment.show .icon {
+    animation: iconshow 0.6s forwards;
+  }
+
+  .button_send_comment.restore .icon {
+    animation: iconrestore 0.6s forwards;
+  }
+
+  @keyframes showbutton {
+    0% {opacity: 0;}
+    50% {opacity: 0;}
+    100% {opacity: 1;}
+  }
+
+  @keyframes hidebutton {
+    0% {opacity: 1;}
+    50% {opacity: 0;}
+    100% {opacity: 0;}
+  }
+
+  @keyframes marginrightform {
+    0% {margin-right: 0;}
+    50% {margin-right: 40px;}
+    100% {margin-right: 40px;}
+  }
+
+  @keyframes marginrestoreform {
+    0% {margin-right: 40px;}
+    50% {margin-right: 40px;}
+    100% {margin-right: 0;}
+  }
+
+  @keyframes iconshow {
+    0% {transform: translate(0,0) scale(0%) rotate(0deg);}
+    50% {transform: translate(-20px,20px) scale(0%) rotate(0deg);}
+    100% {transform: translate(0,0) scale(100%) rotate(0deg);}
+  }
+
+  @keyframes iconrestore {
+    0% {transform: translate(0,0) scale(100%) rotate(0deg);}
+    50% {transform: translate(20px,-20px) scale(0%) rotate(0deg);}
+    100% {transform: translate(0,0) scale(0%) rotate(0deg);}
+  }
+
+  .comment_area_container{
+    background-color: transparent;
+  }
+  
+  .comment_area_container p{
+    margin: 0;
+  }
+
+  .comment_area_container .author_container{
+    position: relative;
+  }
+
+  .comment_area_container .author_container p{
+    margin-right: 60px;
+  }
+
+  .comment_action_buttons_container {
+    position: absolute;
+    display: flex;
+    gap: 6px;
+    right: 0;
+    top:0;
+  }
+
+  .comment_action_button {
+    background-color: transparent;
+    height: 24px;
+    width: 24px;
+    padding: 0;
+    margin: 0;
+    border: transparent; 
+  }
+
+  .comment_action_button .icon {
+    stroke: #777;
+    width: 24px;
+    height: 24px;
+  }
+  .comment_action_button.author_report_button .icon {
+    width: 18px;
+    height: 18px;
+  }
+  .comment_action_button:hover.author_profile_button .icon{
+    stroke: rgb(100, 220, 100);
+  }
+
+  .comment_action_button:hover.author_report_button .icon{
+    stroke: rgb(255, 180, 50);
+  }
+
+  .comment_action_button:hover.comment_delete_button .icon{
+    stroke: rgb(255, 50, 50);
+  }
+
+  .comment_area_container .content {
+    text-indent: 0; /* Убирает отступ на первой строке */
+    white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
+    word-wrap: break-word; /* Переносит длинные слова */
+    overflow-wrap: break-word; /* Переносит слова на новой строке */
+    text-align: justify;
+    display: flex;
+    flex-direction: column;
+    font-size: 15px;
+    color: #333;
+  }
+
+  .comment_area_container .date {
+    font-size: 12px; /* Уменьшенный размер шрифта */
+    color: #999;
+  }
+    
+}

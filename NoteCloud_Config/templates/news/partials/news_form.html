@@ -1,9 +1,6 @@
-{% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-    {% if object %}Редактирование{% else %}Добавление{% endif %} новости
-{% endblock %}
+<title>{% if object %}Редактирование{% else %}Добавление{% endif %} новости</title>
 
 {% block head %}
 {% endblock %}

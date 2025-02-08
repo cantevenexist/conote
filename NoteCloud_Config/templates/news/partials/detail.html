@@ -1,9 +1,6 @@
-{% extends 'layout.html' %}
 {% load static %}
 
-{% block title %}
-    {{ news.title }}
-{% endblock %}
+<title>{{ news.title }}</title>
 
 {% block head %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -19,7 +16,7 @@
         <div class="separator"></div>
         <a onclick="goBack()" class='news_action_button'>Назад</a>
     </div>
-    {% endif%}
+    {% endif %}
 
     <div class="news_post_link news_post">
         <div class="title"><strong>{{ news.title }}</strong><p class="author">{{ news.author.username }}</p><p class="date time"data-time="{{ news.updated_at|date:"Y-m-d\TH:i:s" }}"></p></div>

@@ -4,11 +4,9 @@
     {% trans "Signup" %}
 {% endblock head_title %}
 {% block content %}
-    <div class="rainy-weather">
-        <div class="cloud-main"><h>{% trans "Sign Up" %}</h></div>
-        <div class="cloud-center"></div>
-        <div class="cloud-left"></div>
-    </div>
+    {% element h1 %}
+    {% trans "Sign Up" %}
+        {% endelement %}
     {% setvar link %}
         <a href="{{ login_url }}">
         {% endsetvar %}

@@ -1,169 +1,474 @@
-* {
-}
-
 html, body {
     background-size: 100% 100%;
     width: 100%;
     height: 100%;
     background: white;
+    overflow: hidden;
+    margin: 0;
 }
 
-.layout_central_block {
-    border: none;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 7%;
-    width: 60%;
-    box-shadow: 15px 15px 30px #bebebe, -15px -15px 30px #ffffff;
-    border-radius: 15px 15px 15px 15px;
-    align-items: center;
-    justify-content: center;
-}
+.no_select {
+    user-select: none; /* Запрещает выделение текста */
+    -webkit-user-select: none; /* Для Safari */
+    -moz-user-select: none; /* Для Firefox */
+    -ms-user-select: none; /* Для IE/Edge */
+}             
 
-label[for="id_login"] {
-    display: none;
-}
-
-label[for="id_password"] {
-    display: none;
-}
-
-label[for="id_username"] {
-    display: none;
-}
-
-label[for="id_email"] {
-    display: none;
-}
-
-label[for="id_password1"] {
-    display: none;
-}
-
-label[for="id_password2"] {
-    display: none;
-}
-
-.layout_central_block input[id="id_login"] {
-    width: 50%;
-}
-
-.layout_central_block input[id="id_password"] {
-    width: 50%;
-}
-
-.rainy-weather {
-    margin: 3em auto;
-    width: 310px;
-    height: 180px;
+.scrollable-container {
+    overflow-y: scroll; /* Позволяем прокрутку только для этого контейнера */
     position: relative;
+    top:0;
+    height: 100%;
 }
 
-.cloud-main {
-    width: 310px;
-    height: 120px;
-    background: #ccc;
-    border-radius: 100em;
-    position: absolute;
-    z-index: 100;
-    top: 50px;
-    box-shadow: 0 3px 5px rgba(0,0,0, 0.3);
-    background: linear-gradient(#F2F2F2 70%, #E5E5E5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Scrollbar */
+/* Для Chrome, Safari и Edge */
+.scrollable-container::-webkit-scrollbar {
+    width: 8px; /* Ширина ползунка */
+    height: 8px; /* Высота ползунка */
 }
 
-.cloud-center {
-    width: 140px;
-    height: 180px;
-    margin: 0 auto;
-    background: #F2F2F2;
-    position: absolute;
-    border-radius: 100em;
-    top: -30px;
-    right: 50px;
+.scrollable-container::-webkit-scrollbar-track {
+    background: transparent; /* Цвет фона ползунка */
 }
 
-.cloud-left {
-    width: 90px;
-    height: 130px;
-    margin: 0 auto;
-    background: #F2F2F2;
-    position: absolute;
-    border-radius: 100em;
-    top: 0;
-    right: 160px;
+.scrollable-container::-webkit-scrollbar-thumb {
+    background: #86A8EC; /* Цвет самого ползунка */
+    border-radius: 4px; /* Скругленные углы ползунка */
 }
 
-a {
-    font-family: 'Marmelad', sans-serif;
-    color: #C59DD4;
-    transition: all .6s ease;
-    text-decoration: none;
+.scrollable-container::-webkit-scrollbar-thumb:hover {
+    background: #6B8BC4; /* Цвет ползунка при наведении */
 }
 
-a:hover {
-    color: #000000;
-    text-decoration: none;
+.scrollable-container::-webkit-scrollbar-thumb:active {
+    background: #5B7DAC; /* Цвет ползунка при активном взаимодействии */
 }
 
-h {
-    font-size: 50px;
-    font-family: 'Marmelad', sans-serif;
-    color: #C59DD4;
+:focus-visible {
+    outline: 2px solid #4A6E9F; /* Цвет и размер обводки фокуса при нажатии Tab */
+    /* border-radius: 2px / 2px  */
 }
 
-h1 {
-    font-size: 30px;
-    font-family: 'Marmelad', sans-serif;
-    color: #000000;
-}
+/* Анимация появления */
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0); /* Возвращаем к исходному положению */
+    }
+  }
 
-p {
-    font-size: 25px;
-    font-family: 'Marmelad', sans-serif;
-    color: #000000;
-}
+label {display: none;}
+/* ul {display: none;} */
 
-input {
-    font-size: 20px;
-    font-family: 'Marmelad', sans-serif;
-}
-
-button {
-    font-size: 15px;
-    padding: 0.5em 2em;
-    border: transparent;
-    background: #C3B4E9;
-    color: white;
-    border-radius: 4px;
-}
-
-.button_area button {
-    right: 0%;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-button:hover {
-    background: rgb(2,0,36);
-    background: linear-gradient(90deg, #E3B8DF 0%, #C3B4E9 100%);
-}
-
-@media (max-width: 769px) {
+/* Mobile */
+@media (orientation: portrait) {
     .layout_central_block {
-        width: 100%;
-        top: 0%;
-        box-shadow: none;
-    }
-    .layout_central_block input[id="id_login"] {
-        width: 96%;
+        margin-left: 5%;
+        margin-right: 5%;
+        border: none;
+        position: absolute;
+        width: 90%;
+        font-family: Arial, sans-serif;
+        animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+        opacity: 0; /* Начальное состояние */
+        transform: translateY(20px); /* Сдвиг вниз */
     }
 
-    .layout_central_block input[id="id_password"] {
-        width: 96%;
+    /* Form messages */
+    ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        margin-top: 20px;
+        border-left: 1px solid #e0e0e0;
+        border-radius: 0.5px;
+        padding-left: 20px;
+        text-align:justify;
+    }
+    .icon-attention {
+        height: 24px;
+        width: 24px;
+        stroke: rgb(255, 180, 50);
+    }
+    .icon-error {
+        height: 24px;
+        width: 24px;
+        stroke: rgb(255, 50, 50);
+    }
+
+    li {
+        margin-top: 5px;
+    }
+
+    li:first-child {
+        margin-top: 0;
+    }
+
+    .logotype {
+        max-width: 200px;
+        max-height: 70px;
+        padding: 20px;
+        margin: auto;
+        overflow: hidden;
+        position: relative; /* Для псевдоэлемента */
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .logotype svg {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .separator-width {
+        width: 100%;
+        height: 1px;
+        border-radius: 0.5px;
+        background-color: #e0e0e0;
+    }
+    
+    .form_block {
+        max-width: 300px;
+        border-radius: 15px;
+        margin: auto;
+        padding: 0 10px 10px 10px;
+        overflow: hidden;
+        background-color: white;
+        border: 1px solid #e0e0e0; /* Граница */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+        position: relative; /* Для псевдоэлемента */
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .form_block p {
+        margin: 0; 
+        margin-top: 20px;
+    }
+    
+    .form_block p input {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 18px;
+        border-radius: 10px;
+        padding-left: 5px;
+        border: 1px solid #e0e0e0;
+        min-height: 36px;
+        width: 100%; /* Заполняет доступную ширину */
+    }
+
+    .helptext {
+        display: block;
+        margin: 10px 0 0 0;
+    }
+
+    .form_block a {
+        color: black;
+    }
+
+    .form_block a:hover {
+        color: #86A8EC;
+    }
+    
+    /* Стиль для чекбокса */
+    input[type="checkbox"] {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 1px solid #e0e0e0 !important;
+        background: linear-gradient(to left, transparent 50%, #4caf50 50%);
+        background-size: 200% 100%;
+        background-position: right center;
+        border-radius: 4px;
+        margin-left: 0;
+        margin-right: 0;
+        cursor: pointer;
+        position: relative;
+        vertical-align: middle; /* Выравниваем чекбокс */
+        transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @media (hover:hover) {
+        input[type="checkbox"]:hover {
+            background-position: left center;
+            border: 1px solid #4caf50 !important;
+        }
+        input[type="checkbox"]:hover::before {
+            transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+        }
+        button:hover {
+            background-position: left center;
+        }
+    }
+
+    /* Лейбл */
+    input[type="checkbox"]::before {
+        content: "Оставаться в системе";
+        visibility: visible;
+        opacity: 1;
+        font-size: 18px;
+        color: rgb(169,169,169);
+        position: absolute;
+        transform: translate(1px, 6px);
+        transition: color 0.5s cubic-bezier(1, 0.2, 0, 0.4);}
+    
+    
+
+    input[type="checkbox"]:checked::before {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    /* При выборе */
+    input[type="checkbox"]:checked {
+        background-color: #4caf50;
+        border: 1px solid #4caf50 !important;
+    }
+    
+    /* Галочка */
+    input[type="checkbox"]::after {
+        content: "Оставаться в системе ✓";
+        visibility: hidden;
+        opacity: 0;
+        font-size: 18px;
+        color: #fff;
+        position: absolute;
+        transform: translate(1px, 6px);
+    }
+    
+    input[type="checkbox"]:checked::after {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    button {
+        cursor: pointer;
+        display: flex;
+        background: linear-gradient(to left, black 50%, #86A8EC 50%);
+        background-size: 200% 100%;
+        background-position: right center;
+        color: white;
+        border: none;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        margin-top: 20px;
+        font-size: 18px;
+        height: 36px;
+        border-radius: 10px;
+        padding: 10px 15px;
+        width: 100%;
+        transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    button p{
+        margin: 0; 
+        vertical-align: middle;
+    }
+}
+
+/* Desktop */
+@media (orientation: landscape) {
+    .layout_central_block {
+        margin-left: 10%;
+        margin-right: 10%;
+        border: none;
+        position: absolute;
+        width: 80%;
+        font-family: Arial, sans-serif;
+        animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
+        opacity: 0; /* Начальное состояние */
+        transform: translateY(20px); /* Сдвиг вниз */
+    }
+    
+    /* Form messages */
+    ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        margin-top: 20px;
+        border-left: 1px solid #e0e0e0;
+        border-radius: 0.5px;
+        padding-left: 20px;
+        text-align:justify;
+    }
+    .icon-attention {
+        height: 24px;
+        width: 24px;
+        stroke: rgb(255, 180, 50);
+    }
+    .icon-error {
+        height: 24px;
+        width: 24px;
+        stroke: rgb(255, 50, 50);
+    }
+
+    li {
+        margin-top: 5px;
+    }
+
+    li:first-child {
+        margin-top: 0;
+    }
+    
+    .logotype {
+        max-width: 300px;
+        max-height: 100px;
+        padding: 20px;
+        margin: auto;
+        overflow: hidden;
+        position: relative; /* Для псевдоэлемента */
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .logotype svg {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .separator-width {
+        width: 100%;
+        height: 1px;
+        border-radius: 0.5px;
+        background-color: #e0e0e0;
+    }
+    
+    .form_block {
+        max-width: 450px;
+        border-radius: 30px;
+        margin: auto;
+        padding: 0 20px 20px 20px;
+        overflow: hidden;
+        background-color: white;
+        border: 1px solid #e0e0e0; /* Граница */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+        position: relative; /* Для псевдоэлемента */
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .form_block p {
+        margin: 0; 
+        margin-top: 20px;
+    }
+    
+    .form_block p input {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 18px;
+        border-radius: 10px;
+        padding-left: 5px;
+        border: 1px solid #e0e0e0;
+        min-height: 36px;
+        width: 100%; /* Заполняет доступную ширину */
+    }
+
+    .helptext {
+        display: block;
+        margin: 10px 0 0 0;
+    }
+
+    .form_block a {
+        color: black;
+    }
+
+    .form_block a:hover {
+        color: #86A8EC;
+    }
+    
+    /* Стиль для чекбокса */
+    input[type="checkbox"] {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 1px solid #e0e0e0 !important;
+        background: linear-gradient(to left, transparent 50%, #4caf50 50%);
+        background-size: 200% 100%;
+        background-position: right center;
+        border-radius: 4px;
+        margin-left: 0;
+        margin-right: 0;
+        cursor: pointer;
+        position: relative;
+        vertical-align: middle; /* Выравниваем чекбокс */
+        transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @media (hover:hover) {
+        input[type="checkbox"]:hover {
+            background-position: left center;
+            border: 1px solid #4caf50 !important;
+        }
+        input[type="checkbox"]:hover::before {
+            transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+        }
+        button:hover {
+            background-position: left center;
+        }
+    }
+
+    /* Лейбл */
+    input[type="checkbox"]::before {
+        content: "Оставаться в системе";
+        visibility: visible;
+        opacity: 1;
+        font-size: 18px;
+        color: rgb(169,169,169);
+        position: absolute;
+        transform: translate(1px, 6px);
+        transition: color 0.5s cubic-bezier(1, 0.2, 0, 0.4);}
+    
+    
+
+    input[type="checkbox"]:checked::before {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    /* При выборе */
+    input[type="checkbox"]:checked {
+        background-color: #4caf50;
+        border: 1px solid #4caf50 !important;
+    }
+    
+    /* Галочка */
+    input[type="checkbox"]::after {
+        content: "Оставаться в системе ✓";
+        visibility: hidden;
+        opacity: 0;
+        font-size: 18px;
+        color: #fff;
+        position: absolute;
+        transform: translate(1px, 6px);
+    }
+    
+    input[type="checkbox"]:checked::after {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    button {
+        cursor: pointer;
+        display: flex;
+        background: linear-gradient(to left, black 50%, #86A8EC 50%);
+        background-size: 200% 100%;
+        background-position: right center;
+        color: white;
+        border: none;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        margin-top: 20px;
+        font-size: 18px;
+        height: 36px;
+        border-radius: 10px;
+        padding: 10px 15px;
+        width: 100%;
+        transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    button p{
+        margin: 0; 
+        vertical-align: middle;
     }
 }

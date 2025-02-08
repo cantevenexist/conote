@@ -1,25 +1,23 @@
-@media (max-width: 425.9px) {
+@media (orientation: portrait) {
     .footer .content {
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
-        margin: 1.5rem;
     }
 }
 
-@media (min-width: 426px){
+@media (orientation: landscape) {
     .footer .content {
         display: flex;
         justify-content: space-evenly;
-        margin: 1.5rem;
     }
 }
 
 .layout_central_block .footer {
+    margin-top: 100px;
     width: 100%;
     position: relative;
     float: left;
-    margin-top: 3%;
 }
 
 .footer {
@@ -48,7 +46,6 @@
 
 footer {
     text-align: center;
-    margin-bottom: 2rem;
 }
 
 footer hr {

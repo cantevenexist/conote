@@ -3,24 +3,66 @@ html, body {
     width: 100%;
     height: 100%;
     background: white;
+    overflow: hidden;
+    margin: 0;
+}
+
+.no_select {
+    user-select: none; /* Запрещает выделение текста */
+    -webkit-user-select: none; /* Для Safari */
+    -moz-user-select: none; /* Для Firefox */
+    -ms-user-select: none; /* Для IE/Edge */
+}             
+
+.scrollable-container {
+    overflow-y: scroll; /* Позволяем прокрутку только для этого контейнера */
+    position: relative;
+    top:50px;
+    height: calc(100% - 50px); /* Высота без шапки */
+}
+/* Для Chrome, Safari и Edge */
+.scrollable-container::-webkit-scrollbar {
+    width: 8px; /* Ширина ползунка */
+    height: 8px; /* Высота ползунка */
+}
+
+.scrollable-container::-webkit-scrollbar-track {
+    background: transparent; /* Цвет фона ползунка */
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+    background: #86A8EC; /* Цвет самого ползунка */
+    border-radius: 4px; /* Скругленные углы ползунка */
+}
+
+.scrollable-container::-webkit-scrollbar-thumb:hover {
+    background: #6B8BC4; /* Цвет ползунка при наведении */
+}
+
+.scrollable-container::-webkit-scrollbar-thumb:active {
+    background: #5B7DAC; /* Цвет ползунка при активном взаимодействии */
+}
+
+:focus-visible {
+    outline: 2px solid #4A6E9F; /* Цвет и размер обводки фокуса при нажатии Tab */
+    border-radius: 2px / 2px 
 }
 
 /* Mobile */
-@media (max-width: 425.9px) {
+@media (orientation: portrait) {
     .layout_header {
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
         border: none;
         position: fixed;
         z-index: 1000;
         background-color: white;
-        left: 50%;
-        transform: translateX(-50%);
         width: 100%;
         height: 50px;
     }
     
     .layout_central_block {
-        top: 50px;
+        padding-left: 5%;
+        padding-right: 5%;
         border: none;
         position: absolute;
         width: 100%;
@@ -36,13 +78,42 @@ html, body {
         width:  175px;
     }
     
-    .logotype img {
+    .logotype svg {
         position: absolute;
         height: 70%;
+        width: auto;
         top: 50%;
         transform: translateY(-50%);
     }
     
+    .layout_header .avatar_area{
+        position:absolute;
+        right: 50px;
+        height: 50px;
+        width: 50px;
+    }
+
+    .avatar_area .default_avatar {
+        cursor: pointer;
+        padding: 5px;
+        height: 100%;
+        width: 100%;
+    }
+
+    .default_avatar img {
+        cursor: pointer;
+        border-radius: 7.5px;
+        height: 100%;
+        width: 100%;
+    }
+
+    .default_avatar svg {
+        background-color: #dedede;
+        border-radius: 7.5px;
+        height: 100%;
+        width: 100%;
+    }
+
     .layout_header .button_area {
         margin-right: 5px;
         position:absolute;
@@ -72,7 +143,7 @@ html, body {
         font-size: 0; /* Скрываем текст */
     }
 
-    .button_header .image {
+    .button_header .icon {
         margin-right: 5px;
         position: absolute;
         top: 10px;
@@ -81,8 +152,9 @@ html, body {
         height: 20px;
         transition: transform 0.5s ease;
     }
-    
+
     .button_header.active .user_menu {transform: rotate(180deg);}
+    .button_header .user_board{opacity: 0;}
     .logout{background-color: rgb(255, 50, 50);}
     
     .button_area .button_header {
@@ -108,7 +180,8 @@ html, body {
         padding: 5px;
         opacity: 0; /* Изначально полностью прозрачный */
         pointer-events: none; /* Блокируем события, пока скрыто */
-        transition: opacity 0.3s ease, transform 0.3s ease; /* Плавный переход */
+        visibility: hidden; /* Элемент не доступен для фокуса */
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease; /* Плавный переход */
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
         border-radius: 10px;
     }
@@ -116,6 +189,7 @@ html, body {
     #user_settings_panel.show {
         opacity: 1; /* Делаем его видимым */
         pointer-events: auto; /* Включаем события */
+        visibility: visible; /* Делаем его доступным для фокуса */
         transform: translate(-5px, 5px); /* Возвращаем в исходное положение */
     }
     
@@ -124,41 +198,32 @@ html, body {
         flex-direction: column;
     }
 
-    .user_settings_container a {
+    .user_settings_container button {
         position: relative;
-        text-decoration: none;
-        color: black;
-    }
-    
-    .user_settings_container a:hover {
-        color: #86A8EC;
     }
 }
 
 
 /* Desktop */
-@media (min-width: 426px){
+@media (orientation: landscape) {
     .layout_header {
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
         border: none;
         position: fixed;
         z-index: 1000;
         background-color: white;
-        left: 50%;
-        transform: translateX(-50%);
         width: 100%;
         height: 50px;
     }
-    
+
     .layout_central_block {
         padding-left: 10%;
         padding-right: 10%;
-        top:50px;
         border: none;
         position: absolute;
         width: 100%;
     }
-    
+
     .layout_header .logotype {
         float: left;
         margin-left: 10%;
@@ -169,12 +234,50 @@ html, body {
         height: 100%;
     }
     
-    .logotype img {
+    .logotype svg {
         position: absolute;
         height: 60%;
+        width: auto;
         top: 50%;
         transform: translateY(-50%);
     }
+
+    .layout_header .avatar_area{
+        position:absolute;
+        right: 160px;
+        margin-right: 10%;
+        height: 50px;
+        width: 50px;
+    }
+
+    .avatar_area .default_avatar {
+        cursor: pointer;
+        transform: translate(10px,10px);
+        height: 30px;
+        width: 30px;
+    }
+
+    .default_avatar img {
+        cursor: pointer;
+        border-radius: 7.5px;
+        height: 100%;
+        width: 100%;
+        transition: transform 0.5s ease;
+    }
+
+    .default_avatar svg {
+        background-color: #dedede;
+        border-radius: 7.5px;
+        height: 100%;
+        width: 100%;
+        transition: transform 0.5s ease;
+    }
+    
+    .default_avatar:hover img{
+        transform: scale(1.2);}
+
+    .default_avatar:hover svg{
+        transform: scale(1.2);}
 
     .layout_header .button_area {
         white-space: nowrap;
@@ -219,14 +322,15 @@ html, body {
         color: white;
     }
     
-    .button_header .image {
+    .button_header .icon {
         display: block;
         position: absolute;
         top: 5px;
         left: 5px;
         width: 20px;
         height: 20px;
-        transition: transform 0.5s ease;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+        opacity: 1;
     }
     
     .line {
@@ -238,11 +342,60 @@ html, body {
         transition: height 0.3s, background-color 0.3s; /* Плавный переход */
     }
 
+    @keyframes bell {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+    @keyframes board {
+        0% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+        100% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+    }
+
+    @keyframes boards {
+        0% {opacity: 0; transform: translateY(-4px);}
+        40% {opacity: 0; transform: translateY(-4px);}
+        80% {opacity: 0.5; transform: translateY(2px);}
+        100% {opacity: 1; transform: translateY(0);}
+    }
+    
+    @keyframes reverseboard {
+        0% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+        100% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+    }
+
+    @keyframes reverseboards {
+        0% {opacity: 1; transform: translateY(0);}
+        100% {opacity: 0; transform: translateY(100%);}
+    }
+
+    @keyframes help {
+        0% { transform: translate(0); }
+        25% { transform: translate(-1px, 1px); }
+        50% { transform: translate(1px, -1px); }
+        75% { transform: translate(-1px, -1px); }
+        100% { transform: translate(0); }
+    }
+      
     .layout_header .button_header:hover {transform: translate(5px, -50%);}
     .button_header.active .user_menu {transform: rotate(180deg);}
     .button_header:hover .line {height: 100%; background-color: rgba(0, 0, 0, 0.8);}
-    .button_header:hover .user_default{transform: scale(1.2);}
+    
+    .button_header:hover .user_board{animation: board 0.5s forwards;}
+    .button_header .user_boards{opacity: 0;}
+    .button_header:hover .user_boards{animation: boards 0.5s forwards;}
+    .button_header:not(:hover) .user_board {animation: reverseboard 0.5s forwards;}
+    .button_header:not(:hover) .user_boards {animation: reverseboards 0.5s forwards;}
+
+    .button_header:hover .user_profile{transform: scale(1.2);}
+    .button_header:hover .user_notifications{animation: bell 0.5s;}
     .button_header:hover .user_settings{transform: rotate(360deg);}
+    .button_header:hover .user_help{animation: help 0.5s forwards;}
     .button_header:hover .user_logout{transform: translateX(5px);}
     
     .logout {
@@ -269,7 +422,8 @@ html, body {
         padding: 10px;
         opacity: 0; /* Изначально полностью прозрачный */
         pointer-events: none; /* Блокируем события, пока скрыто */
-        transition: opacity 0.3s ease, transform 0.3s ease; /* Плавный переход */
+        visibility: hidden; /* Элемент не доступен для фокуса */
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease; /* Плавный переход */
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
         border-radius: 10px;
     }
@@ -277,6 +431,7 @@ html, body {
     #user_settings_panel.show {
         opacity: 1; /* Делаем его видимым */
         pointer-events: auto; /* Включаем события */
+        visibility: visible; /* Делаем его доступным для фокуса */
         transform: translate(10px, 10px); /* Возвращаем в исходное положение */
     }
     
@@ -285,13 +440,7 @@ html, body {
         flex-direction: column;
     }
 
-    .user_settings_container a {
+    .user_settings_container button {
         position: relative;
-        text-decoration: none;
-        color: black;
-    }
-    
-    .user_settings_container a:hover {
-        color: #86A8EC;
     }
 }
