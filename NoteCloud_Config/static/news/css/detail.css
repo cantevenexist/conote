@@ -1,5 +1,5 @@
 /* Mobile */
-@media (max-width: 425.9px) {
+@media (orientation: portrait) {
   /* Основной контейнер для новостей */
   .news_block_detail  {
       max-width: 100%; /* Ширина 100% для мобильных */
@@ -19,9 +19,9 @@
       text-decoration: none;
       color: inherit;
       margin: 10px 0; /* Уменьшенный отступ */
-      padding: 15px; /* Увеличенный внутренний отступ */
+      padding: 10px; /* Увеличенный внутренний отступ */
       background-color: white;
-      border-radius: 8px;
+      border-radius: 15px;
       border: 1px solid #e0e0e0; /* Граница */
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
       opacity: 0; /* Начальное состояние */
@@ -51,9 +51,9 @@
     text-decoration: none;
     color: inherit;
     margin: 10px 0; /* Уменьшенный отступ */
-    padding: 15px; /* Увеличенный внутренний отступ */
+    padding: 10px; /* Увеличенный внутренний отступ */
     background-color: white;
-    border-radius: 8px;
+    border-radius: 15px;
     border: 1px solid #e0e0e0; /* Граница */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     opacity: 0; /* Начальное состояние */
@@ -257,7 +257,7 @@
 }
 
 /* Desktop */
-@media (min-width: 426px) {
+@media (orientation: landscape) {
   /* Основной контейнер для новостей */
   .news_block_detail {
       max-width: 600px;
