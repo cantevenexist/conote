@@ -1,0 +1,29 @@
+#panel-subscribers {
+    width: 20%;
+    height: 100%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    background-color: blue;
+    display: none;
+    z-index: 1000;
+}
+
+#panel-subscribers.show {
+    display: block;
+}
+
+#panel-subscriptions {
+    width: 20%;
+    height: 100%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    background-color: blue;
+    display: none;
+    z-index: 1000;
+}
+
+#panel-subscriptions.show {
+    display: block;
+}

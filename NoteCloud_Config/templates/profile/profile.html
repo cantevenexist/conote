@@ -1,10 +1,74 @@
-{% extends 'layout.html' %}
+{% extends 'profile/layout_settings.html' %}
 {% load static %}
 
-{% block title %}
-    NoteCloud [Профиль]
+{% block head2 %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <link rel="stylesheet" href="{% static 'user_profiles/css/profile.css' %}">
 {% endblock %}
 
 {% block content %}
+    <h1>Профиль {{ username }}</h1>
+    <form>
+        <div id="image-container">
+            {% if form.instance.avatar %}
+            <div>
+                <img id="avatar-preview" src="{{ form.instance.avatar.url }}" alt="Avatar" width="256" height="256">
+            </div>
+            {% else %}
+            <div class="default_avatar" style="background-color: #dedede; width: 256px; height: 256px;">
+                <i class="fa-solid fa-user" style="color: #6f7276; font-size: 150px;"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div>
+            <label>О себе:</label>
+            <h2>{{ form.instance.about_me }}</h2>
+        </div>
+    </form>
+    {% if not is_owner %}
+        <div id="user-data" data-username="{{ username }}"></div>
+        <div id="subscribe-unsubscribe-container">
+            {% if is_subscribed %}
+                <button class="unsubscribe-btn" id="unsubscribe-btn">Отписаться</button>
+            {% else %}
+                <button class="subscribe-btn" id="subscribe-btn">Подписаться</button>
+            {% endif %}
+        </div>
+    {% endif %}
+    <p>Количество подписчиков: <span id="subscribers-count">{{ subscribers_count }}</span></p>
+    {% if flag_display_moreBtn_subscribers %}
+        <button id="moreBtn-subscribers" onclick="toggleDiv_subscribers()">Подробнее</button>
+        <div class="panel_subscribers" id="panel-subscribers">
+            <span class="close_btn_subscribers" id="closeBtn-subscribers">&times;</span>
+            <h3>Подписчики</h3>
+                <ul>
+                    {% for username in subscribers_usernames %}
+                        <li id="subscriber-{{ username }}"><a href="/profile/{{ username }}/">{{ username }}</a></li>
+                    {% empty %}
+                        <li class="no-subscribers">Нет подписчиков</li>
+                    {% endfor %}
+                </ul>
+        </div>
+    {% endif %}
 
+    <p>Количество подписок: <span id="subscriptions-count">{{ subscriptions_count }}</span></p>
+    {% if flag_display_moreBtn_subscriptions %}
+        <button id="moreBtn-subscriptions" onclick="toggleDiv_subscriptions()">Подробнее</button>
+        <div class="panel_subscriptions" id="panel-subscriptions">
+            <span class="close_btn_subscriptions" id="closeBtn-subscriptions">&times;</span>
+            <h3>Подписки</h3>
+                <ul>
+                    {% for username in subscriptions_usernames %}
+                        <li><a href="/profile/{{ username }}/">{{ username }}</a></li>
+                    {% empty %}
+                        <li>Нет подписок</li>
+                    {% endfor %}
+                </ul>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascript2 %}
+    <script src="{% static 'user_profiles/js/profile.js' %}"></script>
 {% endblock %}

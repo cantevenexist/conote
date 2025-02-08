@@ -1,13 +1,42 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 import os
+import hashlib
+from django.utils.deconstruct import deconstructible
+from django.db import transaction
+from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
 
+@deconstructible
+class UploadToPath(object):
+    def __init__(self, upload_to):
+        self.upload_to = upload_to
+
+    def __call__(self, instance, filename):
+        return self.generate_filename(instance, filename)
+
+    def generate_filename(self, instance, filename):
+        username_hash = hashlib.md5(instance.user.username.encode()).hexdigest()
+        file_hash = hashlib.md5(filename.encode()).hexdigest()
+        file_extension = filename.split('.')[-1]
+        return f'avatars/{username_hash}/{file_hash}.{file_extension}'
+
+
+def file_size(value):
+    limit = 2 * 1024 * 1024
+    if value.size > limit:
+        raise ValidationError('Размер изображения не должен превышать 2МБ')
+
+
 class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar = models.ImageField(upload_to=UploadToPath('avatars/'), blank=True, null=True, validators=[
+        FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg']),
+        file_size
+    ])
     about_me = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
@@ -25,3 +54,44 @@ class UserProfile(models.Model):
                     os.remove(old_image.path)
 
         super().save(*args, **kwargs)
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_subscriptions')
+    subscriptions = models.ManyToManyField(User, related_name='subscriptions', blank=True)
+    subscribers = models.ManyToManyField(User, related_name='subscribers', blank=True)
+
+    def get_subscriptions_usernames(self):
+        return [user.username for user in self.subscriptions.all()]
+
+    def get_subscribers_usernames(self):
+        return [user.username for user in self.subscribers.all()]
+
+    def subscribe(self, user_to_subscribe):
+        with transaction.atomic():
+            self.subscriptions.add(user_to_subscribe)
+            user_subscription = Subscription.objects.get(user=user_to_subscribe)
+            user_subscription.subscribers.add(self.user)
+
+    def unsubscribe(self, user_to_unsubscribe):
+        with transaction.atomic():
+            self.subscriptions.remove(user_to_unsubscribe)
+            user_subscription = Subscription.objects.get(user=user_to_unsubscribe)
+            user_subscription.subscribers.remove(self.user)
+
+
+class SettingsPrivacy(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_privacy')
+    disable_subscribers_view = models.BooleanField(default=False)
+    disable_subscriptions_view = models.BooleanField(default=False)
+    disable_profile_view = models.BooleanField(default=False)
+
+
+class SettingsEmailMessages(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_emailmessages')
+    disabling_news_messages = models.BooleanField(default=False)
+
+
+class SettingsNotifications(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_notifications')
+    disable_notifications = models.BooleanField(default=False)
