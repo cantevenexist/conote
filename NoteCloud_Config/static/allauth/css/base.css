@@ -5,6 +5,8 @@ html, body {
     background: white;
     overflow: hidden;
     margin: 0;
+    /* Отключение зума на мобильный устройствах */
+    touch-action: manipulation;
 }
 
 .no_select {

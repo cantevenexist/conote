@@ -5,6 +5,8 @@ html, body {
     background: white;
     overflow: hidden;
     margin: 0;
+    /* Отключение зума на мобильный устройствах */
+    touch-action: manipulation;
 }
 
 .no_select {
@@ -47,6 +49,63 @@ html, body {
     outline: 2px solid #4A6E9F; /* Цвет и размер обводки фокуса при нажатии Tab */
     border-radius: 2px / 2px 
 }
+
+@keyframes bell {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    75% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes board {
+    0% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+    40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+    100% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+}
+
+@keyframes boards {
+    0% {opacity: 0; transform: translateY(-4px);}
+    40% {opacity: 0; transform: translateY(-4px);}
+    80% {opacity: 0.5; transform: translateY(2px);}
+    100% {opacity: 1; transform: translateY(0);}
+}
+
+@keyframes reverseboard {
+    0% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+    40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+    100% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+}
+
+@keyframes reverseboards {
+    0% {opacity: 1; transform: translateY(0);}
+    100% {opacity: 0; transform: translateY(100%);}
+}
+
+@keyframes help {
+    0% { transform: translate(0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+    100% { transform: translate(0); }
+}
+
+@media (hover:hover) {
+    .button_header:hover .user_board{animation: board 0.5s forwards;}
+    .button_header:hover .user_boards{animation: boards 0.5s forwards;}
+    .button_header:not(:hover) .user_board {animation: reverseboard 0.5s forwards;}
+    .button_header:not(:hover) .user_boards {animation: reverseboards 0.5s forwards;}
+
+    .button_header:hover .user_profile{transform: scale(1.2);}
+    .button_header:hover .user_notifications{animation: bell 0.5s;}
+    .button_header:hover .user_settings{transform: rotate(360deg);}
+    .button_header:hover .user_help{animation: help 0.5s forwards;}
+    .button_header:hover .user_logout{transform: translateX(5px);}
+
+    .logout:hover {background: rgb(230, 15, 15) !important;}
+}
+
+.logout{background-color: rgb(255, 50, 50) !important;}
 
 /* Mobile */
 @media (orientation: portrait) {
@@ -105,6 +164,7 @@ html, body {
         border-radius: 7.5px;
         height: 100%;
         width: 100%;
+        transition: transform 0.5s ease;
     }
 
     .default_avatar svg {
@@ -112,6 +172,7 @@ html, body {
         border-radius: 7.5px;
         height: 100%;
         width: 100%;
+        transition: transform 0.5s ease;
     }
 
     .layout_header .button_area {
@@ -134,6 +195,7 @@ html, body {
         background-color: #86A8EC; /* Цвет фона кнопки */
         border: transparent;
         border-radius: 10px;
+        transition: transform 0.5s ease, background 0.5s ease;
     }
     
     .button_header p {
@@ -153,9 +215,18 @@ html, body {
         transition: transform 0.5s ease;
     }
 
+    @media (hover:hover) {
+        /* Кнопки меню(включая кнопку меню) */
+        .button_header:hover {transform: scale(1.1);background: #6B8BC4;}
+        /* Кнопка меню */
+        .layout_header .button_header:hover {transform: scale(1.1) translateY(-18px);}
+
+        .default_avatar:hover img{transform: scale(1.1);}
+        .default_avatar:hover svg{transform: scale(1.1);}
+    }
+
     .button_header.active .user_menu {transform: rotate(180deg);}
     .button_header .user_board{opacity: 0;}
-    .logout{background-color: rgb(255, 50, 50);}
     
     .button_area .button_header {
         right: 5px;
@@ -272,12 +343,6 @@ html, body {
         width: 100%;
         transition: transform 0.5s ease;
     }
-    
-    .default_avatar:hover img{
-        transform: scale(1.2);}
-
-    .default_avatar:hover svg{
-        transform: scale(1.2);}
 
     .layout_header .button_area {
         white-space: nowrap;
@@ -309,11 +374,6 @@ html, body {
         transition: transform 0.5s ease, background 0.5s ease, color 0.5s ease; 
     }
 
-    .button_header:hover {
-        transform: translateX(5px);
-        background: #6B8BC4;
-    }
-
     .button_header p {
         overflow: hidden; /* Скрыть переполнение */
         white-space: nowrap; /* Запретить перенос строки */
@@ -342,69 +402,20 @@ html, body {
         transition: height 0.3s, background-color 0.3s; /* Плавный переход */
     }
 
-    @keyframes bell {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-10deg); }
-            50% { transform: rotate(10deg); }
-            75% { transform: rotate(-5deg); }
-            100% { transform: rotate(0deg); }
-        }
+    @media (hover:hover) {
+        /* Кнопки меню(включая кнопку меню) */
+        .button_header:hover {transform: translateX(5px);background: #6B8BC4;}
+        /* Кнопка меню */
+        .layout_header .button_header:hover {transform: translate(5px, -50%);}
+        /* Указательная линия */
+        .button_header:hover .line {height: 100%; background-color: rgba(0, 0, 0, 0.8);}
 
-    @keyframes board {
-        0% {transform: scaleY(1) rotate(0deg);opacity: 1;}
-        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
-        100% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+        .default_avatar:hover img{transform: scale(1.2);}
+        .default_avatar:hover svg{transform: scale(1.2);}
     }
 
-    @keyframes boards {
-        0% {opacity: 0; transform: translateY(-4px);}
-        40% {opacity: 0; transform: translateY(-4px);}
-        80% {opacity: 0.5; transform: translateY(2px);}
-        100% {opacity: 1; transform: translateY(0);}
-    }
-    
-    @keyframes reverseboard {
-        0% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
-        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
-        100% {transform: scaleY(1) rotate(0deg);opacity: 1;}
-    }
-
-    @keyframes reverseboards {
-        0% {opacity: 1; transform: translateY(0);}
-        100% {opacity: 0; transform: translateY(100%);}
-    }
-
-    @keyframes help {
-        0% { transform: translate(0); }
-        25% { transform: translate(-1px, 1px); }
-        50% { transform: translate(1px, -1px); }
-        75% { transform: translate(-1px, -1px); }
-        100% { transform: translate(0); }
-    }
-      
-    .layout_header .button_header:hover {transform: translate(5px, -50%);}
     .button_header.active .user_menu {transform: rotate(180deg);}
-    .button_header:hover .line {height: 100%; background-color: rgba(0, 0, 0, 0.8);}
-    
-    .button_header:hover .user_board{animation: board 0.5s forwards;}
     .button_header .user_boards{opacity: 0;}
-    .button_header:hover .user_boards{animation: boards 0.5s forwards;}
-    .button_header:not(:hover) .user_board {animation: reverseboard 0.5s forwards;}
-    .button_header:not(:hover) .user_boards {animation: reverseboards 0.5s forwards;}
-
-    .button_header:hover .user_profile{transform: scale(1.2);}
-    .button_header:hover .user_notifications{animation: bell 0.5s;}
-    .button_header:hover .user_settings{transform: rotate(360deg);}
-    .button_header:hover .user_help{animation: help 0.5s forwards;}
-    .button_header:hover .user_logout{transform: translateX(5px);}
-    
-    .logout {
-        background: rgb(255, 50, 50);
-    }
-
-    .logout:hover {
-        background: rgb(230, 15, 15);
-    }
 
     .user_settings_container .separator {
         height: 10px;
