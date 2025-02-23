@@ -10,8 +10,11 @@ services:
     env_file:
       - ./.env.dev
       - ./.env.email
+      - ./.env.providers
     depends_on:
       - db
+      - minio
+      - createbuckets
   db:
     image: postgres:16.4-alpine3.20
     volumes:
@@ -21,7 +24,31 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address :9001
+    volumes:
+      - minio_data:/data
+    env_file:
+      - ./.env.s3
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    restart: unless-stopped
+  createbuckets:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add --api s3v4 s3 http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb s3/${MINIO_NAMEBUCKET}/;
+      /usr/bin/mc anonymous set download s3/${MINIO_NAMEBUCKET};
+      "
+
 
 volumes:
   postgres_data:
      driver: local
+  minio_data:
+    driver: local

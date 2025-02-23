@@ -2,9 +2,12 @@
 /.env.db
 /.env.cache_db
 /.env.email
+/.env.providers
+/.env.s3
+/.env
 *.pyc
 __pycache__/
 /.venv
-/.env.s3
 media
 migrations
+migrations_old

@@ -56,10 +56,7 @@ class ProfileView(APIView):
 class SettingsView(APIView):
     @method_decorator(login_required)
     def get(self, request):
-        if request.user.is_authenticated:
-            return render(request, 'profile/layout_settings.html')
-        else:
-            return redirect('/accounts/login/')
+        return render(request, 'profile/layout_settings.html')
 
 
 class ProfileEditView(APIView):

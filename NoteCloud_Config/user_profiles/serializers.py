@@ -28,7 +28,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             username_data = user_data['username']
 
             if username_data.lower() in settings.ACCOUNT_USERNAME_BLACKLIST:
-                raise ValidationError({"username_error": "Данный логин является некорректным!"})
+                raise ValidationError({"username_error": "Такое имя пользователя не может быть использовано, выберите другое."})
+
+            if len(username_data.lower()) < settings.ACCOUNT_USERNAME_MIN_LENGTH:
+                raise ValidationError({"username_error": "Увеличьте имя пользователя до 4 символов или более. "})
 
             if User.objects.filter(username=username_data).exists():
                 raise ValidationError({"username_error": "Этот логин уже занят."})

@@ -5,15 +5,16 @@ from transliterate import translit
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from user_profiles.models import MinioStorage
 
-User = get_user_model()  # Получаем модель пользователя
+User = get_user_model()
 
 
 class News(models.Model):
     title = models.CharField(max_length=255)
     preview_content = models.CharField(max_length=500, null=True, blank=True)
     content = models.TextField(null=True, blank=True)
-    image = models.ImageField(upload_to='news_images/', null=True, blank=True)
+    image = models.ImageField(upload_to='news_images/', null=True, blank=True, storage=MinioStorage())
     slug = models.SlugField(max_length=300, unique=True, blank=True) # Допуск для slug больше на 45символов чем название для успешного его создания если сработало исключение
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -41,19 +42,17 @@ class News(models.Model):
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
 
-        # Проверяем, существует ли объект в базе данных
         if self.pk:
             try:
                 old_image = News.objects.get(pk=self.pk).image
             except News.DoesNotExist:
                 old_image = None
 
-            # Если старое изображение существует и отличается от нового, удаляем его
-            if old_image and old_image != self.image:
-                if os.path.isfile(old_image.path):
-                    os.remove(old_image.path)
+            if old_image:
+                if old_image.name:
+                    old_image.storage.delete(old_image.name)
 
-        super().save(*args, **kwargs)  # Вызываем метод save родительского класса
+        super().save(*args, **kwargs)
 
 
 class Comment(models.Model):

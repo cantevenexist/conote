@@ -6,6 +6,7 @@ from django.utils.deconstruct import deconstructible
 from django.db import transaction
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
+from .storages import MinioStorage
 
 User = get_user_model()
 
@@ -22,7 +23,7 @@ class UploadToPath(object):
         username_hash = hashlib.md5(instance.user.username.encode()).hexdigest()
         file_hash = hashlib.md5(filename.encode()).hexdigest()
         file_extension = filename.split('.')[-1]
-        return f'avatars/{username_hash}/{file_hash}.{file_extension}'
+        return f'media/avatars/{username_hash}/{file_hash}.{file_extension}'
 
 
 def file_size(value):
@@ -33,10 +34,11 @@ def file_size(value):
 
 class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to=UploadToPath('avatars/'), blank=True, null=True, validators=[
-        FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg']),
-        file_size
-    ])
+    avatar = models.ImageField(upload_to=UploadToPath('media/'), blank=True, null=True, storage=MinioStorage(),
+                               validators=[
+                                   FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg']),
+                                   file_size
+                               ])
     about_me = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
@@ -49,9 +51,9 @@ class UserProfile(models.Model):
             except UserProfile.DoesNotExist:
                 old_image = None
 
-            if old_image and old_image != self.avatar:
-                if os.path.isfile(old_image.path):
-                    os.remove(old_image.path)
+            if old_image:
+                if old_image.name:
+                    old_image.storage.delete(old_image.name)
 
         super().save(*args, **kwargs)
 
