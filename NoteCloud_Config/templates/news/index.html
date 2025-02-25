@@ -12,12 +12,12 @@
 <div class="news_block">
   {% if user.is_authenticated %}
     <div class="news_action_buttons_container no_select">
-      <a class="news_action_button" href="{% url 'news_create' %}" hx-get="{% url 'news_create' %}" hx-target="#page-content" hx-push-url="true"><p>Добавить новость</p></a>
+      <a class="news_action_button" href="{% url 'news_create' %}"><p>Добавить новость</p></a>
     </div>
   {% endif %}
 
   {% for item in news %}
-    <a tabindex="0" class="news_post_link no_select" href="{% url 'news_detail' item.slug %}" hx-get="{% url 'news_detail' item.slug %}" hx-target="#page-content" hx-push-url="true">
+    <a tabindex="0" class="news_post_link no_select" href="{% url 'news_detail' item.slug %}">
       <div class="news_post">
         <div class="title"><strong>{{ item.title }}</strong><p class="author">{{ item.author.username }}</p><p class="date time" data-time="{{ item.updated_at|date:"Y-m-d\TH:i:s" }}"></p></div>
         

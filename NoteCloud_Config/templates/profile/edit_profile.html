@@ -9,10 +9,10 @@
 
 {% block setting %}
     <h1>Изменить профиль</h1>
+
     <form id="profile-form" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="text" id="id_username" name="username" placeholder="Введите новый никнейм" value="{{ user.username }}">
-        <input type="hidden" id="current-username" value="{{ user.username }}">
+       
         <div id="image-container">
             {% if user_profile.avatar %}
             <div>
@@ -24,20 +24,29 @@
             </div>
             {% endif %}
         </div>
+
         {% if user_profile.avatar %}
             <button type="submit" name="delete_avatar" formmethod="POST">Удалить фотографию</button>
         {% endif %}
+        
         <div>
             <label for="avatar">Выберите изображение:</label>
             <input type="file" id="id_avatar" name="avatar" accept=".bmp,.jpeg,.png,.jpg">
         </div>
+        
+        <input type="text" id="id_username" name="username" placeholder="Введите новый никнейм" value="{{ user.username }}">
+        <input type="hidden" id="current-username" value="{{ user.username }}">
+        
         <div>
             <label for="id_about_me">О себе:</label>
-            <textarea id="id_about_me" name="about_me" placeholder="Здесь еще пусто...">{{ user_profile.about_me|default:"" }}</textarea>
+            <textarea id="id_about_me" name="about_me" placeholder="Здесь еще пусто..." maxlength="500">{{ user_profile.about_me|default:"" }}</textarea>
         </div>
+        
         <input type="hidden" id="crop-data" name="crop_data">
+        
         <button type="submit">Сохранить изменения</button>
     </form>
+
     <div id="confirmation-modal" class="modal">
         <div class="modal-content">
             <p id="confirmation-message"></p>
