@@ -6,7 +6,7 @@ from .models import UserProfile
 from .serializers import UserProfileSerializer
 from .forms import ProfileForm
 from django.contrib.auth.models import User
-from .models import Subscription, SettingsPrivacy, SettingsEmailMessages, SettingsNotifications
+from .models import Subscription, SettingsPrivacy, SettingsNotifications
 from rest_framework.response import Response
 from django.urls import reverse
 
@@ -84,26 +84,6 @@ class ProfileEditView(APIView):
         return render(request, 'profile/edit_profile.html', {'user_profile': user_profile, 'errors': serializer.errors})
 
 
-class SettingsEmailMessagesView(APIView):
-    @method_decorator(login_required)
-    def get(self, request):
-        user_settings_emailmessages = get_object_or_404(SettingsEmailMessages, user=request.user)
-
-        return render(request, 'profile/settings_emailmessages.html',
-                      {'disabling_news_messages': user_settings_emailmessages.disabling_news_messages,
-                       })
-
-    @method_decorator(login_required)
-    def post(self, request):
-        disabling_news_messages = request.POST.get('disabling_news_messages') == 'on'
-
-        user_settings_emailmessages = get_object_or_404(SettingsEmailMessages, user=request.user)
-        user_settings_emailmessages.disabling_news_messages = disabling_news_messages
-        user_settings_emailmessages.save()
-
-        return redirect('settings_emailmessages')
-
-
 class SettingsPrivacyView(APIView):
     @method_decorator(login_required)
     def get(self, request):
@@ -142,9 +122,11 @@ class SettingsNotificationsView(APIView):
     @method_decorator(login_required)
     def post(self, request):
         disable_notifications = request.POST.get('disable_notifications') == 'on'
+        disabling_news_messages = request.POST.get('disabling_news_messages') == 'on'
 
         user_settings_notifications = get_object_or_404(SettingsNotifications, user=request.user)
         user_settings_notifications.disable_notifications = disable_notifications
+        user_settings_notifications.disabling_news_messages = disabling_news_messages
         user_settings_notifications.save()
 
         return redirect('settings_notifications')

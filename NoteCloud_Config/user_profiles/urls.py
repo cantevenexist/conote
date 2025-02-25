@@ -6,7 +6,6 @@ urlpatterns = [
     path('profile/<str:username>/', views.ProfileView.as_view(), name='profile'),
     path('account/settings/', views.SettingsView.as_view(), name='settings'),
     path('account/settings/edit_profile/', views.ProfileEditView.as_view(), name='edit_profile'),
-    path('account/settings/emailmessages/', views.SettingsEmailMessagesView.as_view(), name='settings_emailmessages'),
     path('account/settings/privacy/', views.SettingsPrivacyView.as_view(), name='settings_privacy'),
     path('account/settings/notifications/', views.SettingsNotificationsView.as_view(), name='settings_notifications'),
     path('account/settings/delete/', views.SettingsView.as_view(), name='delete_account'),

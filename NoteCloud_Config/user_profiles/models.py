@@ -89,11 +89,7 @@ class SettingsPrivacy(models.Model):
     disable_profile_view = models.BooleanField(default=False)
 
 
-class SettingsEmailMessages(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_emailmessages')
-    disabling_news_messages = models.BooleanField(default=False)
-
-
 class SettingsNotifications(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_notifications')
     disable_notifications = models.BooleanField(default=False)
+    disabling_news_messages = models.BooleanField(default=False)

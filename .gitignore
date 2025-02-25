@@ -10,4 +10,5 @@ __pycache__/
 /.venv
 media
 migrations
-migrations_old
+NoteCloud_Config/subscribers.db
+NoteCloud_Config/telegram_bot.log
