@@ -7,6 +7,7 @@ from django.db import transaction
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 from .storages import MinioStorage
+import re
 
 User = get_user_model()
 
@@ -32,6 +33,19 @@ def file_size(value):
         raise ValidationError('Размер изображения не должен превышать 2МБ')
 
 
+def validate_https_url(value):
+    pattern = r'^https:\/\/[^\s]+$'
+    if not re.match(pattern, value):
+        raise ValidationError('Неверный формат URL. Поддерживаются только ссылки с https протоколом')
+
+
+def validate_links(value):
+    if len(value) > 3:
+        raise ValidationError('Разрешено добавить не более 3 ссылок на сторонние сервисы')
+    for url in value:
+        validate_https_url(url)
+
+
 class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to=UploadToPath('media/'), blank=True, null=True, storage=MinioStorage(),
@@ -40,6 +54,7 @@ class UserProfile(models.Model):
                                    file_size
                                ])
     about_me = models.CharField(max_length=500, blank=True, null=True)
+    links = models.JSONField(blank=True, null=True, validators=[validate_links])
 
     def __str__(self):
         return f"Профиль {User.username}"

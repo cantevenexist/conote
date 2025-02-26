@@ -18,10 +18,11 @@ def is_subscribed_to_bot(telegram_user_id):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['avatar', 'about_me']
+        fields = ['avatar', 'about_me', 'links']
         widgets = {
             'about_me': forms.TextInput(attrs={'readonly': 'readonly'}),
             'avatar': forms.ClearableFileInput(attrs={'disabled': 'disabled'}),
+            'links': forms.HiddenInput()
         }
 
 

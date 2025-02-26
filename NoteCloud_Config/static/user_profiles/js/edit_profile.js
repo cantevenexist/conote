@@ -62,11 +62,38 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
     }
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const addLinkBtn = document.getElementById("add-link-btn");
+    const linkInputs = document.querySelectorAll("#links-container .link-input");
+
+    addLinkBtn.addEventListener("click", function () {
+        let hiddenInput = Array.from(linkInputs).find(input => input.style.display === "none");
+
+        if (hiddenInput) {
+            hiddenInput.style.display = "block";
+        } else {
+            alert("Разрешено добавить не более 3 ссылок на сторонние сервисы");
+        }
+    });
+});
+
 document.getElementById('profile-form').addEventListener('submit', function(event) {
     if (event.submitter && event.submitter.name === 'delete_avatar') {
         return;
     }
     event.preventDefault();
+
+    const linkInputs = document.querySelectorAll('input[name="links"]');
+    const regex = /^https:\/\/[^\s]+$/;
+    for (let input of linkInputs) {
+         const url = input.value.trim();
+         if (url !== '' && !regex.test(url)) {
+              alert('Неверный формат URL. Каждый URL должен начинаться с "https://".');
+              input.focus();
+              event.preventDefault();
+              return;
+         }
+    }
 
     const newUsername = document.getElementById('id_username').value;
     const currentUsername = document.getElementById('current-username').value;

@@ -8,15 +8,23 @@ from django.conf import settings
 
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', required=False)
+    links = serializers.ListField(
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = UserProfile
-        fields = ['avatar', 'about_me', 'username']
+        fields = ['avatar', 'about_me', 'username', 'links']
 
     def update(self, instance, validated_data):
         old_avatar = instance.avatar
 
         instance.about_me = validated_data.get('about_me', instance.about_me)
+
+        links_data = validated_data.get('links', None)
+        if links_data is not None:
+            instance.links = links_data[:3]
 
         if 'avatar' in validated_data and validated_data['avatar'] is not None:
             instance.avatar = validated_data['avatar']

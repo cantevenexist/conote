@@ -67,6 +67,28 @@
                 </ul>
         </div>
     {% endif %}
+
+    <div id="links-section">
+        <label>Ссылки на сервисы:</label>
+        <div id="links-container">
+            {% for i in "123" %}
+                {% with link=user_profile.links|default_if_none:""|slice:i|last %}
+                    <div class="link-input" style="display: {% if link %}block{% else %}none{% endif %};">
+                        <input type="text" name="links" placeholder="Введите ссылку на сервис" value="{{ link }}" readonly>
+                        <span class="service-icon">
+                            {% if link and 'google.com' in link %}
+                                <i class="fa-brands fa-google"></i>
+                            {% elif link and 'vk.com' in link %}
+                                <i class="fa-brands fa-vk"></i>
+                            {% elif link and 't.me' in link %}
+                                <i class="fa-brands fa-telegram"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
 
 {% block javascript2 %}
