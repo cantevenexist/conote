@@ -45,7 +45,7 @@
     </div>
 </div>
 <script>
-    function addSvgAsNewListItem() {
+function addSvgAsNewListItem() {
   // Находим первый ul без класса
   const ulElementwarning = document.querySelector('ul:not([class])');
   const ulElementerror = document.querySelector('ul.errorlist');
@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', addSvgAsNewListItem);
     window.addEventListener('resize', centerVertically);
 
     document.addEventListener('keydown', function(event) {if (event.key === 'Escape') {event.preventDefault();}});
-</script>
 </script>
 </body>
 </html>

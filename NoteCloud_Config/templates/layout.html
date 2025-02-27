@@ -293,27 +293,22 @@
 </script>
 
 <script>
-// const parent = document.querySelector('.scrollable-container');
-// const child = document.querySelector('.form_block');
+function centerVerticallyPage() {
+    const child = document.querySelector('.page_must_be_centered');
+    const parentHeight = document.querySelector('.scrollable-container').offsetHeight;
+    const childHeight = child.offsetHeight;
 
-// function centerVertically() {
-//     const parentHeight = parent.offsetHeight;
-//     const childHeight = child.offsetHeight;
-
-//     if (childHeight < parentHeight) {
-//     const offset = (parentHeight - childHeight) / 2;
-//     child.style.marginTop = offset + 'px';
-//     child.style.marginBottom = offset + 'px';
-//     } else {
-//     // Если внутренний блок выше, чем родительский, сбросить отступы
-//     child.style.marginTop = '20px';
-//     child.style.marginBottom = '20px';
-//     }
-// }
-
-// // Вызываем функцию при загрузке страницы и при изменении размера окна
-// window.addEventListener('load', centerVertically);
-// window.addEventListener('resize', centerVertically);
+    if (childHeight < parentHeight) {
+        const offset = (parentHeight - childHeight) / 2;
+        child.style.marginTop = offset - 25 + 'px';
+        child.style.marginBottom = offset + 25 + 'px';
+    } else {
+        child.style.marginTop = '20px';
+        child.style.marginBottom = '20px';
+    }
+}
+window.addEventListener('load', centerVerticallyPage);
+window.addEventListener('resize', centerVerticallyPage);
 </script>
 {% block javascript %}
 {% endblock %}

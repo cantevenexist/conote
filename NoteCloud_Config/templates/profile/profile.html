@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="profile-page no_select">
+<div class="profile-page page_must_be_centered no_select">
     <div class="profile-container">
         <form class="profile-container-avatar-info">
             <div class="profile-avatar-container">
@@ -104,7 +104,7 @@
                                 Ничего не найдено
                             </div>
                             <div class="subs_container">
-                                <ul>
+                                <ul class="subs_list">
                                     {% for username in subscribers_usernames %}
                                     <li id="subscriber-{{ username }}">
                                     <div class="subscriber-item">
@@ -115,7 +115,7 @@
                                     </div></li>
                                     {% empty %}
                                         {% if flag_display_moreBtn_subscribers %}
-                                            Нет подписчиков
+                                            <li>Нет подписчиков</li>
                                         {% else %}
                                             скрыто
                                         {% endif%}
@@ -158,7 +158,7 @@
                                 Ничего не найдено
                             </div>
                             <div class="subs_container">
-                                <ul>
+                                <ul class="subs_list">
                                     {% for username in subscriptions_usernames %}
                                     <div class="subscription-item">
                                         <div class="sub_container">

@@ -227,10 +227,11 @@
     vertical-align: middle;
   }
 
+  .news_action_button_delete {background-color: crimson;}
+
   @media (hover:hover) {
-  .news_action_button:hover {
-    background-color: seagreen;
-  }}
+  .news_action_button:hover {background-color: seagreen;}
+  .news_action_button_delete:hover {background-color: rgb(195, 25, 60);}}
   
   /* Ссылки на новости */
   .news_post_link {

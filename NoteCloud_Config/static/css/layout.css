@@ -123,15 +123,15 @@ html, body {
 .layout_header .logotype .logo{display: block;}
 .layout_header .logotype .logo_mini{display: none;}
 
-@media (max-width:149px) {
+@media (max-width:319px) {
     .QRCHECKBADASS{display: block;}
 }
-@media (max-height:149px) {
+@media (max-height:319px) {
     .QRCHECKBADASS{display: block;}
 }
 
 /* MINIMIZE LOGO */
-@media (max-width:298px) {
+@media (max-width:425px) {
     .layout_header .logotype .logo{display: none;}
     .layout_header .logotype .logo_mini{display: block;}
 }

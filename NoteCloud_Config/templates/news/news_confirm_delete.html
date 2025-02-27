@@ -13,7 +13,7 @@
     {% csrf_token %}
     <div class="news_block_detail">
         <div class="news_action_buttons_container no_select">
-            <button type="submit" class='news_action_button' style="background-color: crimson;">Удалить</button>
+            <button type="submit" class='news_action_button news_action_button_delete'>Удалить</button>
             <div class="separator"></div>
             <a href="{% url 'news_list' %}" class='news_action_button'>Назад</a>
         </div>

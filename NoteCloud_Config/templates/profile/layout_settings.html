@@ -12,25 +12,62 @@
 {% endblock %}
 
 {% block content %}
+<div class="account_settings_page">
     <div class="account_settings_panel" id="account_settings_panel">
         <ul class="account_settings_panel_ul">
-            <a href="/account/settings/edit_profile"><li class="settings-item">Данные профиля</li></a>
-            <a href="/account/settings/password/change"><li class="settings-item">Пароль и аутентификация</li></a>
-            <a href="/account/settings/email"><li class="settings-item">Emails</li></a>
-            <a href="/account/settings/emailmessages"><li class="settings-item">Настройка email-сообщений</li></a>
-            <a href="/account/settings/notifications"><li class="settings-item">Настройка уведомлений</li></a>
-            <a href="/account/settings/privacy"><li class="settings-item">Настройки приватности</li></a>
-            <a href="/account/settings/"><li class="settings-item">Удалить аккаунт</li></a>
+            <a href="/account/settings/edit_profile"><li><div class="profile_setting_item_button"><p>Аккаунт</p></div></li></a>
+            <a href="/account/settings/email"><li><div class="profile_setting_item_button"><p>Почта</p></div></li></a>
+            <a href="/account/settings/password/change"><li><div class="profile_setting_item_button"><p>Безопасность</p></div></li></a>
+            <a href="/account/settings/privacy"><li><div class="profile_setting_item_button"><p>Приватность</p></div></li></a>
+            <a href="/account/settings/emailmessages"><li><div><p>Настройка email-сообщений(old)</p></div></li></a>
+            <a href="/account/settings/notifications"><li><div><p>Настройка уведомлений(old)</p></div></li></a>
+            <a href="/account/settings/"><li><div><p>Деактивация</p></div></li></a>
         </ul>
     </div>
     <div class="detailed_settings_layout">
         {% block setting %}
         {% endblock %}
     </div>
+</div>
+    
+
 {% endblock %}
 
 {% block javascript %}
     <script src="{% static 'user_profiles/js/layout_settings.js' %}"></script>
+
+
+    <script>
+        function addSvgAsNewListItem() {
+      // Находим первый ul без класса
+      const ulElementwarning = document.querySelector('ul:not([class])');
+      const ulElementerror = document.querySelector('ul.errorlist');
+    
+      if (ulElementwarning) {
+        const newLiwarning = document.createElement('li');
+        newLiwarning.innerHTML = `<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="icon-attention">
+            <g id="Warning / Circle_Warning">
+            <path id="Vector" d="M12 8.4502V12.4502M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21ZM12.0498 15.4502V15.5502L11.9502 15.5498V15.4502H12.0498Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            </svg>`;
+        ulElementwarning.prepend(newLiwarning);
+      }
+    
+      if (ulElementerror) {
+        const newLierror = document.createElement('li');
+        newLierror.innerHTML = `<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="icon-error">
+            <g id="Warning / Circle_Warning">
+            <path id="Vector" d="M12 8.4502V12.4502M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21ZM12.0498 15.4502V15.5502L11.9502 15.5498V15.4502H12.0498Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            </svg>`;
+    ulElementerror.prepend(newLierror);
+      }
+    }
+    
+    // Вызываем функцию после загрузки DOM
+    document.addEventListener('DOMContentLoaded', addSvgAsNewListItem);
+    </script>
+
     {% block javascript2 %}
     {% endblock %}
 {% endblock %}
