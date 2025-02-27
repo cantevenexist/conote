@@ -78,11 +78,23 @@ class Subscription(models.Model):
     subscriptions = models.ManyToManyField(User, related_name='subscriptions', blank=True)
     subscribers = models.ManyToManyField(User, related_name='subscribers', blank=True)
 
-    def get_subscriptions_usernames(self):
-        return [user.username for user in self.subscriptions.all()]
+    def get_subscriptions_info(self):
+        subscriptions_data = []
+        users = self.subscriptions.all().prefetch_related('profile')
+        for user in users:
+            profile = user.profile.first()
+            avatar_url = profile.avatar.url if profile and profile.avatar else None
+            subscriptions_data.append({'username': user.username, 'avatar': avatar_url})
+        return subscriptions_data
 
-    def get_subscribers_usernames(self):
-        return [user.username for user in self.subscribers.all()]
+    def get_subscribers_info(self):
+        subscribers_data = []
+        users = self.subscribers.all().prefetch_related('profile')
+        for user in users:
+            profile = user.profile.first()
+            avatar_url = profile.avatar.url if profile and profile.avatar else None
+            subscribers_data.append({'username': user.username, 'avatar': avatar_url})
+        return subscribers_data
 
     def subscribe(self, user_to_subscribe):
         with transaction.atomic():

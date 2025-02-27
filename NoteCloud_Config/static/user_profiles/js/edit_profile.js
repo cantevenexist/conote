@@ -15,6 +15,9 @@ textarea.addEventListener('blur', () => {
 let croppedBlob = null;
 let originalFileName = '';
 let cropper = null;
+const cancelCropButton = document.getElementById('cancel-crop-btn');
+let originalImageContainerHTML = document.getElementById('image-container').innerHTML;
+const deleteAvatarBtn = document.getElementById('delete-avatar-btn')
 
 document.getElementById('id_avatar').addEventListener('change', function(event) {
     const files = event.target.files;
@@ -57,8 +60,28 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
                 autoCropArea: 1,
                 responsive: true,
             });
+
+            cancelCropButton.style.display = 'inline-block';
+
+            if (deleteAvatarBtn) {
+                deleteAvatarBtn.style.display = 'none';
+            }
         };
         reader.readAsDataURL(files[0]);
+    }
+});
+
+cancelCropButton.addEventListener('click', function() {
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    document.getElementById('id_avatar').value = '';
+    document.getElementById('image-container').innerHTML = originalImageContainerHTML;
+    cancelCropButton.style.display = 'none';
+
+    if (deleteAvatarBtn) {
+        deleteAvatarBtn.style.display = 'inline-block';
     }
 });
 

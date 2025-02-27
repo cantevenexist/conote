@@ -30,24 +30,24 @@ class ProfileView(APIView):
 
         subscribers_count = subscription.subscriptions.count()
         if settings_privacy.disable_subscribers_view and request.user.username != user.username:
-            subscribers_usernames = []
+            subscribers_info = []
             flag_display_moreBtn_subscribers = False
         else:
-            subscribers_usernames = subscription.get_subscriptions_usernames()
+            subscribers_info = subscription.get_subscriptions_info()
             flag_display_moreBtn_subscribers = True
 
         subscriptions_count = subscription.subscribers.count()
         if settings_privacy.disable_subscriptions_view and request.user.username != user.username:
-            subscriptions_usernames = []
+            subscriptions_info = []
             flag_display_moreBtn_subscriptions = False
         else:
-            subscriptions_usernames = subscription.get_subscribers_usernames()
+            subscriptions_info = subscription.get_subscribers_info()
             flag_display_moreBtn_subscriptions = True
 
         return render(request, 'profile/profile.html', {'form': form, 'username': user_profile.user.username,
                                                         'is_owner': is_owner, 'is_subscribed': is_subscribed, 'user_id': user_profile.user.id,
-                                                        'subscribers_count': subscribers_count, 'subscribers_usernames': subscribers_usernames,
-                                                        'subscriptions_count': subscriptions_count, 'subscriptions_usernames':subscriptions_usernames,
+                                                        'subscribers_count': subscribers_count, 'subscribers_info': subscribers_info,
+                                                        'subscriptions_count': subscriptions_count, 'subscriptions_info':subscriptions_info,
                                                         'flag_display_moreBtn_subscribers': flag_display_moreBtn_subscribers,
                                                         'flag_display_moreBtn_subscriptions': flag_display_moreBtn_subscriptions
                                                         })

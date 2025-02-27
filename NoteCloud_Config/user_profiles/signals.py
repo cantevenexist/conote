@@ -28,14 +28,13 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(user_logged_in)
 def save_telegram_avatar_on_login(sender, request, user, **kwargs):
     social_account = SocialAccount.objects.filter(user=user, provider='telegram').first()
-
     if social_account:
-        avatar_url = social_account.extra_data.get('photo_url', None)
+        avatar_url = social_account.extra_data.get('photo_url')
         if avatar_url:
-            response = urllib.request.urlopen(avatar_url)
-            if response.status == 200:
-                avatar_image = ContentFile(response.read())
-
-                user_profile, created = UserProfile.objects.get_or_create(user=user)
-                user_profile.avatar.save(f'{user.username}_avatar.jpg', avatar_image)
-                user_profile.save()
+            user_profile, created = UserProfile.objects.get_or_create(user=user)
+            if created or not user_profile.avatar:
+                response = urllib.request.urlopen(avatar_url)
+                if response.status == 200:
+                    avatar_image = ContentFile(response.read())
+                    user_profile.avatar.save(f'{user.username}_avatar.jpg', avatar_image)
+                    user_profile.save()

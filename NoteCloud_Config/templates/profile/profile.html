@@ -43,8 +43,15 @@
             <span class="close_btn_subscribers" id="closeBtn-subscribers">&times;</span>
             <h3>Подписчики</h3>
                 <ul>
-                    {% for username in subscribers_usernames %}
-                        <li id="subscriber-{{ username }}"><a href="/profile/{{ username }}/">{{ username }}</a></li>
+                    {% for user in subscribers_info %}
+                        <li id="subscriber-{{ user.username }}">
+                            <a href="/profile/{{ user.username }}/">
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar }}" alt="{{ user.username }}'s avatar" width="30" height="30">
+                                {% endif %}
+                                {{ user.username }}
+                            </a>
+                        </li>
                     {% empty %}
                         <li class="no-subscribers">Нет подписчиков</li>
                     {% endfor %}
@@ -59,8 +66,15 @@
             <span class="close_btn_subscriptions" id="closeBtn-subscriptions">&times;</span>
             <h3>Подписки</h3>
                 <ul>
-                    {% for username in subscriptions_usernames %}
-                        <li><a href="/profile/{{ username }}/">{{ username }}</a></li>
+                    {% for user in subscriptions_info %}
+                        <li id="subscription-{{ user.username }}">
+                            <a href="/profile/{{ user.username }}/">
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar }}" alt="{{ user.username }}'s avatar" width="30" height="30">
+                                {% endif %}
+                                {{ user.username }}
+                            </a>
+                        </li>
                     {% empty %}
                         <li>Нет подписок</li>
                     {% endfor %}
@@ -82,6 +96,8 @@
                                 <i class="fa-brands fa-vk"></i>
                             {% elif link and 't.me' in link %}
                                 <i class="fa-brands fa-telegram"></i>
+                            {% elif link and 'github.com' in link %}
+                                <i class="fa-brands fa-github"></i>
                             {% endif %}
                         </span>
                     </div>

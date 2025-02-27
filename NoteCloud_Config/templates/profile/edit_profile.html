@@ -24,8 +24,9 @@
             </div>
             {% endif %}
         </div>
+        <button type="button" id="cancel-crop-btn" style="display: none;">Отмена</button>
         {% if user_profile.avatar %}
-            <button type="submit" name="delete_avatar" formmethod="POST">Удалить фотографию</button>
+            <button type="submit" name="delete_avatar" id="delete-avatar-btn" formmethod="POST">Удалить фотографию</button>
         {% endif %}
         <div>
             <label for="avatar">Выберите изображение:</label>
@@ -49,6 +50,8 @@
                                     <i class="fa-brands fa-vk"></i>
                                 {% elif link and 't.me' in link %}
                                     <i class="fa-brands fa-telegram"></i>
+                                {% elif link and 'github.com' in link %}
+                                    <i class="fa-brands fa-github"></i>
                                 {% endif %}
                             </span>
                         </div>
