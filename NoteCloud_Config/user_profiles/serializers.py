@@ -8,15 +8,23 @@ from django.conf import settings
 
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', required=False)
+    links = serializers.ListField(
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = UserProfile
-        fields = ['avatar', 'about_me', 'username']
+        fields = ['avatar', 'about_me', 'username', 'links']
 
     def update(self, instance, validated_data):
         old_avatar = instance.avatar
 
         instance.about_me = validated_data.get('about_me', instance.about_me)
+
+        links_data = validated_data.get('links', None)
+        if links_data is not None:
+            instance.links = links_data[:3]
 
         if 'avatar' in validated_data and validated_data['avatar'] is not None:
             instance.avatar = validated_data['avatar']
@@ -28,7 +36,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             username_data = user_data['username']
 
             if username_data.lower() in settings.ACCOUNT_USERNAME_BLACKLIST:
-                raise ValidationError({"username_error": "Данный логин является некорректным!"})
+                raise ValidationError({"username_error": "Такое имя пользователя не может быть использовано, выберите другое."})
+
+            if len(username_data.lower()) < settings.ACCOUNT_USERNAME_MIN_LENGTH:
+                raise ValidationError({"username_error": "Увеличьте имя пользователя до 4 символов или более. "})
 
             if User.objects.filter(username=username_data).exists():
                 raise ValidationError({"username_error": "Этот логин уже занят."})

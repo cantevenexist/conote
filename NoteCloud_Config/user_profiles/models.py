@@ -6,6 +6,8 @@ from django.utils.deconstruct import deconstructible
 from django.db import transaction
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
+from .storages import MinioStorage
+import re
 
 User = get_user_model()
 
@@ -22,7 +24,7 @@ class UploadToPath(object):
         username_hash = hashlib.md5(instance.user.username.encode()).hexdigest()
         file_hash = hashlib.md5(filename.encode()).hexdigest()
         file_extension = filename.split('.')[-1]
-        return f'avatars/{username_hash}/{file_hash}.{file_extension}'
+        return f'media/avatars/{username_hash}/{file_hash}.{file_extension}'
 
 
 def file_size(value):
@@ -31,13 +33,28 @@ def file_size(value):
         raise ValidationError('Размер изображения не должен превышать 2МБ')
 
 
+def validate_https_url(value):
+    pattern = r'^https:\/\/[^\s]+$'
+    if not re.match(pattern, value):
+        raise ValidationError('Неверный формат URL. Поддерживаются только ссылки с https протоколом')
+
+
+def validate_links(value):
+    if len(value) > 3:
+        raise ValidationError('Разрешено добавить не более 3 ссылок на сторонние сервисы')
+    for url in value:
+        validate_https_url(url)
+
+
 class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to=UploadToPath('avatars/'), blank=True, null=True, validators=[
-        FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg']),
-        file_size
-    ])
+    avatar = models.ImageField(upload_to=UploadToPath('media/'), blank=True, null=True, storage=MinioStorage(),
+                               validators=[
+                                   FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg']),
+                                   file_size
+                               ])
     about_me = models.CharField(max_length=500, blank=True, null=True)
+    links = models.JSONField(blank=True, null=True, validators=[validate_links])
 
     def __str__(self):
         return f"Профиль {User.username}"
@@ -49,9 +66,9 @@ class UserProfile(models.Model):
             except UserProfile.DoesNotExist:
                 old_image = None
 
-            if old_image and old_image != self.avatar:
-                if os.path.isfile(old_image.path):
-                    os.remove(old_image.path)
+            if old_image:
+                if old_image.name:
+                    old_image.storage.delete(old_image.name)
 
         super().save(*args, **kwargs)
 
@@ -61,11 +78,23 @@ class Subscription(models.Model):
     subscriptions = models.ManyToManyField(User, related_name='subscriptions', blank=True)
     subscribers = models.ManyToManyField(User, related_name='subscribers', blank=True)
 
-    def get_subscriptions_usernames(self):
-        return [user.username for user in self.subscriptions.all()]
+    def get_subscriptions_info(self):
+        subscriptions_data = []
+        users = self.subscriptions.all().prefetch_related('profile')
+        for user in users:
+            profile = user.profile.first()
+            avatar_url = profile.avatar.url if profile and profile.avatar else None
+            subscriptions_data.append({'username': user.username, 'avatar': avatar_url})
+        return subscriptions_data
 
-    def get_subscribers_usernames(self):
-        return [user.username for user in self.subscribers.all()]
+    def get_subscribers_info(self):
+        subscribers_data = []
+        users = self.subscribers.all().prefetch_related('profile')
+        for user in users:
+            profile = user.profile.first()
+            avatar_url = profile.avatar.url if profile and profile.avatar else None
+            subscribers_data.append({'username': user.username, 'avatar': avatar_url})
+        return subscribers_data
 
     def subscribe(self, user_to_subscribe):
         with transaction.atomic():
@@ -87,11 +116,7 @@ class SettingsPrivacy(models.Model):
     disable_profile_view = models.BooleanField(default=False)
 
 
-class SettingsEmailMessages(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_emailmessages')
-    disabling_news_messages = models.BooleanField(default=False)
-
-
 class SettingsNotifications(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_notifications')
     disable_notifications = models.BooleanField(default=False)
+    disabling_news_messages = models.BooleanField(default=False)

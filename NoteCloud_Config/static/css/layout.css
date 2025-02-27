@@ -408,6 +408,7 @@ html, body {
         white-space: nowrap; /* Запретить перенос строки */
         text-overflow: ellipsis; /* Добавить многоточие при переполнении */
         margin-left: 25px;
+        margin-bottom:0;
         color: white;
     }
     

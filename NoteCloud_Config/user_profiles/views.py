@@ -6,7 +6,7 @@ from .models import UserProfile
 from .serializers import UserProfileSerializer
 from .forms import ProfileForm
 from django.contrib.auth.models import User
-from .models import Subscription, SettingsPrivacy, SettingsEmailMessages, SettingsNotifications
+from .models import Subscription, SettingsPrivacy, SettingsNotifications
 from rest_framework.response import Response
 from django.urls import reverse
 
@@ -30,24 +30,24 @@ class ProfileView(APIView):
 
         subscribers_count = subscription.subscriptions.count()
         if settings_privacy.disable_subscribers_view and request.user.username != user.username:
-            subscribers_usernames = []
+            subscribers_info = []
             flag_display_moreBtn_subscribers = False
         else:
-            subscribers_usernames = subscription.get_subscriptions_usernames()
+            subscribers_info = subscription.get_subscriptions_info()
             flag_display_moreBtn_subscribers = True
 
         subscriptions_count = subscription.subscribers.count()
         if settings_privacy.disable_subscriptions_view and request.user.username != user.username:
-            subscriptions_usernames = []
+            subscriptions_info = []
             flag_display_moreBtn_subscriptions = False
         else:
-            subscriptions_usernames = subscription.get_subscribers_usernames()
+            subscriptions_info = subscription.get_subscribers_info()
             flag_display_moreBtn_subscriptions = True
 
         return render(request, 'profile/profile.html', {'form': form, 'username': user_profile.user.username,
                                                         'is_owner': is_owner, 'is_subscribed': is_subscribed, 'user_id': user_profile.user.id,
-                                                        'subscribers_count': subscribers_count, 'subscribers_usernames': subscribers_usernames,
-                                                        'subscriptions_count': subscriptions_count, 'subscriptions_usernames':subscriptions_usernames,
+                                                        'subscribers_count': subscribers_count, 'subscribers_info': subscribers_info,
+                                                        'subscriptions_count': subscriptions_count, 'subscriptions_info':subscriptions_info,
                                                         'flag_display_moreBtn_subscribers': flag_display_moreBtn_subscribers,
                                                         'flag_display_moreBtn_subscriptions': flag_display_moreBtn_subscriptions
                                                         })
@@ -56,10 +56,7 @@ class ProfileView(APIView):
 class SettingsView(APIView):
     @method_decorator(login_required)
     def get(self, request):
-        if request.user.is_authenticated:
-            return render(request, 'profile/layout_settings.html')
-        else:
-            return redirect('/accounts/login/')
+        return render(request, 'profile/layout_settings.html')
 
 
 class ProfileEditView(APIView):
@@ -85,26 +82,6 @@ class ProfileEditView(APIView):
             return redirect('edit_profile')
 
         return render(request, 'profile/edit_profile.html', {'user_profile': user_profile, 'errors': serializer.errors})
-
-
-class SettingsEmailMessagesView(APIView):
-    @method_decorator(login_required)
-    def get(self, request):
-        user_settings_emailmessages = get_object_or_404(SettingsEmailMessages, user=request.user)
-
-        return render(request, 'profile/settings_emailmessages.html',
-                      {'disabling_news_messages': user_settings_emailmessages.disabling_news_messages,
-                       })
-
-    @method_decorator(login_required)
-    def post(self, request):
-        disabling_news_messages = request.POST.get('disabling_news_messages') == 'on'
-
-        user_settings_emailmessages = get_object_or_404(SettingsEmailMessages, user=request.user)
-        user_settings_emailmessages.disabling_news_messages = disabling_news_messages
-        user_settings_emailmessages.save()
-
-        return redirect('settings_emailmessages')
 
 
 class SettingsPrivacyView(APIView):
@@ -145,9 +122,11 @@ class SettingsNotificationsView(APIView):
     @method_decorator(login_required)
     def post(self, request):
         disable_notifications = request.POST.get('disable_notifications') == 'on'
+        disabling_news_messages = request.POST.get('disabling_news_messages') == 'on'
 
         user_settings_notifications = get_object_or_404(SettingsNotifications, user=request.user)
         user_settings_notifications.disable_notifications = disable_notifications
+        user_settings_notifications.disabling_news_messages = disabling_news_messages
         user_settings_notifications.save()
 
         return redirect('settings_notifications')

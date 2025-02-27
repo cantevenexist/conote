@@ -46,7 +46,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.telegram',
     'django_htmx',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -137,19 +139,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
-
-# Media
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -162,6 +151,19 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+
+SOCIALACCOUNT_PROVIDERS = {
+    'telegram': {
+        'APP': {
+            'client_id': os.environ.get("TELEGRAM_CLIENT_ID"),
+            'secret': os.environ.get("TELEGRAM_SECRET"),
+        },
+    },
+}
+
+TELEGRAM_BOT_API_TOKEN = os.environ.get("TELEGRAM_SECRET")
+TELEGRAM_CHANNEL_ID = os.environ.get("TELEGRAM_CLIENT_ID")
+
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_USERNAME_REQUIRED = True
@@ -170,9 +172,23 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_USERNAME_BLACKLIST = ["admin", "administrator", "moderator"]
 ACCOUNT_USERNAME_MIN_LENGTH = 4
+ACCOUNT_EMAIL_NOTIFICATIONS = True
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+ACCOUNT_SIGNUP_FORM_HONEYPOT_FIELD = 'phone_number'
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = False
+
+SOCIALACCOUNT_FORMS = {
+    "signup": "user_profiles.forms.CustomSignupForm",
+}
 
 LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/account/login/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_EMAIL_CONFIRMATION_REDIRECT_URL = '/account/login/'
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/account/login/'
+ACCOUNT_SIGNUP_REDIRECT_URL = '/account/login/'
 
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
@@ -185,19 +201,32 @@ EMAIL_USE_TLS = int(os.environ.get("EMAIL_USE_TLS", default=1))
 # AWS settings
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
-AWS_DEFAULT_ACL = None
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-AWS_QUERYSTRING_AUTH = False
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+AWS_S3_USE_SSL = False
+AWS_S3_REGION_NAME = 'ru-central-1'
+AWS_S3_VERIFY = False
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_FILE_OVERWRITE = True
+MINIO_ACCESS_URL = f'{os.getenv("MINIO_ACCESS_URL")}/{AWS_STORAGE_BUCKET_NAME}'
+AWS_S3_CUSTOM_DOMAIN = f'{os.getenv("AWS_S3_CUSTOM_DOMAIN")}/{AWS_STORAGE_BUCKET_NAME}'
 
-# s3 static settings
-AWS_STATIC_LOCATION = 'static'
+
+# static settings
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATICFILES_STORAGE = 'backend.storages.StaticStorage'
 
-# s3 media settings
-AWS_MEDIA_LOCATION = 'media'
-DEFAULT_FILE_STORAGE = 'backend.storages.PublicMediaStorage'
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+
+# media settings
+DEFAULT_FILE_STORAGE = 'user_profiles.storages.MinioStorage'
+# PUBLIC_MEDIA_LOCATION = 'media'
+MEDIA_URL = 'media/'
+# MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+# MEDIA_ROOT = MEDIA_URL
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')

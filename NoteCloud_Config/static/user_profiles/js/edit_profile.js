@@ -15,6 +15,9 @@ textarea.addEventListener('blur', () => {
 let croppedBlob = null;
 let originalFileName = '';
 let cropper = null;
+const cancelCropButton = document.getElementById('cancel-crop-btn');
+let originalImageContainerHTML = document.getElementById('image-container').innerHTML;
+const deleteAvatarBtn = document.getElementById('delete-avatar-btn')
 
 document.getElementById('id_avatar').addEventListener('change', function(event) {
     const files = event.target.files;
@@ -57,9 +60,44 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
                 autoCropArea: 1,
                 responsive: true,
             });
+
+            cancelCropButton.style.display = 'inline-block';
+
+            if (deleteAvatarBtn) {
+                deleteAvatarBtn.style.display = 'none';
+            }
         };
         reader.readAsDataURL(files[0]);
     }
+});
+
+cancelCropButton.addEventListener('click', function() {
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    document.getElementById('id_avatar').value = '';
+    document.getElementById('image-container').innerHTML = originalImageContainerHTML;
+    cancelCropButton.style.display = 'none';
+
+    if (deleteAvatarBtn) {
+        deleteAvatarBtn.style.display = 'inline-block';
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const addLinkBtn = document.getElementById("add-link-btn");
+    const linkInputs = document.querySelectorAll("#links-container .link-input");
+
+    addLinkBtn.addEventListener("click", function () {
+        let hiddenInput = Array.from(linkInputs).find(input => input.style.display === "none");
+
+        if (hiddenInput) {
+            hiddenInput.style.display = "block";
+        } else {
+            alert("Разрешено добавить не более 3 ссылок на сторонние сервисы");
+        }
+    });
 });
 
 document.getElementById('profile-form').addEventListener('submit', function(event) {
@@ -67,6 +105,18 @@ document.getElementById('profile-form').addEventListener('submit', function(even
         return;
     }
     event.preventDefault();
+
+    const linkInputs = document.querySelectorAll('input[name="links"]');
+    const regex = /^https:\/\/[^\s]+$/;
+    for (let input of linkInputs) {
+         const url = input.value.trim();
+         if (url !== '' && !regex.test(url)) {
+              alert('Неверный формат URL. Каждый URL должен начинаться с "https://".');
+              input.focus();
+              event.preventDefault();
+              return;
+         }
+    }
 
     const newUsername = document.getElementById('id_username').value;
     const currentUsername = document.getElementById('current-username').value;

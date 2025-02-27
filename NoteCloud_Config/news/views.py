@@ -136,7 +136,6 @@ class NewsCreateView(LoginRequiredMixin, CreateView):
         return super().render_to_response(context, **response_kwargs)
 
 
-
 class NewsUpdateView(LoginRequiredMixin, UpdateView):
     model = News
     form_class = NewsForm
@@ -166,11 +165,9 @@ class NewsDeleteView(LoginRequiredMixin, DeleteView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        image_path = self.object.image.path if self.object.image else None
-        self.object.delete()  # Удаляем новость
-        # Удаляем изображение, если оно существует
-        if image_path and os.path.isfile(image_path):
-            os.remove(image_path)
+        self.object.image.delete(save=False)
+        self.object.delete()
+
         if request.headers.get('HX-Request'):
             # Возвращаем ответ для HTMX
             return HttpResponse('Success', status=204)  # 204 No Content
