@@ -46,8 +46,8 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
             const image = document.createElement('img');
             image.id = 'image-to-crop';
             image.src = e.target.result;
-            image.style.width = '256px';
-            image.style.height = '256px';
+            image.style.width = '512px';
+            image.style.height = '512px';
             imageContainer.appendChild(image);
 
             if (cropper) {
@@ -150,8 +150,8 @@ function submitForm() {
 
     if (cropper) {
         const canvas = cropper.getCroppedCanvas({
-            width: 256,
-            height: 256,
+            width: 512,
+            height: 512,
         });
         canvas.toBlob(function(blob) {
             if (blob.size > 2 * 1024 * 1024) {

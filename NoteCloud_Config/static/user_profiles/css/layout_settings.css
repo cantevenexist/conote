@@ -1,8 +1,38 @@
+.account_settings_page {display: flex; flex-direction: row;}
 .layout_central_block .account_settings_panel {
-    width: 40%;
-    float: left;
+    background-color: aqua;;
 }
 .layout_central_block .detailed_settings_layout {
-    width: 60%;
-    float: left;
+    background-color: aquamarine;
 }
+label[for='id_oldpassword'],label[for='id_password1'],label[for='id_password2']{display: none;}
+/* Form messages */
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.icon-attention {
+    height: 24px;
+    width: 24px;
+    stroke: orange;
+}
+.icon-error {
+    height: 24px;
+    width: 24px;
+    stroke: crimson;
+}
+
+/* .form_block {
+    max-width: 450px;
+    border-radius: 30px;
+    margin: auto;
+    padding: 0 20px 20px 20px;
+    overflow: hidden;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+    position: relative; 
+    transition: transform 0.2s, box-shadow 0.2s;
+} */
+    .profile_setting_item_button {background-color:darkturquoise;}

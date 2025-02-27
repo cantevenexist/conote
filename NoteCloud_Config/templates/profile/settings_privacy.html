@@ -3,20 +3,20 @@
 
 {% block setting %}
     <h1>Изменить настройки приватности</h1>
-    <form method="POST">
+    <form method="POST" style="display: flex;flex-direction: column;">
         {% csrf_token %}
         <label class="switch">
-            <h3>Отключить просмотр подписчиков для других пользователей</h3>
+            <p>Скрыть моих подписчиков</p>
             <input type="checkbox" name="disable_subscribers_view" {% if disable_subscribers_view %}checked{% endif %}>
             <span class="slider"></span>
         </label>
         <label class="switch2">
-            <h3>Отключить просмотр подписок для других пользователей</h3>
+            <p>Скрыть мои подписки</p>
             <input type="checkbox" name="disable_subscriptions_view" {% if disable_subscriptions_view %}checked{% endif %}>
             <span class="slider"></span>
         </label>
-        <label class="switch3">
-            <h3>Отключить просмотр профиля для неавториованных пользователей</h3>
+        <label class="switcp">
+            <p>Скрыть профиль для неавториованных пользователей</p>
             <input type="checkbox" name="disable_profile_view" {% if disable_profile_view %}checked{% endif %}>
             <span class="slider"></span>
         </label>

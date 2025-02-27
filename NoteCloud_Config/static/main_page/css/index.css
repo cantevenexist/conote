@@ -1,4 +1,4 @@
-@media (orientation: portrait) {
+@media (max-width:425px) or (max-height:425px) {
     .footer .content {
         display: flex;
         flex-direction: column;
@@ -6,7 +6,7 @@
     }
 }
 
-@media (orientation: landscape) {
+@media (min-width:426px) and (min-height:426px) {
     .footer .content {
         display: flex;
         justify-content: space-evenly;

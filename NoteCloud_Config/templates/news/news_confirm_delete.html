@@ -13,9 +13,9 @@
     {% csrf_token %}
     <div class="news_block_detail">
         <div class="news_action_buttons_container no_select">
-            <button type="submit" class='news_action_button' style="background-color: rgb(255, 50, 50);">Удалить</button>
+            <button type="submit" class='news_action_button news_action_button_delete'>Удалить</button>
             <div class="separator"></div>
-            <a onclick="goBack()" class='news_action_button'>Назад</a>
+            <a href="{% url 'news_list' %}" class='news_action_button'>Назад</a>
         </div>
         <div class="news_post_link news_post">
             <p>Вы уверены, что хотите удалить "{{ object.title }}"?</p>

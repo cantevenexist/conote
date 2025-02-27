@@ -7,7 +7,7 @@
 }
 
 /* Mobile */
-@media (orientation: portrait) {
+@media (max-width:425px) or (max-height:425px) {
   /* Основной контейнер для новостей */
   .news_block {
     max-width: 100%; /* Ширина 100% для мобильных */
@@ -41,7 +41,7 @@
   .news_action_button {
     cursor: pointer;
     display: flex;
-    background-color: #4CAF50;
+    background-color: mediumseagreen;
     color: white;
     border: none;
     justify-content: center;
@@ -58,9 +58,10 @@
     vertical-align: middle;
   }
 
+  @media (hover:hover) {
   .news_action_button:hover {
-    background-color: #45a049;
-  }
+    background-color:seagreen;
+  }}
   
   /* Ссылки на новости */
   .news_post_link {
@@ -77,10 +78,11 @@
     transition: transform 0.2s, box-shadow 0.2s;
   }
   
+  @media (hover:hover) {
   .news_post_link:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }
+  }}
   
   /* Разделитель между новостями */
   .news_post_link::after {
@@ -174,7 +176,7 @@
 }
 
 /* Desktop */
-@media (orientation: landscape) {
+@media (min-width:426px) and (min-height:426px) {
   /* Основной контейнер для новостей */
   .news_block {
     max-width: 600px;
@@ -208,7 +210,7 @@
   .news_action_button {
     cursor: pointer;
     display: flex;
-    background-color: #4CAF50;
+    background-color: mediumseagreen;
     color: white;
     border: none;
     justify-content: center;
@@ -225,9 +227,11 @@
     vertical-align: middle;
   }
 
-  .news_action_button:hover {
-    background-color: #45a049;
-  }
+  .news_action_button_delete {background-color: crimson;}
+
+  @media (hover:hover) {
+  .news_action_button:hover {background-color: seagreen;}
+  .news_action_button_delete:hover {background-color: rgb(195, 25, 60);}}
   
   /* Ссылки на новости */
   .news_post_link {
@@ -244,10 +248,11 @@
     transition: transform 0.2s, box-shadow 0.2s;
   }
   
+  @media (hover:hover) {
   .news_post_link:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }
+  }}
   
   /* Разделитель между новостями */
   .news_post_link::after {

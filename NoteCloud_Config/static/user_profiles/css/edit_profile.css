@@ -1,18 +1,50 @@
-.default_avatar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#image-container {
-    width: 256px;
-    height: 256px;
+.profile_settings_avatar_container {
+    border-radius: 15px;
+    width: 100%;
+    height: 100%;
+    max-width: 256px;
+    max-height: 256px;
     overflow: hidden;
     position: relative;
 }
 
-#image-container img {
+.profile_settings_avatar_container input[type="file"] {
+    display: none;
+  }
+
+.profile_settings_avatar_container .custom-file-upload {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.profile_settings_avatar_container img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
 }
+.profile_settings_avatar_container svg {
+    width: 100%;
+    height: 100%;
+}
+
+.profile_settings_avatar_container .profile_settings_delete_avatar {position: absolute; top:0;right: 0; width: 40px; height: 40px; background-color: crimson;border-radius: 0 0 0 15px; border-color: transparent;transition: background-color 0.5s ease,  width 0.5s ease, height 0.5s ease;}
+.profile_settings_avatar_container .profile_settings_delete_avatar svg{width: 100%; height: 100%; stroke: white;transition: stroke 0.5s ease;}
+
+.profile_settings_avatar_container .profile_settings_choose_avatar {position: absolute; top:0;left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); border-color: transparent; padding: 20%;transition: background-color 0.5s ease; cursor: pointer;}
+.profile_settings_avatar_container .profile_settings_choose_avatar svg{width: 100%; height: 100%; stroke: white;transition: stroke 0.5s ease;}
+@media (hover:hover) {
+    .profile_settings_avatar_container .profile_settings_delete_avatar {background-color: transparent;}
+    .profile_settings_avatar_container .profile_settings_delete_avatar svg{stroke: transparent;}
+    .profile_settings_avatar_container:hover .profile_settings_delete_avatar {background-color: crimson;}
+    .profile_settings_avatar_container:hover .profile_settings_delete_avatar svg{stroke: white;}
+    .profile_settings_avatar_container .profile_settings_delete_avatar:hover {width: 25%; height: 25%;}
+
+    .profile_settings_avatar_container .profile_settings_choose_avatar  {background-color: transparent;}
+    .profile_settings_avatar_container .profile_settings_choose_avatar svg{width: 100%; height: 100%; stroke: transparent;}
+    .profile_settings_avatar_container .profile_settings_choose_avatar:hover {background-color: rgba(0, 0, 0, 0.5);}
+    .profile_settings_avatar_container .profile_settings_choose_avatar:hover svg{width: 100%; height: 100%; stroke: white;}
+
+}
+.profile_settings_username input{width: 100%; max-width: 256px; padding-left: 5px; border: 1px solid #e0e0e0; border-radius: 15px;height: 40px;}
+.profile_settings_about_container textarea{width: 100%; max-width: 256px;resize: none;overflow-y: hidden; padding: 5px; height: 20px; border-radius: 15px; border: 1px solid #e0e0e0}

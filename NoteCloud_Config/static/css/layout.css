@@ -5,7 +5,21 @@ html, body {
     background: white;
     overflow: hidden;
     margin: 0;
+    /* Отключение зума на мобильный устройствах */
+    touch-action: manipulation;
 }
+
+.QRCHECKBADASS{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    display: none;
+    z-index: 1001;
+    text-align: center;
+    align-content: center;
+}
+.QRCHECKBADASS svg {width: 100%; height: 100%; padding: 10px;}
 
 .no_select {
     user-select: none; /* Запрещает выделение текста */
@@ -31,7 +45,7 @@ html, body {
 }
 
 .scrollable-container::-webkit-scrollbar-thumb {
-    background: #86A8EC; /* Цвет самого ползунка */
+    background: cornflowerblue; /* Цвет самого ползунка */
     border-radius: 4px; /* Скругленные углы ползунка */
 }
 
@@ -48,8 +62,82 @@ html, body {
     border-radius: 2px / 2px 
 }
 
+@keyframes bell {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    75% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes board {
+    0% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+    40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+    100% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+}
+
+@keyframes boards {
+    0% {opacity: 0; transform: translateY(-4px);}
+    40% {opacity: 0; transform: translateY(-4px);}
+    80% {opacity: 0.5; transform: translateY(2px);}
+    100% {opacity: 1; transform: translateY(0);}
+}
+
+@keyframes reverseboard {
+    0% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+    40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
+    100% {transform: scaleY(1) rotate(0deg);opacity: 1;}
+}
+
+@keyframes reverseboards {
+    0% {opacity: 1; transform: translateY(0);}
+    100% {opacity: 0; transform: translateY(100%);}
+}
+
+@keyframes help {
+    0% { transform: translate(0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+    100% { transform: translate(0); }
+}
+
+@media (hover:hover) {
+    .button_header:hover .user_board{animation: board 0.5s forwards;}
+    .button_header:hover .user_boards{animation: boards 0.5s forwards;}
+    .button_header:not(:hover) .user_board {animation: reverseboard 0.5s forwards;}
+    .button_header:not(:hover) .user_boards {animation: reverseboards 0.5s forwards;}
+
+    .button_header:hover .user_profile{transform: scale(1.2);}
+    .button_header:hover .user_notifications{animation: bell 0.5s;}
+    .button_header:hover .user_settings{transform: rotate(360deg);}
+    .button_header:hover .user_help{animation: help 0.5s forwards;}
+    .button_header:hover .user_logout{transform: translateX(5px);}
+
+    .logout:hover {background: rgb(195, 25, 60) !important;}
+}
+
+.logout{background-color: crimson !important;}
+
+
+.layout_header .logotype .logo{display: block;}
+.layout_header .logotype .logo_mini{display: none;}
+
+@media (max-width:319px) {
+    .QRCHECKBADASS{display: block;}
+}
+@media (max-height:319px) {
+    .QRCHECKBADASS{display: block;}
+}
+
+/* MINIMIZE LOGO */
+@media (max-width:425px) {
+    .layout_header .logotype .logo{display: none;}
+    .layout_header .logotype .logo_mini{display: block;}
+}
+
 /* Mobile */
-@media (orientation: portrait) {
+@media (max-width:425px) or (max-height:425px) {
     .layout_header {
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
         border: none;
@@ -70,7 +158,7 @@ html, body {
     
     .layout_header .logotype {
         float: left;
-        margin-left: 5px;
+        margin-left: 18px;
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -88,30 +176,32 @@ html, body {
     
     .layout_header .avatar_area{
         position:absolute;
-        right: 50px;
+        right: 63px;
         height: 50px;
         width: 50px;
     }
 
-    .avatar_area .default_avatar {
+    .avatar_area .header_avatar {
         cursor: pointer;
         padding: 5px;
         height: 100%;
         width: 100%;
     }
 
-    .default_avatar img {
+    .header_avatar img {
         cursor: pointer;
         border-radius: 7.5px;
         height: 100%;
         width: 100%;
+        transition: transform 0.5s ease;
     }
 
-    .default_avatar svg {
+    .header_avatar svg {
         background-color: #dedede;
         border-radius: 7.5px;
         height: 100%;
         width: 100%;
+        transition: transform 0.5s ease;
     }
 
     .layout_header .button_area {
@@ -131,9 +221,10 @@ html, body {
     .button_header {
         width: 40px;
         height: 40px;
-        background-color: #86A8EC; /* Цвет фона кнопки */
+        background-color: cornflowerblue; /* Цвет фона кнопки */
         border: transparent;
         border-radius: 10px;
+        transition: transform 0.5s ease, background 0.5s ease;
     }
     
     .button_header p {
@@ -153,12 +244,21 @@ html, body {
         transition: transform 0.5s ease;
     }
 
+    @media (hover:hover) {
+        /* Кнопки меню(включая кнопку меню) */
+        .button_header:hover {transform: scale(1.1);background: rgb(80, 120, 180);}
+        /* Кнопка меню */
+        .layout_header .button_header:hover {transform: scale(1.1) translateY(-18px);}
+
+        .header_avatar:hover img{transform: scale(1.1);}
+        .header_avatar:hover svg{transform: scale(1.1);}
+    }
+
     .button_header.active .user_menu {transform: rotate(180deg);}
     .button_header .user_board{opacity: 0;}
-    .logout{background-color: rgb(255, 50, 50);}
     
     .button_area .button_header {
-        right: 5px;
+        right: 18px;
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -170,7 +270,7 @@ html, body {
     }
 
     #user_settings_panel {
-        transform: translate(-5px, -100%);
+        transform: translate(-18px, -100%);
         width: 50px;
         position: fixed;
         z-index: 999;
@@ -190,7 +290,7 @@ html, body {
         opacity: 1; /* Делаем его видимым */
         pointer-events: auto; /* Включаем события */
         visibility: visible; /* Делаем его доступным для фокуса */
-        transform: translate(-5px, 5px); /* Возвращаем в исходное положение */
+        transform: translate(-18px, 5px); /* Возвращаем в исходное положение */
     }
     
     .user_settings_container {
@@ -205,7 +305,7 @@ html, body {
 
 
 /* Desktop */
-@media (orientation: landscape) {
+@media (min-width:426px) and (min-height:426px) {
     .layout_header {
         box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
         border: none;
@@ -250,14 +350,14 @@ html, body {
         width: 50px;
     }
 
-    .avatar_area .default_avatar {
+    .avatar_area .header_avatar {
         cursor: pointer;
         transform: translate(10px,10px);
         height: 30px;
         width: 30px;
     }
 
-    .default_avatar img {
+    .header_avatar img {
         cursor: pointer;
         border-radius: 7.5px;
         height: 100%;
@@ -265,19 +365,13 @@ html, body {
         transition: transform 0.5s ease;
     }
 
-    .default_avatar svg {
+    .header_avatar svg {
         background-color: #dedede;
         border-radius: 7.5px;
         height: 100%;
         width: 100%;
         transition: transform 0.5s ease;
     }
-    
-    .default_avatar:hover img{
-        transform: scale(1.2);}
-
-    .default_avatar:hover svg{
-        transform: scale(1.2);}
 
     .layout_header .button_area {
         white-space: nowrap;
@@ -303,15 +397,10 @@ html, body {
         width: 160px;
         height: 30px;
         border: transparent;
-        background:#86A8EC;
+        background: cornflowerblue;
         border-radius: 7.5px;
         font-family: 'Marmelad', sans-serif;
         transition: transform 0.5s ease, background 0.5s ease, color 0.5s ease; 
-    }
-
-    .button_header:hover {
-        transform: translateX(5px);
-        background: #6B8BC4;
     }
 
     .button_header p {
@@ -343,69 +432,20 @@ html, body {
         transition: height 0.3s, background-color 0.3s; /* Плавный переход */
     }
 
-    @keyframes bell {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-10deg); }
-            50% { transform: rotate(10deg); }
-            75% { transform: rotate(-5deg); }
-            100% { transform: rotate(0deg); }
-        }
+    @media (hover:hover) {
+        /* Кнопки меню(включая кнопку меню) */
+        .button_header:hover {transform: translateX(5px);background: rgb(80, 120, 180);}
+        /* Кнопка меню */
+        .layout_header .button_header:hover {transform: translate(5px, -50%);}
+        /* Указательная линия */
+        .button_header:hover .line {height: 100%; background-color: rgba(0, 0, 0, 0.8);}
 
-    @keyframes board {
-        0% {transform: scaleY(1) rotate(0deg);opacity: 1;}
-        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
-        100% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
+        .header_avatar:hover img{transform: scale(1.2);}
+        .header_avatar:hover svg{transform: scale(1.2);}
     }
 
-    @keyframes boards {
-        0% {opacity: 0; transform: translateY(-4px);}
-        40% {opacity: 0; transform: translateY(-4px);}
-        80% {opacity: 0.5; transform: translateY(2px);}
-        100% {opacity: 1; transform: translateY(0);}
-    }
-    
-    @keyframes reverseboard {
-        0% {transform: translateY(4px) scaleY(60%) rotate(-45deg); opacity: 0;}
-        40% {transform: translateY(-4px) scaleY(60%) rotate(-45deg); opacity: 1;}
-        100% {transform: scaleY(1) rotate(0deg);opacity: 1;}
-    }
-
-    @keyframes reverseboards {
-        0% {opacity: 1; transform: translateY(0);}
-        100% {opacity: 0; transform: translateY(100%);}
-    }
-
-    @keyframes help {
-        0% { transform: translate(0); }
-        25% { transform: translate(-1px, 1px); }
-        50% { transform: translate(1px, -1px); }
-        75% { transform: translate(-1px, -1px); }
-        100% { transform: translate(0); }
-    }
-      
-    .layout_header .button_header:hover {transform: translate(5px, -50%);}
     .button_header.active .user_menu {transform: rotate(180deg);}
-    .button_header:hover .line {height: 100%; background-color: rgba(0, 0, 0, 0.8);}
-    
-    .button_header:hover .user_board{animation: board 0.5s forwards;}
     .button_header .user_boards{opacity: 0;}
-    .button_header:hover .user_boards{animation: boards 0.5s forwards;}
-    .button_header:not(:hover) .user_board {animation: reverseboard 0.5s forwards;}
-    .button_header:not(:hover) .user_boards {animation: reverseboards 0.5s forwards;}
-
-    .button_header:hover .user_profile{transform: scale(1.2);}
-    .button_header:hover .user_notifications{animation: bell 0.5s;}
-    .button_header:hover .user_settings{transform: rotate(360deg);}
-    .button_header:hover .user_help{animation: help 0.5s forwards;}
-    .button_header:hover .user_logout{transform: translateX(5px);}
-    
-    .logout {
-        background: rgb(255, 50, 50);
-    }
-
-    .logout:hover {
-        background: rgb(230, 15, 15);
-    }
 
     .user_settings_container .separator {
         height: 10px;

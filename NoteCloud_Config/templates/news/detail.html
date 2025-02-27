@@ -6,18 +6,17 @@
 {% endblock %}
 
 {% block head %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}
 
 {% block content %}
 <div class="news_block_detail">
     {% if user.is_authenticated %}
     <div class="news_action_buttons_container no_select">
-        <a tabindex="0" class='news_action_button' href="{% url 'news_edit' news.slug %}" hx-get="{% url 'news_edit' news.slug %}" hx-target="#page-content" hx-push-url="true">Изменить</a>
+        <a tabindex="0" class='news_action_button' href="{% url 'news_edit' news.slug %}">Изменить</a>
         <div class="separator"></div>
-        <a tabindex="0" class='news_action_button' href="{% url 'news_delete' news.slug %}" hx-get="{% url 'news_delete' news.slug %}" hx-target="#page-content" hx-push-url="true">Удалить</a>
+        <a tabindex="0" class='news_action_button' href="{% url 'news_delete' news.slug %}">Удалить</a>
         <div class="separator"></div>
-        <a onclick="goBack()" class='news_action_button'>Назад</a>
+        <a href="{% url 'news_list' %}" class='news_action_button'>Назад</a>
     </div>
     {% endif%}
 
@@ -58,7 +57,7 @@
                     
                     <div id="comment-{{ comment.id }}" class="comment_area_container">
                         <div class="author_container">
-                            <p><strong>{{ comment.author.username }}</strong></p>
+                            <p><a href='/profile/{{ comment.author.username }}/'><strong>{{ comment.author.username }}</strong></a></p>
                             <div class="comment_action_buttons_container">
                                 <button class="comment_action_button author_report_button">
                                     <svg class="icon" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

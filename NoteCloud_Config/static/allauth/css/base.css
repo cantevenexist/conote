@@ -5,6 +5,8 @@ html, body {
     background: white;
     overflow: hidden;
     margin: 0;
+    /* Отключение зума на мобильный устройствах */
+    touch-action: manipulation;
 }
 
 .no_select {
@@ -33,7 +35,7 @@ html, body {
 }
 
 .scrollable-container::-webkit-scrollbar-thumb {
-    background: #86A8EC; /* Цвет самого ползунка */
+    background: cornflowerblue; /* Цвет самого ползунка */
     border-radius: 4px; /* Скругленные углы ползунка */
 }
 
@@ -89,12 +91,12 @@ label {display: none;}
     .icon-attention {
         height: 24px;
         width: 24px;
-        stroke: rgb(255, 180, 50);
+        stroke: orange;
     }
     .icon-error {
         height: 24px;
         width: 24px;
-        stroke: rgb(255, 50, 50);
+        stroke: crimson;
     }
 
     li {
@@ -166,7 +168,7 @@ label {display: none;}
     }
 
     .form_block a:hover {
-        color: #86A8EC;
+        color: cornflowerblue;
     }
     
     /* Стиль для чекбокса */
@@ -175,7 +177,7 @@ label {display: none;}
         width: 20px;
         height: 20px;
         border: 1px solid #e0e0e0 !important;
-        background: linear-gradient(to left, transparent 50%, #4caf50 50%);
+        background: linear-gradient(to left, transparent 50%, mediumseagreen 50%);
         background-size: 200% 100%;
         background-position: right center;
         border-radius: 4px;
@@ -190,7 +192,7 @@ label {display: none;}
     @media (hover:hover) {
         input[type="checkbox"]:hover {
             background-position: left center;
-            border: 1px solid #4caf50 !important;
+            border: 1px solid mediumseagreen !important;
         }
         input[type="checkbox"]:hover::before {
             transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -221,8 +223,8 @@ label {display: none;}
 
     /* При выборе */
     input[type="checkbox"]:checked {
-        background-color: #4caf50;
-        border: 1px solid #4caf50 !important;
+        background-color: mediumseagreen;
+        border: 1px solid mediumseagreen !important;
     }
     
     /* Галочка */
@@ -244,7 +246,7 @@ label {display: none;}
     button {
         cursor: pointer;
         display: flex;
-        background: linear-gradient(to left, black 50%, #86A8EC 50%);
+        background: linear-gradient(to left, black 50%, cornflowerblue 50%);
         background-size: 200% 100%;
         background-position: right center;
         color: white;
@@ -295,12 +297,12 @@ label {display: none;}
     .icon-attention {
         height: 24px;
         width: 24px;
-        stroke: rgb(255, 180, 50);
+        stroke: orange;
     }
     .icon-error {
         height: 24px;
         width: 24px;
-        stroke: rgb(255, 50, 50);
+        stroke: crimson;
     }
 
     li {
@@ -372,7 +374,7 @@ label {display: none;}
     }
 
     .form_block a:hover {
-        color: #86A8EC;
+        color: cornflowerblue;
     }
     
     /* Стиль для чекбокса */
@@ -381,7 +383,8 @@ label {display: none;}
         width: 20px;
         height: 20px;
         border: 1px solid #e0e0e0 !important;
-        background: linear-gradient(to left, transparent 50%, #4caf50 50%);
+        color:mediumseagreen;
+        background: linear-gradient(to left, transparent 50%, mediumseagreen 50%);
         background-size: 200% 100%;
         background-position: right center;
         border-radius: 4px;
@@ -396,7 +399,7 @@ label {display: none;}
     @media (hover:hover) {
         input[type="checkbox"]:hover {
             background-position: left center;
-            border: 1px solid #4caf50 !important;
+            border: 1px solid mediumseagreen !important;
         }
         input[type="checkbox"]:hover::before {
             transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -427,8 +430,8 @@ label {display: none;}
 
     /* При выборе */
     input[type="checkbox"]:checked {
-        background-color: #4caf50;
-        border: 1px solid #4caf50 !important;
+        background-color: mediumseagreen;
+        border: 1px solid mediumseagreen !important;
     }
     
     /* Галочка */
@@ -450,7 +453,7 @@ label {display: none;}
     button {
         cursor: pointer;
         display: flex;
-        background: linear-gradient(to left, black 50%, #86A8EC 50%);
+        background: linear-gradient(to left, black 50%, cornflowerblue 50%);
         background-size: 200% 100%;
         background-position: right center;
         color: white;
