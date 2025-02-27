@@ -3,15 +3,15 @@
 
 {% block setting %}
     <h1>Изменить настройки уведомлений</h1>
-    <form method="POST">
+    <form method="POST" style="display: flex;flex-direction: column;">
         {% csrf_token %}
         <label class="switch">
-            <h3>Отключить уведомления</h3>
+            <p>Отключить уведомления</p>
             <input type="checkbox" name="disable_notifications" {% if disable_notifications %}checked{% endif %}>
             <span class="slider"></span>
         </label>
         <label class="switch2">
-            <h3>Отключить сообщения с новостями NoteCloud</h3>
+            <p>Отключить сообщения с новостями</p>
             <input type="checkbox" name="disabling_news_messages" {% if disabling_news_messages %}checked{% endif %}>
             <span class="slider"></span>
         </label>

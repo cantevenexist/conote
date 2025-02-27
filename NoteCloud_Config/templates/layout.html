@@ -293,22 +293,23 @@
 </script>
 
 <script>
+const page_must_be_centered = document.querySelector('.page_must_be_centered');
+if (page_must_be_centered) {
+window.addEventListener('load', centerVerticallyPage);
+window.addEventListener('resize', centerVerticallyPage);}
 function centerVerticallyPage() {
-    const child = document.querySelector('.page_must_be_centered');
-    const parentHeight = document.querySelector('.scrollable-container').offsetHeight;
-    const childHeight = child.offsetHeight;
+    const parentHeight_of_page_must_be_centered = document.querySelector('.scrollable-container').offsetHeight;
+    const page_must_be_centeredHeight = page_must_be_centered.offsetHeight;
 
-    if (childHeight < parentHeight) {
-        const offset = (parentHeight - childHeight) / 2;
-        child.style.marginTop = offset - 25 + 'px';
-        child.style.marginBottom = offset + 25 + 'px';
+    if (page_must_be_centeredHeight + 100 < parentHeight_of_page_must_be_centered) {
+        const offset = (parentHeight_of_page_must_be_centered - page_must_be_centeredHeight) / 2;
+        page_must_be_centered.style.marginTop = offset - 25 + 'px';
+        page_must_be_centered.style.marginBottom = offset + 25 + 'px';
     } else {
-        child.style.marginTop = '20px';
-        child.style.marginBottom = '20px';
+        page_must_be_centered.style.marginTop = '20px';
+        page_must_be_centered.style.marginBottom = '20px';
     }
 }
-window.addEventListener('load', centerVerticallyPage);
-window.addEventListener('resize', centerVerticallyPage);
 </script>
 {% block javascript %}
 {% endblock %}

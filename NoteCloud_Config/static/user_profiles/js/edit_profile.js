@@ -17,7 +17,12 @@ let originalFileName = '';
 let cropper = null;
 const cancelCropButton = document.getElementById('cancel-crop-btn');
 let originalImageContainerHTML = document.getElementById('image-container').innerHTML;
-const deleteAvatarBtn = document.getElementById('delete-avatar-btn')
+const deleteAvatarBtn = document.getElementById('delete-avatar-btn');
+const avatarLabel = document.querySelector('label[for="id_avatar"]'); // Получаем label
+const avatarInput = document.getElementById('id_avatar'); // Получаем input
+
+// Флаг для отслеживания состояния кропера
+let isCropperActive = false;
 
 document.getElementById('id_avatar').addEventListener('change', function(event) {
     const files = event.target.files;
@@ -28,7 +33,6 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
             event.target.value = '';
             return;
         }
-
         const allowedExtensions = ['bmp', 'jpeg', 'png', 'jpg'];
         const fileExtension = file.name.split('.').pop().toLowerCase();
         if (!allowedExtensions.includes(fileExtension)) {
@@ -36,38 +40,42 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
             event.target.value = '';
             return;
         }
-
         originalFileName = files[0].name;
         const reader = new FileReader();
         reader.onload = function(e) {
             const imageContainer = document.getElementById('image-container');
             imageContainer.innerHTML = '';
-
             const image = document.createElement('img');
             image.id = 'image-to-crop';
             image.src = e.target.result;
             image.style.width = '512px';
             image.style.height = '512px';
             imageContainer.appendChild(image);
-
             if (cropper) {
                 cropper.destroy();
             }
-
             cropper = new Cropper(image, {
                 aspectRatio: 1,
                 viewMode: 1,
                 autoCropArea: 1,
                 responsive: true,
             });
-
             cancelCropButton.style.display = 'inline-block';
-
             if (deleteAvatarBtn) {
                 deleteAvatarBtn.style.display = 'none';
             }
+
+            avatarLabel.removeAttribute('for');
+            isCropperActive = true;
         };
         reader.readAsDataURL(files[0]);
+    }
+});
+
+// Обработка кликов на label
+avatarLabel.addEventListener('click', function(event) {
+    if (isCropperActive) {
+        event.preventDefault(); // Предотвращаем стандартное поведение (вызов диалога выбора файла)
     }
 });
 
@@ -76,13 +84,15 @@ cancelCropButton.addEventListener('click', function() {
         cropper.destroy();
         cropper = null;
     }
-    document.getElementById('id_avatar').value = '';
+    avatarInput.value = ''; // Очищаем значение input
     document.getElementById('image-container').innerHTML = originalImageContainerHTML;
     cancelCropButton.style.display = 'none';
-
     if (deleteAvatarBtn) {
         deleteAvatarBtn.style.display = 'inline-block';
     }
+
+    avatarLabel.setAttribute('for', 'id_avatar'); 
+    isCropperActive = false; 
 });
 
 document.addEventListener("DOMContentLoaded", function () {
