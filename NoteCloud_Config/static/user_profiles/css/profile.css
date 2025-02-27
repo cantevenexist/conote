@@ -262,4 +262,6 @@ mask-image: linear-gradient(to bottom,
 
 .sub_container {background-color: aqua; display: flex; flex-direction: row; padding: 10px; margin-bottom: 10px; width: calc(100% - 8px);}
 .sub_avatar_container {background-color: gainsboro; width: 40px; height: 40px;}
+.sub_avatar_container img {width: 40px;height: 40px;}
+.sub_avatar_container svg {width: 40px;height: 40px;}
 .sub_username {background-color:cadetblue ;margin-left: 10px;width: calc(100% - 50px);justify-self: center;font-size: 20px; overflow: hidden; text-overflow: ellipsis;}
