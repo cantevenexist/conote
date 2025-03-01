@@ -34,7 +34,6 @@ def save_telegram_avatar_on_login(sender, request, user, **kwargs):
             user_profile, created = UserProfile.objects.get_or_create(user=user)
             if created or not user_profile.avatar:
                 response = urllib.request.urlopen(avatar_url)
-                if response.status == 200:
-                    avatar_image = ContentFile(response.read())
-                    user_profile.avatar.save(f'{user.username}_avatar.jpg', avatar_image)
-                    user_profile.save()
+                avatar_image = ContentFile(response.read())
+                user_profile.avatar.save(f'{user.username}_avatar.jpg', avatar_image)
+                user_profile.save()

@@ -8,6 +8,7 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 from .storages import MinioStorage
 import re
+import uuid
 
 User = get_user_model()
 
@@ -23,8 +24,9 @@ class UploadToPath(object):
     def generate_filename(self, instance, filename):
         username_hash = hashlib.md5(instance.user.username.encode()).hexdigest()
         file_hash = hashlib.md5(filename.encode()).hexdigest()
+        unique_id = uuid.uuid4().hex
         file_extension = filename.split('.')[-1]
-        return f'media/avatars/{username_hash}/{file_hash}.{file_extension}'
+        return f'media/avatars/{username_hash}/{file_hash}_{unique_id}.{file_extension}'
 
 
 def file_size(value):
@@ -62,13 +64,12 @@ class UserProfile(models.Model):
     def save(self, *args, **kwargs):
         if self.pk:
             try:
-                old_image = UserProfile.objects.get(pk=self.pk).avatar
+                old_profile = UserProfile.objects.get(pk=self.pk)
             except UserProfile.DoesNotExist:
-                old_image = None
+                old_profile = None
 
-            if old_image:
-                if old_image.name:
-                    old_image.storage.delete(old_image.name)
+            if old_profile and old_profile.avatar and self.avatar and old_profile.avatar.name != self.avatar.name:
+                old_profile.avatar.storage.delete(old_profile.avatar.name)
 
         super().save(*args, **kwargs)
 
