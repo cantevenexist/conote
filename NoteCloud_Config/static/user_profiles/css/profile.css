@@ -11,7 +11,7 @@
                     -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);}
                 .profile-about-fullsize-button {display: none; background-color:transparent;stroke: gray; color: gray;}
                 .profile-about-fullsize-button.show {display: flex; flex-direction: row;}
-                .profile-about-fullsize-button:hover {stroke: black; color: black;}
+                @media (hover:hover) {.profile-about-fullsize-button:hover {stroke: black; color: black;}}
                 .hide-show-profile-about-icon {transform: rotate(0deg);transition: transform 0.5s ease-in-out;}
                 .hide-show-profile-about-icon.rotate {transform: rotate(-180deg);}
                 
@@ -28,26 +28,40 @@
                     .profile-social-following {background-color:transparent;stroke: gray; color: gray; transition: color 0.5s ease, stroke 0.5s ease, transform 0.5s ease;}
                     .profile-social-followers-and-following .hide-red-icon {stroke: gray ;transition: stroke 0.5s ease;}
 
+                /* BASED CLEAR STYLE */
+                .profile-page p {margin: 0;}
+                .profile-avatar-container {transition: scale 0.5s ease;}
+                .profile-avatar-container img {width: 100%;height: 100%;}
+                .profile-avatar-container svg {width: 100%;height: 100%;}
+
                 @media (hover:hover) {
+                    .profile-avatar-container:hover {scale: 1.05;}
                     .profile-social-button:hover {background:rgb(80, 120, 180);}
                     .profile-username-copy-btn:hover {stroke: black; scale: 1.1;}
                     .profile-social-followers:hover{color:black; stroke: black;}
-                    .profile-social-followers:hover .hide-red-icon{stroke: crimson;}
                     .profile-social-following:hover {color:black; stroke: black;}
-                    .profile-social-following:hover .hide-red-icon{stroke: crimson;}
+
+                    .profile-link-container:hover .profile-social-link-item {color:cornflowerblue;text-decoration: underline;}
+                    .profile-link-container:hover .icon .fa-vk{color: rgb(0, 119, 255);}
+                    .profile-link-container:hover .icon .fa-telegram{color: rgb(0, 136, 204);}
+                    .profile-link-container:hover .icon .fa-youtube{color: rgb(242, 0, 38);}
                 }
 
                 ul {padding-left: 0;list-style-type: none; margin: 0;}
-
+                .profile-link-container .profile-social-link-item {padding: 0; border: 0; color:black; cursor: pointer; text-overflow: ellipsis; overflow: hidden;}
+                
         /* from 0 to 425 portrait */
         @media (max-width:425px) {
         .profile-container-avatar-info {display: block}
             .profile-info-container {margin-left: 0;margin-top: calc(10px); background-color: transparent; width:100%;}
                 .profile-avatar-container {max-width: 100% !important; aspect-ratio: 1;}}
 
-                    .profile-avatar-container img {border-radius: 5px;}
-                    .profile-avatar-container svg {border-radius: 5px; background-color: #dedede;}
-                
+                    .profile-avatar-container img {border-radius: 5px; transition: border-radius 0.5s ease;}
+                    .profile-avatar-container svg {border-radius: 5px; background-color: #dedede; transition: border-radius 0.5s ease;}
+                    @media (hover:hover) {
+                        .profile-avatar-container:hover img {border-radius: 4.5px;}
+                        .profile-avatar-container:hover svg {border-radius: 4.5px;}
+                    }
                 .profile-username-about {font-size: 14px;
                     text-indent: 0; /* Убирает отступ на первой строке */
                     white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
@@ -71,7 +85,7 @@
             .profile-social-followers-and-following {font-size: 14px; width: 100%;}
             .profile-social-followers-and-following .icon {height: 21px;width: 21px;}
             .profile-social-followers-and-following .icon svg {padding: 2px;padding-top: 1px;height: 100%;width: 100%;}
-        .profile-links-container {margin-top: 10px; background-color: burlywood;}
+        .profile-links-container {margin-top: 10px; background-color: transparent;}
             .profile-link-container {display: flex; flex-direction: row;}
             .profile-link-container {font-size: 14px; width: 100%;}
             .profile-link-container .icon {height: 21px;width: 21px;}
@@ -88,8 +102,12 @@
     border-radius: 30px;}
     .profile-container {width: 296px; padding: 20px;border-bottom: none ;border-right: 1px solid #e0e0e0;}
         .profile-avatar-container {max-width: 256px; width: 256px; aspect-ratio: 1; margin: auto;}
-            .profile-avatar-container img {border-radius: 10px;}
-            .profile-avatar-container svg {border-radius: 10px; background-color: #dedede;}
+            .profile-avatar-container img {border-radius: 10px; transition: border-radius 0.5s ease;}
+            .profile-avatar-container svg {border-radius: 10px; background-color: #dedede; transition: border-radius 0.5s ease;}
+            @media (hover:hover) {
+                .profile-avatar-container:hover img {border-radius: 9px;}
+                .profile-avatar-container:hover svg {border-radius: 9px;}
+            }
         .profile-info-container {margin-top: 20px; background-color: transparent;}
             .profile-username-about {font-size: 14px;
                 text-indent: 0; /* Убирает отступ на первой строке */
@@ -102,7 +120,7 @@
             .profile-social-followers-and-following {font-size: 14px; width: 100%;}
             .profile-social-followers-and-following .icon {height: 21px;width: 21px;}
             .profile-social-followers-and-following .icon svg {padding: 2px;padding-top: 1px;height: 100%;width: 100%;}
-        .profile-links-container {margin-top: 20px; background-color: burlywood;}
+        .profile-links-container {margin-top: 20px; background-color: transparent;}
             .profile-link-container {display: flex; flex-direction: row;}
             .profile-link-container {font-size: 14px; width: 100%;}
             .profile-link-container .icon {height: 21px;width: 21px;}
@@ -110,14 +128,8 @@
     .side-container {width: 100%; padding: 20px;min-width: 296px;}
 }
 
-
-/* BASED CLEAR STYLE */
-.profile-page p {margin: 0;}
-.profile-avatar-container img {width: 100%;height: 100%;}
-.profile-avatar-container svg {width: 100%;height: 100%;}
-
-.profile-username-container {display: flex; flex-direction: row; justify-content: space-between;height: 30px; width: 100%;}
-.profile-username {font-size: 20px; width: calc(100% - 30px); background-color: transparent; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
+.profile-username-container {display: flex; flex-direction: row;height: 30px; width: 100%;}
+.profile-username {font-size: 20px; max-width: calc(100% - 30px); background-color: transparent; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
 
 
 @media (orientation: portrait) {#panel-subscribers {padding-left: 5%;padding-right: 5%;}#panel-subscriptions {padding-left: 5%;padding-right: 5%;}}
@@ -207,8 +219,7 @@
 
 /* BLOCK SEARCHBOX COLOR */
 .search-sub-container input{width: 100%; height: 40px; border-radius: 10px; border: 1px solid #e0e0e0; padding-left: 15px; font-size: 18px;transition: border-color 0.5s ease;}
-.search-sub-container input:focus {outline: 0; border-color: cornflowerblue;
-}
+.search-sub-container input:focus {outline: 0; border-color: cornflowerblue;}
 
 .search-sub-container input:focus::-webkit-input-placeholder {color: cornflowerblue;}
 .search-sub-container input:focus::-moz-placeholder {color: cornflowerblue;}
