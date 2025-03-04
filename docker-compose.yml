@@ -15,6 +15,7 @@ services:
       - db
       - minio
       - createbuckets
+      - valkey
   db:
     image: postgres:16.4-alpine3.20
     volumes:
@@ -45,10 +46,20 @@ services:
       /usr/bin/mc mb s3/${MINIO_NAMEBUCKET}/;
       /usr/bin/mc anonymous set download s3/${MINIO_NAMEBUCKET};
       "
+  valkey:
+    image: valkey/valkey:latest
+    command: ["valkey-server", "--requirepass", "${VALKEY_PASSWORD}"]
+    volumes:
+      - valkey_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 
 
 volumes:
   postgres_data:
      driver: local
   minio_data:
+    driver: local
+  valkey_data:
     driver: local

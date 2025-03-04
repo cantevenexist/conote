@@ -1,0 +1,44 @@
+{% extends 'boards/layout.html' %}
+{% load static %}
+
+{% block title %}
+    CoNote | Доски
+{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'boards/css/boards.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="left_block">
+
+    </div>
+    <div class="main_block">
+        <div class="board_creation_block">
+            +
+        </div>
+        {% if boards %}
+            {% for board in boards %}
+                <div class="board_item"
+                     data-favorites="{{ board.favorites }}"
+                     data-updated="{{ board.updated_at|date:'Y-m-d H:i:s' }}">
+                    <button class="popup-btn">☰</button>
+                    <div class="popup">
+                        <a href="/xyu"><p>Удалить</p></a>
+                    </div>
+                    <div class="board_{{ board.name }}">
+                        <a href="/workspace/{{ board.url_hash }}/">
+                            <h2>{{ board.name }}</h2>
+                        </a>
+                        <h3>Владелец: {{ board.user__username }}</h3>
+                        <p class="date time" data-time="{{ board.updated_at|date:'Y-m-d\TH:i:s' }}"></p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script src="{% static 'boards/js/boards.js' %}"></script>
+{% endblock %}

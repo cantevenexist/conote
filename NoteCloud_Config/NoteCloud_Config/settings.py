@@ -47,9 +47,11 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.telegram',
-    'django_htmx',
     'storages',
+    'channels',
+    'boards',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,7 +62,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = 'NoteCloud_Config.urls'
@@ -82,7 +83,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'NoteCloud_Config.wsgi.application'
+ASGI_APPLICATION = 'NoteCloud_Config.asgi.application'
+# WSGI_APPLICATION = 'NoteCloud_Config.wsgi.application'
 
 
 # Database
@@ -99,12 +101,29 @@ DATABASES = {
     }
 }
 
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': 'redis://localhost:6379',
-#     }
-# }
+
+REDIS_HOST = os.getenv("REDIS_HOST", "valkey")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/2"],
+        },
+    },
+}
 
 
 # Password validation
@@ -215,6 +234,10 @@ AWS_S3_CUSTOM_DOMAIN = f'{os.getenv("AWS_S3_CUSTOM_DOMAIN")}/{AWS_STORAGE_BUCKET
 # static settings
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
+# STATICFILES_STORAGE = 'main_page.storages.MinioStorageStatic'
+#
+# STATIC_URL = f"{MINIO_ACCESS_URL}/static/"
+
 STATICFILES_STORAGE = 'backend.storages.StaticStorage'
 
 STATIC_URL = 'static/'

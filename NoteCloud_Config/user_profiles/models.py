@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from .storages import MinioStorage
 import re
 import uuid
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -121,3 +122,34 @@ class SettingsNotifications(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_notifications')
     disable_notifications = models.BooleanField(default=False)
     disabling_news_messages = models.BooleanField(default=False)
+
+
+class PremiumSubscription(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='premiumsubscription')
+    is_active = models.BooleanField(default=False)
+    activated_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    unlimited = models.BooleanField(default=False)
+    tokens = models.PositiveIntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if self.unlimited:
+            self.expires_at = None
+        super().save(*args, **kwargs)
+
+    def check_subscription(self):
+        if not self.is_active:
+            return False
+        if self.unlimited:
+            return True
+        if self.is_active:
+            if self.expires_at != None:
+                if timezone.now() < self.expires_at:
+                    return True
+                else:
+                    self.is_active = False
+        return False
+
+    def __str__(self):
+        status = "Активна" if self.check_subscription else "Неактивна"
+        return f'Статус подписки для  {self.user.username}: {status}'

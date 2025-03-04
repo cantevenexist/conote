@@ -28,4 +28,5 @@ urlpatterns = [
     path('account/settings/', include('allauth.urls')),
     path('', include('user_profiles.urls')),
     path('news/', include('news.urls')),
+    path('workspace/', include('boards.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

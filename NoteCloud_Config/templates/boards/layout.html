@@ -1,0 +1,56 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Istok+Web:ital,wght@1,700&family=Marmelad&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.6.0/css/all.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
+    {% block head %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'boards/css/layout.css' %}">
+</head>
+<body>
+<div class="layout_block" id="page-content">
+    {% block content %}
+    {% endblock %}
+</div>
+
+{% block javascript %}
+{% endblock %}
+<script>
+    // Функция для локализации времени
+    function localizeTime() {
+        const timeElements = document.querySelectorAll('.time');
+        timeElements.forEach(function(element) {
+            const serverTime = element.getAttribute('data-time');
+            const utcDate = new Date(serverTime);
+            const timezoneOffset = utcDate.getTimezoneOffset();
+            const localDate = new Date(utcDate.getTime() - timezoneOffset * 60000);
+            const localTime = localDate.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+            element.textContent = localTime;
+        });
+    }
+
+    // Инициализируем локализацию времени при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        localizeTime();
+    });
+</script>
+</body>
+</html>
