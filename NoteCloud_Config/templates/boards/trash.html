@@ -2,18 +2,15 @@
 {% load static %}
 
 {% block title %}
-    CoNote | Доски
+    CoNote | Корзина
 {% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'boards/css/boards.css' %}">
+    <link rel="stylesheet" href="{% static 'boards/css/trash.css' %}">
 {% endblock %}
 
 {% block content %}
     <div class="main_block">
-        <div class="board_creation_block">
-            +
-        </div>
         {% if boards %}
             {% for board in boards %}
                 <div class="board_item"
@@ -29,6 +26,7 @@
                         </a>
                         <h3>Владелец: {{ board.user__username }}</h3>
                         <p class="date time" data-time="{{ board.updated_at|date:'Y-m-d\TH:i:s' }}"></p>
+                        <p class="date time" data-time="{{ board.deleted_at|date:'Y-m-d\TH:i:s' }}"></p>
                     </div>
                 </div>
             {% endfor %}
@@ -37,5 +35,5 @@
 {% endblock %}
 
 {% block javascript %}
-    <script src="{% static 'boards/js/boards.js' %}"></script>
+    <script src="{% static 'boards/js/trash.js' %}"></script>
 {% endblock %}

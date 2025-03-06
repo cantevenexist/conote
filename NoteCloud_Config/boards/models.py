@@ -32,3 +32,17 @@ class Board(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.user.username})'
+
+
+class Trash(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trash_items')
+    name = models.CharField(max_length=255, null=False)
+    created_at = models.DateTimeField(null=False)
+    updated_at = models.DateTimeField(null=False)
+    board_value = models.TextField(blank=True, null=True)
+    url_hash = models.CharField(max_length=64, unique=True, blank=True, null=False)
+    favorites = models.BooleanField(null=False)
+    deleted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Доска {self.name} удалена"

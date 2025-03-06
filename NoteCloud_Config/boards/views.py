@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .models import Board
+from .models import Board, Trash
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
@@ -15,6 +15,7 @@ from django.urls import reverse_lazy
 from django.db.models import Case, When, Value, IntegerField, Q
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+from django.db import transaction
 
 
 @sync_to_async
@@ -98,7 +99,7 @@ class BoardsView(AsyncLoginRequiredMixin, View):
         user = await get_request_user(request)
         board = await Board.objects.acreate(user=user)
 
-        updated_at_str = board.updated_at.strftime('%d-%m-%Y %H:%M')
+        updated_at_str = board.updated_at.strftime('%m-%d-%Y %H:%M')
         hidden_updated_at_str = board.updated_at.strftime('%Y-%m-%d %H:%M:%S')
 
         html = f'''
@@ -107,18 +108,63 @@ class BoardsView(AsyncLoginRequiredMixin, View):
                      data-updated="{hidden_updated_at_str}">
                     <button class="popup-btn">☰</button>
                     <div class="popup">
-                        <a href="/xyu"><p>Удалить</p></a>
+                        <button class="delete-btn" data-url_hash="{{ board.url_hash }}">Удалить</button>
                     </div>
                     <div class="board_{board.name}">
                         <a href="/workspace/{board.url_hash}/">
                             <h2>{board.name}</h2>
                         </a>
                         <h3>Владелец: {board.user.username}</h3>
-                        <h3>{updated_at_str}</h3>
+                        <p class="date time" data-time="{updated_at_str}"></p>
                     </div>
                 </div>
                 '''
         return JsonResponse({'html': html})
+
+    async def delete(self, request, url_hash):
+        user = await get_request_user(request)
+
+        board = await async_get_object_or_404(Board.objects.select_related('user'), url_hash=url_hash, user=user)
+
+        await Trash.objects.acreate(
+            user=board.user,
+            name=board.name,
+            created_at=board.created_at,
+            updated_at=board.updated_at,
+            board_value=board.board_value,
+            url_hash=board.url_hash,
+            favorites=board.favorites,
+        )
+        await board.adelete()
+
+        return JsonResponse({'status': 'success'})
+
+
+class TrashView(AsyncLoginRequiredMixin, View):
+    async def get(self, request):
+        user = await get_request_user(request)
+        boards_qs = Trash.objects.filter(user=user).annotate(
+            fav_order=Case(
+                When(favorites=True, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField()
+            )
+        ).order_by('fav_order', '-updated_at').values('name', 'url_hash', 'updated_at', 'user__username', 'deleted_at')
+        boards = [board async for board in boards_qs]
+
+        context = {
+            'boards': boards,
+        }
+        return await render_sync(request, 'boards/trash.html', context)
+
+    async def delete(self, request, url_hash):
+        user = await get_request_user(request)
+
+        board = await async_get_object_or_404(Trash.objects.select_related('user'), url_hash=url_hash, user=user)
+
+        await board.adelete()
+
+        return JsonResponse({'status': 'success'})
 
 
 # class BoardView(APIView):

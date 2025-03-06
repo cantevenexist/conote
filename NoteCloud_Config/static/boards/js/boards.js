@@ -1,9 +1,10 @@
-document.addEventListener('DOMContentLoaded', function() {
-    function getCookie(name) {
-        const value = $.cookie(name);
-        return value ? decodeURIComponent(value) : null;
-    }
+function getCookie(name) {
+    const value = $.cookie(name);
+    return value ? decodeURIComponent(value) : null;
+}
 
+
+document.addEventListener('DOMContentLoaded', function() {
     const csrftoken = getCookie('csrftoken');
 
     document.querySelector('.board_creation_block').addEventListener('click', function() {
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let newBoard = tempDiv.firstElementChild;
                 // Добавляем новый элемент в основной контейнер
                 document.querySelector('.main_block').appendChild(newBoard);
+                localizeTime();
                 // Выполняем сортировку досок
                 sortBoards();
             }
@@ -82,4 +84,32 @@ document.addEventListener('DOMContentLoaded', () => {
           document.querySelectorAll('.popup').forEach(popup => popup.classList.remove('show'));
         }
     });
+});
+
+
+document.querySelector('.main_block').addEventListener('click', (e) => {
+    // Если клик был по кнопке удаления или её потомкам
+    const deleteBtn = e.target.closest('.delete-btn');
+    if (deleteBtn) {
+        const csrftoken = getCookie('csrftoken');
+        const boardElement = deleteBtn.closest('.board_item');
+        const urlHash = boardElement.querySelector('a').getAttribute('href').split('/')[2];
+
+        if (confirm('Вы уверены, что хотите удалить эту доску?')) {
+            fetch(`/workspace/${urlHash}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    boardElement.remove();
+                } else {
+                    alert('Ошибка при удалении доски');
+                }
+            });
+        }
+    }
 });
