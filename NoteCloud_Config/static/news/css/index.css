@@ -5,6 +5,23 @@
       transform: translateY(0); /* Возвращаем к исходному положению */
   }
 }
+.news_post_link {width: 100%;}
+.news_post p a{color: #777;}
+.news_comment_container p a{color: black;}
+
+@media (hover:hover) {
+  .news_post p a:hover{text-decoration: underline;}
+  .news_comment_container p a:hover{text-decoration: underline; color: cornflowerblue;}
+  .news_block_detail .image:hover {scale: 1.05;}
+}
+
+.news_post .date {cursor: default;}
+.news_post .image {cursor: pointer;}
+.news_post .preview_content a {color: black; text-decoration: underline;}
+.news_post .content a {color: black; text-decoration: underline;}
+@media (hover:hover) {.news_post .preview_content a:hover {color: cornflowerblue;}.news_post .content a:hover {color: cornflowerblue;}}
+
+
 
 /* Mobile */
 @media (max-width:425px) or (max-height:425px) {
@@ -12,8 +29,9 @@
   .news_block {
     max-width: 100%; /* Ширина 100% для мобильных */
     margin: 0 auto;
-    padding: 10px; /* Уменьшенные отступы */
-    font-family: Arial, sans-serif;
+    padding: 25px;
+    padding-left: 0;
+    padding-right: 0;
     animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
     opacity: 0; /* Начальное состояние */
     transform: translateY(20px); /* Сдвиг вниз */
@@ -23,13 +41,8 @@
     color: inherit;
     display: flex;
     flex-direction: row;
-    padding: 10px;
-    background-color: white;
     border-radius: 15px;
-    border: 1px solid #e0e0e0; /* Граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     position: relative; /* Для псевдоэлемента */
-    transition: transform 0.2s, box-shadow 0.2s;
   }
 
   .news_action_buttons_container .separator {
@@ -72,10 +85,9 @@
     padding: 10px; /* Уменьшенный внутренний отступ */
     background-color: white;
     border-radius: 15px;
-    border: 1px solid #e0e0e0; /* Граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     position: relative; /* Для псевдоэлемента */
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.5s, box-shadow 0.5s;
   }
   
   @media (hover:hover) {
@@ -85,14 +97,14 @@
   }}
   
   /* Разделитель между новостями */
-  .news_post_link::after {
+  .news_post::after {
     content: '';
     display: block;
     height: 1px;
     background: #e0e0e0; /* Цвет линии */
     margin: 10px 0 0 0; /* Отступ сверху */
   }
-  
+  .comment_count_div {display: flex; flex-direction: row; gap: 10px; margin-top: 10px; width: 100%;overflow: hidden;}
   /* Структура поста */
   .news_post {
     display: flex;
@@ -137,13 +149,15 @@
   /* Контейнер для изображения */
   .news_post .image_container {
     margin-top: 15px;
+    overflow: hidden;
+    border-radius: 5px;
   }
   
   /* Изображение */
   .news_post .image {
     width: 100%; /* Максимальная ширина */
-    border-radius: 5px;
     object-fit: cover; /* Обрезка изображения */
+    transition: scale 0.5s ease;
   }
   
   /* Превью контента */
@@ -182,7 +196,8 @@
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
-    font-family: Arial, sans-serif;
+    padding-left: 0;
+    padding-right: 0;
     opacity: 0; /* Начальное состояние */
     transform: translateY(20px); /* Сдвиг вниз */
     animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
@@ -195,10 +210,9 @@
     padding: 20px;
     background-color: white;
     border-radius: 30px;
-    border: 1px solid #e0e0e0; /* Граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     position: relative; /* Для псевдоэлемента */
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.5s, box-shadow 0.5s;
   }
 
   .news_action_buttons_container .separator {
@@ -242,10 +256,9 @@
     padding: 20px;
     background-color: white;
     border-radius: 30px;
-    border: 1px solid #e0e0e0; /* Граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     position: relative; /* Для псевдоэлемента */
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.5s, box-shadow 0.5s;
   }
   
   @media (hover:hover) {
@@ -255,14 +268,14 @@
   }}
   
   /* Разделитель между новостями */
-  .news_post_link::after {
+  .news_post::after {
     content: '';
     display: block;
     height: 1px;
     background: #e0e0e0; /* Цвет линии */
     margin: 15px 0 0 0; /* Отступ сверху */
   }
-  
+  .comment_count_div {display: flex; flex-direction: row; gap: 10px; margin-top: 15px; width: 100%; overflow: hidden;}
   /* Структура поста */
   .news_post {
     display: flex;
@@ -308,13 +321,15 @@
   /* Контейнер для изображения */
   .news_post .image_container {
     margin-top: 20px;
+    overflow: hidden;
+    border-radius: 10px;
   }
   
   /* Изображение */
   .news_post .image {
     width: 100%;
-    border-radius: 10px;
     object-fit: cover;
+    transition: scale 0.5s ease;
   }
   
   /* Превью контента */

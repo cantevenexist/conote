@@ -37,3 +37,4 @@
 }
 .profile_settings_username input{width: 100%; max-width: 256px; padding-left: 5px; border: 1px solid #e0e0e0; border-radius: 15px;height: 40px;}
 .profile_settings_about_container textarea{width: 100%; max-width: 256px;resize: none;overflow-y: hidden; padding: 5px; height: 20px; border-radius: 15px; border: 1px solid #e0e0e0}
+#profileEditSaveChangesDownButton:disabled {background-color:cadetblue;border: none;}

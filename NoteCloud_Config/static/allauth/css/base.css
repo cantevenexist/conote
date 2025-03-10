@@ -23,6 +23,22 @@ html, body {
     height: 100%;
 }
 
+.QRCHECKBADASS{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    display: none;
+    z-index: 1001;
+    text-align: center;
+    align-content: center;
+    
+}
+.QRCHECKBADASS svg {width: calc(100% - 10px); height: calc(100% - 10px);}
+@media (max-width:319.9px),(max-height:319.9px) {
+    .QRCHECKBADASS{display: block;}
+}
+
 /* Scrollbar */
 /* Для Chrome, Safari и Edge */
 .scrollable-container::-webkit-scrollbar {
@@ -39,9 +55,9 @@ html, body {
     border-radius: 4px; /* Скругленные углы ползунка */
 }
 
-.scrollable-container::-webkit-scrollbar-thumb:hover {
+@media (hover:hover) {.scrollable-container::-webkit-scrollbar-thumb:hover {
     background: #6B8BC4; /* Цвет ползунка при наведении */
-}
+}}
 
 .scrollable-container::-webkit-scrollbar-thumb:active {
     background: #5B7DAC; /* Цвет ползунка при активном взаимодействии */
@@ -63,15 +79,32 @@ html, body {
 label {display: none;}
 /* ul {display: none;} */
 
+.login_telegram_div {overflow: hidden;;background-color: rgb(70, 151, 228); height: 36px; display: flex; flex-direction: row; margin-top: 10px; border-radius: 10px;position: relative; transition: background-color 0.5s ease;}
+.login_telegram_div .auth_tg_btn_content {display: flex; flex-direction: row; gap: 5px; margin: auto;}
+.login_telegram_div .auth_tg_btn_content .icon_container {width: 30px; height: 30px;}
+.login_telegram_div .auth_tg_btn_content .icon_container svg {width: 100%; height: 100%;margin-top: 0;}
+.login_telegram_div .auth_tg_btn_content .icon_container svg path{fill: white;transition: fill 0.5s ease;}
+.login_telegram_div .auth_tg_btn_content .tg_auth_text {transition: scale 0.5s ease, transform 0.5s ease;margin-top: 5px; transform: translate(0);}
+
+@media (hover:hover) {
+    .login_telegram_div .auth_tg_btn_content .tg_auth_text {transition: scale 0.5s ease, transform 0.5s ease;margin-top: 5px; transform: translate(17.5px);}
+    .login_telegram_div .auth_tg_btn_content .icon_container svg {width: 100%; height: 100%;scale: 0; transform: rotate(10deg); transition: scale 0.5s ease, transform 0.5s ease;}
+    
+    .login_telegram_div:hover .auth_tg_btn_content .icon_container svg {scale: 1; transform: rotate(0deg) translate(10px,0px);}
+    .login_telegram_div:hover .auth_tg_btn_content .tg_auth_text {transform: translate(0);}
+}
+
 /* Mobile */
-@media (orientation: portrait) {
+@media (max-width:425px) or (max-height:425px) {
+    h1 {margin-bottom: 10px;margin-top: 10px;}
+    form{margin-top: 20px;}
+    .login_telegram_div { margin-top: 5px;}
     .layout_central_block {
         margin-left: 5%;
         margin-right: 5%;
         border: none;
         position: absolute;
         width: 90%;
-        font-family: Arial, sans-serif;
         animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
         opacity: 0; /* Начальное состояние */
         transform: translateY(20px); /* Сдвиг вниз */
@@ -144,7 +177,7 @@ label {display: none;}
     
     .form_block p {
         margin: 0; 
-        margin-top: 20px;
+        margin-top: 10px;
     }
     
     .form_block p input {
@@ -167,9 +200,11 @@ label {display: none;}
         color: black;
     }
 
-    .form_block a:hover {
+    @media (hover:hover) {.form_block a:hover {
         color: cornflowerblue;
-    }
+    }}
+    a.tg_auth_link {text-decoration: none; transition: color 0.5s ease;color: white; font-size: 18px;}
+    @media (hover:hover) {a.tg_auth_link:hover{color: white;}}
     
     /* Стиль для чекбокса */
     input[type="checkbox"] {
@@ -254,7 +289,7 @@ label {display: none;}
         justify-content: center;
         align-items: center;
         margin: 0;
-        margin-top: 20px;
+        margin-top: 10px;
         font-size: 18px;
         height: 36px;
         border-radius: 10px;
@@ -270,14 +305,13 @@ label {display: none;}
 }
 
 /* Desktop */
-@media (orientation: landscape) {
+@media (min-width:426px) and (min-height:426px) {
     .layout_central_block {
         margin-left: 10%;
         margin-right: 10%;
         border: none;
         position: absolute;
         width: 80%;
-        font-family: Arial, sans-serif;
         animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
         opacity: 0; /* Начальное состояние */
         transform: translateY(20px); /* Сдвиг вниз */
@@ -373,9 +407,11 @@ label {display: none;}
         color: black;
     }
 
-    .form_block a:hover {
+    @media (hover:hover) {.form_block a:hover {
         color: cornflowerblue;
-    }
+    }}
+    a.tg_auth_link {text-decoration: none; transition: color 0.5s ease; color: white; font-size: 18px;}
+    @media (hover:hover) {a.tg_auth_link:hover{color: white;}}
     
     /* Стиль для чекбокса */
     input[type="checkbox"] {

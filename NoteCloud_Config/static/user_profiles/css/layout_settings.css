@@ -1,6 +1,6 @@
 .account_settings_page {display: flex; flex-direction: row;}
 .layout_central_block .account_settings_panel {
-    background-color: aqua;;
+    background-color: aqua;
 }
 .layout_central_block .detailed_settings_layout {
     background-color: aquamarine;

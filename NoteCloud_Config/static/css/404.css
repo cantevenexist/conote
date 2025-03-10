@@ -120,11 +120,6 @@ html, body {
     }
 }
 
-h {
-    font-size: 50px;
-    font-family: 'Marmelad', sans-serif;
-    color: #C59DD4;
-}
 
 .central_information_block {
     display: flex;
@@ -140,13 +135,11 @@ h {
 
 h2 {
     font-size: 40px;
-    font-family: 'Marmelad', sans-serif;
     color: #000000;
 }
 
 h3 {
     font-size: 35px;
-    font-family: 'Marmelad', sans-serif;
     color: #C59DD4;
 }
 

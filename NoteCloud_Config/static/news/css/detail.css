@@ -1,11 +1,76 @@
+#news_image_panel {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: none;
+  z-index: 1000;
+}
+
+#news_image_panel.show {
+  display: block;
+}
+
+.closeBtn_news_image_panel {
+  cursor: pointer;
+  position: fixed;
+  width: 140%;
+  height: 100%;
+  transform: translateX(-20%);
+}
+
+.news_image_panel-box {
+  position: relative;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+}
+.news_image_panel-box img {width: 100%;width: 100%;border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.news_image_panel-box button {position: absolute; top: 0; right: 0;}
+
+.news_image_panel-close {cursor: pointer; padding: 6px;position: absolute; top:0;right: 0; width: 60px; height: 60px; background-color: rgba(0, 0, 0, 0.75);border-radius: 0 20px 0 20px; border-color: transparent;transition: background-color 0.5s ease,  width 0.5s ease, height 0.5s ease;}
+.news_image_panel-close svg {width: 100%; height: 100%; stroke: white; transition: stroke 0.5s ease;}
+
+@media (hover:hover) {
+  .news_image_panel-close {background-color: rgba(0, 0, 0, 0.5);}
+  .news_image_panel-close svg {width: 100%; height: 100%; stroke: rgba(255, 255, 255, 0.5);}
+  .news_image_panel-close:hover {background-color: rgba(0, 0, 0, 0.75);width: 80px; height: 80px;}
+  .news_image_panel-close:hover svg {width: 100%; height: 100%; stroke: white;}
+}
+.send_comment_container .textarea {transition: border-color 0.5s ease;}
+.send_comment_container .textarea:focus {outline: 0; border-color: cornflowerblue;}
+
+.send_comment_container .textarea:focus::-webkit-input-placeholder {color: cornflowerblue;}
+.send_comment_container .textarea:focus::-moz-placeholder {color: cornflowerblue;}
+.send_comment_container .textarea:focus:-ms-input-placeholder {color: cornflowerblue;}
+.send_comment_container .textarea:focus::placeholder {color: cornflowerblue;}
+
+@media (hover:hover) {
+  /* BLOCK SEARCHBOX COLOR HOVER */
+  .send_comment_container .textarea:hover {border-color: cornflowerblue;}
+  .send_comment_container .textarea:hover::-webkit-input-placeholder {color: cornflowerblue;}
+  .send_comment_container .textarea:hover::-moz-placeholder {color: cornflowerblue;}
+  .send_comment_container .textarea:hover:-ms-input-placeholder {color: cornflowerblue;}
+  .send_comment_container .textarea:hover::placeholder {color: cornflowerblue;}
+  /* END BLOCK */
+  }
+/* BLOCK SEARCHBOX COLOR */
+.send_comment_container .textarea::-webkit-input-placeholder {color: gray; transition: color 0.5s ease;}
+.send_comment_container .textarea::-moz-placeholder {color: gray; transition: color 0.5s ease;}
+.send_comment_container .textarea:-ms-input-placeholder {color: gray; transition: color 0.5s ease;}
+.send_comment_container .textarea::placeholder {color: gray; transition: color 0.5s ease;}
+/* END BLOCK */
+
 /* Mobile */
 @media (max-width:425px) or (max-height:425px) {
   /* Основной контейнер для новостей */
   .news_block_detail  {
       max-width: 100%; /* Ширина 100% для мобильных */
       margin: 0 auto;
-      padding: 10px; /* Уменьшенные отступы */
-      font-family: Arial, sans-serif;
       opacity: 0; /* Начальное состояние */
       transform: translateY(20px); /* Сдвиг вниз */
       animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
@@ -19,30 +84,10 @@
       text-decoration: none;
       color: inherit;
       margin: 10px 0; /* Уменьшенный отступ */
-      padding: 10px; /* Увеличенный внутренний отступ */
-      background-color: white;
-      border-radius: 15px;
-      border: 1px solid #e0e0e0; /* Граница */
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
       opacity: 0; /* Начальное состояние */
       transform: translateY(10px); /* Сдвиг вниз */
       animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
       transition: transform 0.2s; /* Анимация при наведении */
-  }
-
-  /* Эффект при наведении */
-  @media (hover:hover) {
-  .news_block_detail .news_post:hover {
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }}
-
-  /* Разделитель между новостями */
-  .news_block_detail .news_post::after {
-      content: '';
-      display: block;
-      height: 1px;
-      background: #e0e0e0; /* Цвет линии */
-      margin: 10px 0 0 0; /* Отступ сверху */
   }
   
   .news_block_detail .news_comment_container {
@@ -55,8 +100,7 @@
     padding: 10px; /* Увеличенный внутренний отступ */
     background-color: white;
     border-radius: 15px;
-    border: 1px solid #e0e0e0; /* Граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     opacity: 0; /* Начальное состояние */
     transform: translateY(10px); /* Сдвиг вниз */
     animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
@@ -133,9 +177,9 @@
 
   .button_send_comment .icon {
     stroke: white;
-    width: 25px;
-    height: 25px;
-    transform: translate(2.5px, 2.5px);
+    width: 20px;
+    height: 20px;
+    transform: translate(5px, 5px);
   }
 
   .button_send_comment.show .icon {
@@ -237,6 +281,8 @@
   }}
 
   .comment_area_container .content {
+    width: fit-content;
+    max-width: 100%;
     text-indent: 0; /* Убирает отступ на первой строке */
     white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
     word-wrap: break-word; /* Переносит длинные слова */
@@ -261,7 +307,6 @@
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
-      font-family: Arial, sans-serif;
       opacity: 0; /* Начальное состояние */
       transform: translateY(20px); /* Сдвиг вниз */
       animation: fadeInUp 0.5s forwards; /* Применяем анимацию */
@@ -278,8 +323,7 @@
     padding: 20px;
     background-color: white;
     border-radius: 30px;
-    border: 1px solid #e0e0e0; /* Граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     position: relative; /* Для псевдоэлемента */
     opacity: 0; /* Начальное состояние */
     transform: translateY(20px); /* Сдвиг вниз */
@@ -291,15 +335,6 @@
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }}
 
-  /* Разделитель между новостями */
-  .news_block_detail .news_post_link::after {
-      content: '';
-      display: block;
-      height: 1px;
-      background: #e0e0e0; /* Цвет линии */
-      margin: 15px 0 0 0; /* Отступ сверху */
-  }
-
   .news_block_detail .news_comment_container {
     display: flex;
     overflow-wrap: break-word;
@@ -310,8 +345,7 @@
     padding: 20px;
     background-color: white;
     border-radius: 30px;
-    border: 1px solid #e0e0e0; /* Граница */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень */
     position: relative; /* Для псевдоэлемента */
     opacity: 0; /* Начальное состояние */
     transform: translateY(20px); /* Сдвиг вниз */
@@ -389,9 +423,9 @@
 
   .button_send_comment .icon {
     stroke: white;
-    width: 25px;
-    height: 25px;
-    transform: translate(2.5px, 2.5px);
+    width: 20px;
+    height: 20px;
+    transform: translate(5px, 5px);
   }
 
   .button_send_comment.show .icon {
@@ -490,6 +524,8 @@
   }}
 
   .comment_area_container .content {
+    width: fit-content;
+    max-width: 100%;
     text-indent: 0; /* Убирает отступ на первой строке */
     white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
     word-wrap: break-word; /* Переносит длинные слова */

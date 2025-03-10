@@ -43,10 +43,12 @@
                 </button>
                 {% endif %}
             </div>
-            <button type="button" id="cancel-crop-btn" style="display: none;">Отмена</button>
         </label>
         <input type="file" id="id_avatar" accept=".bmp,.jpeg,.png,.jpg" style="display: none;">
-
+        <div id="profile-crop-action-container" style="display: none;">
+            <button type="submit">Сохранить изменения</button>
+            <button type="button" id="cancel-crop-btn">Отмена</button>
+        </div>
 
         
         <div class="profile_settings_username">
@@ -56,7 +58,7 @@
         
         <div class="profile_settings_about_container">
             <p class="profile_settings_about_text">О себе</p>
-            <textarea id="id_about_me" name="about_me" placeholder="Здесь еще пусто..." maxlength="500">{{ user_profile.about_me|default:"" }}</textarea>
+            <textarea id="id_about_me" name="about_me" placeholder="Здесь еще пусто..." maxlength="500" rows="1">{{ user_profile.about_me|default:"" }}</textarea>
         </div>
 
         <div id="links-section">
@@ -86,7 +88,7 @@
 
         <input type="hidden" id="crop-data" name="crop_data">
         
-        <button type="submit" style="width: 100%; max-width: 256px;">Сохранить изменения</button>
+        <button type="submit" style="width: 100%; max-width: 256px;" id="profileEditSaveChangesDownButton">Сохранить изменения</button>
     </form>
 
     <div id="confirmation-modal" class="modal">
