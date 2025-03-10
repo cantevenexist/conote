@@ -16,6 +16,7 @@ from django.db.models import Case, When, Value, IntegerField, Q
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.db import transaction
+import json
 
 
 @sync_to_async
@@ -55,8 +56,8 @@ async def async_get_object_or_404(klass, *args, **kwargs):
         # Асинхронно получаем объект.
         obj = await queryset.aget()
     except queryset.model.DoesNotExist:
-        return redirect('404_page')
-        # raise Http404(f'No {queryset.model._meta.object_name} matches the given query.')
+        # return redirect('404')
+        raise Http404(f'No {queryset.model._meta.object_name} matches the given query.')
 
     return obj
 
@@ -87,7 +88,7 @@ class BoardsView(AsyncLoginRequiredMixin, View):
                 default=Value(1),
                 output_field=IntegerField()
             )
-        ).order_by('fav_order', '-updated_at').values('name', 'url_hash', 'updated_at', 'user__username')
+        ).order_by('fav_order', '-updated_at').values('name', 'url_hash', 'updated_at', 'user__username', 'favorites')
         boards = [board async for board in boards_qs]
 
         context = {
@@ -106,14 +107,14 @@ class BoardsView(AsyncLoginRequiredMixin, View):
                 <div class="board_item"
                      data-favorites="{board.favorites}"
                      data-updated="{hidden_updated_at_str}">
+                    <a href="/workspace/{board.url_hash}/" class="board_link"></a>
                     <button class="popup-btn">☰</button>
                     <div class="popup">
-                        <button class="delete-btn" data-url_hash="{{ board.url_hash }}">Удалить</button>
+                        <button class="favorite-btn" data-url_hash="{board.url_hash}">Добавить в избранное</button>
+                        <button class="delete-btn" data-url_hash="{board.url_hash}">Удалить</button>
                     </div>
                     <div class="board_{board.name}">
-                        <a href="/workspace/{board.url_hash}/">
-                            <h2>{board.name}</h2>
-                        </a>
+                        <input type="text" class="board-name-input" data-url_hash="{board.url_hash}" value="{board.name}" data-original="{board.name}">
                         <h3>Владелец: {board.user.username}</h3>
                         <p class="date time" data-time="{updated_at_str}"></p>
                     </div>
@@ -139,6 +140,29 @@ class BoardsView(AsyncLoginRequiredMixin, View):
 
         return JsonResponse({'status': 'success'})
 
+    async def patch(self, request, url_hash):
+        user = await get_request_user(request)
+
+        board = await async_get_object_or_404(Board.objects.select_related('user'), url_hash=url_hash, user=user)
+
+        board.favorites = not board.favorites
+        await board.asave()
+
+        return JsonResponse({'status': 'success', 'favorites': board.favorites})
+
+    async def put(self, request, url_hash):
+        user = await get_request_user(request)
+
+        board = await async_get_object_or_404(Board.objects.select_related('user'), url_hash=url_hash, user=user)
+
+        data = json.loads(request.body)
+        new_name = data.get('name')
+        if new_name:
+            board.name = new_name
+            await board.asave()
+            return JsonResponse({'status': 'success', 'name': board.name})
+        return JsonResponse({'status': 'error', 'message': 'Имя не передано'}, status=400)
+
 
 class TrashView(AsyncLoginRequiredMixin, View):
     async def get(self, request):
@@ -149,7 +173,7 @@ class TrashView(AsyncLoginRequiredMixin, View):
                 default=Value(1),
                 output_field=IntegerField()
             )
-        ).order_by('fav_order', '-updated_at').values('name', 'url_hash', 'updated_at', 'user__username', 'deleted_at')
+        ).order_by('fav_order', '-updated_at').values('name', 'url_hash', 'updated_at', 'user__username', 'deleted_at', 'favorites')
         boards = [board async for board in boards_qs]
 
         context = {
@@ -165,6 +189,60 @@ class TrashView(AsyncLoginRequiredMixin, View):
         await board.adelete()
 
         return JsonResponse({'status': 'success'})
+
+    async def post(self, request, url_hash):
+        user = await get_request_user(request)
+
+        board = await async_get_object_or_404(Trash.objects.select_related('user'), url_hash=url_hash, user=user)
+
+        await Board.objects.acreate(
+            user=board.user,
+            name=board.name,
+            created_at=board.created_at,
+            updated_at=board.updated_at,
+            board_value=board.board_value,
+            url_hash=board.url_hash,
+            favorites=board.favorites,
+        )
+        await board.adelete()
+
+        return JsonResponse({'status': 'success'})
+
+
+class TrashDeleteAllView(AsyncLoginRequiredMixin, View):
+    async def delete(self, request):
+        user = await get_request_user(request)
+        await Trash.objects.filter(user=user).adelete()
+
+        return JsonResponse({'status': 'success'})
+
+
+class TrashRestoreAllView(AsyncLoginRequiredMixin, View):
+    async def post(self, request):
+        user = await get_request_user(request)
+
+        async for trash_item in Trash.objects.filter(user=user).select_related('user'):
+            await Board.objects.acreate(
+                user=trash_item.user,
+                name=trash_item.name,
+                created_at=trash_item.created_at,
+                updated_at=trash_item.updated_at,
+                board_value=trash_item.board_value,
+                url_hash=trash_item.url_hash,
+                favorites=trash_item.favorites,
+            )
+            await trash_item.adelete()
+
+        return JsonResponse({'status': 'success'})
+
+
+class BoardView(AsyncLoginRequiredMixin, View):
+    async def get(self, request, url_hash):
+
+        context = {
+        }
+
+        return await render_sync(request, 'boards/board.html', context)
 
 
 # class BoardView(APIView):

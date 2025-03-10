@@ -93,23 +93,96 @@ document.querySelector('.main_block').addEventListener('click', (e) => {
     if (deleteBtn) {
         const csrftoken = getCookie('csrftoken');
         const boardElement = deleteBtn.closest('.board_item');
-        const urlHash = boardElement.querySelector('a').getAttribute('href').split('/')[2];
+        const urlHash = deleteBtn.getAttribute('data-url_hash');
 
-        if (confirm('Вы уверены, что хотите удалить эту доску?')) {
-            fetch(`/workspace/${urlHash}/delete/`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': csrftoken
+        fetch(`/workspace/${urlHash}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                boardElement.remove();
+            } else {
+                alert('Ошибка при удалении доски');
+            }
+        });
+    }
+});
+
+
+document.querySelector('.main_block').addEventListener('click', (e) => {
+    const favoriteBtn = e.target.closest('.favorite-btn');
+    if (favoriteBtn) {
+        const csrftoken = getCookie('csrftoken');
+        const boardElement = favoriteBtn.closest('.board_item');
+        const urlHash = favoriteBtn.getAttribute('data-url_hash');
+        const isFavorite = boardElement.getAttribute('data-favorites') === 'true';
+        const btn = this;
+
+        fetch(`/workspace/${urlHash}/favorite/`, {
+            method: 'PATCH',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                boardElement.setAttribute('data-favorites', data.favorites.toString());
+
+                if (data.favorites) {
+                    favoriteBtn.textContent = "Удалить из избранного";
+                } else {
+                    favoriteBtn.textContent = "Добавить в избранное";
                 }
+
+                sortBoards();
+            } else {
+                if (isFavorite) {
+                    alert('Ошибка при удалении доски из избранного');
+                } else {
+                    alert('Ошибка при добавлении доски в избранное');
+                }
+            }
+        });
+    }
+});
+
+
+//Отправка нового названия доски
+document.addEventListener('focusout', function(event) {
+    if (event.target && event.target.matches('.board-name-input')) {
+        const input = event.target;
+        const newName = input.value.trim();
+        const originalName = input.dataset.original;
+        const urlHash = input.dataset.url_hash;
+        const csrftoken = getCookie('csrftoken');
+
+        if (newName && newName !== originalName) {
+            const urlHash = input.dataset.url_hash;
+            fetch(`/workspace/${urlHash}/rename/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ name: newName })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    boardElement.remove();
+                    // Обновляем сохранённое исходное значение
+                    input.dataset.originalValue = newName;
+                    console.log('Имя доски успешно обновлено.');
                 } else {
-                    alert('Ошибка при удалении доски');
+                    console.error('Ошибка обновления имени доски.');
                 }
-            });
+            })
+            .catch(error => console.error('Ошибка запроса:', error));
         }
     }
 });
