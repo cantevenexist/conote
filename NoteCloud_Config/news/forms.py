@@ -13,6 +13,7 @@ class NewsForm(forms.ModelForm):
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment

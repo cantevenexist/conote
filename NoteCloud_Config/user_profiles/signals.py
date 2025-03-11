@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from .models import UserProfile, Subscription, SettingsPrivacy, SettingsNotifications
+from .models import UserProfile, Subscription, SettingsPrivacy, SettingsNotifications, PremiumSubscription
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 import urllib.request
@@ -21,6 +21,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                 Subscription.objects.create(user=instance)
                 SettingsPrivacy.objects.create(user=instance)
                 SettingsNotifications.objects.create(user=instance)
+                PremiumSubscription.objects.create(user=instance)
         except Exception as e:
             raise ValueError(f"Ошибка создания профиля пользователя и связанных объектов: {str(e)}")
 
@@ -34,7 +35,6 @@ def save_telegram_avatar_on_login(sender, request, user, **kwargs):
             user_profile, created = UserProfile.objects.get_or_create(user=user)
             if created or not user_profile.avatar:
                 response = urllib.request.urlopen(avatar_url)
-                if response.status == 200:
-                    avatar_image = ContentFile(response.read())
-                    user_profile.avatar.save(f'{user.username}_avatar.jpg', avatar_image)
-                    user_profile.save()
+                avatar_image = ContentFile(response.read())
+                user_profile.avatar.save(f'{user.username}_avatar.jpg', avatar_image)
+                user_profile.save()

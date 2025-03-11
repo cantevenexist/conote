@@ -8,6 +8,8 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 from .storages import MinioStorage
 import re
+import uuid
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -23,8 +25,9 @@ class UploadToPath(object):
     def generate_filename(self, instance, filename):
         username_hash = hashlib.md5(instance.user.username.encode()).hexdigest()
         file_hash = hashlib.md5(filename.encode()).hexdigest()
+        unique_id = uuid.uuid4().hex
         file_extension = filename.split('.')[-1]
-        return f'media/avatars/{username_hash}/{file_hash}.{file_extension}'
+        return f'media/avatars/{username_hash}/{file_hash}_{unique_id}.{file_extension}'
 
 
 def file_size(value):
@@ -62,13 +65,12 @@ class UserProfile(models.Model):
     def save(self, *args, **kwargs):
         if self.pk:
             try:
-                old_image = UserProfile.objects.get(pk=self.pk).avatar
+                old_profile = UserProfile.objects.get(pk=self.pk)
             except UserProfile.DoesNotExist:
-                old_image = None
+                old_profile = None
 
-            if old_image:
-                if old_image.name:
-                    old_image.storage.delete(old_image.name)
+            if old_profile and old_profile.avatar and self.avatar and old_profile.avatar.name != self.avatar.name:
+                old_profile.avatar.storage.delete(old_profile.avatar.name)
 
         super().save(*args, **kwargs)
 
@@ -120,3 +122,34 @@ class SettingsNotifications(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_notifications')
     disable_notifications = models.BooleanField(default=False)
     disabling_news_messages = models.BooleanField(default=False)
+
+
+class PremiumSubscription(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='premiumsubscription')
+    is_active = models.BooleanField(default=False)
+    activated_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    unlimited = models.BooleanField(default=False)
+    tokens = models.PositiveIntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if self.unlimited:
+            self.expires_at = None
+        super().save(*args, **kwargs)
+
+    def check_subscription(self):
+        if not self.is_active:
+            return False
+        if self.unlimited:
+            return True
+        if self.is_active:
+            if self.expires_at != None:
+                if timezone.now() < self.expires_at:
+                    return True
+                else:
+                    self.is_active = False
+        return False
+
+    def __str__(self):
+        status = "Активна" if self.check_subscription else "Неактивна"
+        return f'Статус подписки для  {self.user.username}: {status}'

@@ -1,0 +1,43 @@
+{% extends 'boards/layout.html' %}
+{% load static %}
+
+{% block title %}
+    CoNote | Корзина
+{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'boards/css/trash.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="main_block">
+        {% if boards %}
+            <button id="restore-all-btn">Восстановить всё</button>
+            <button id="delete-all-btn">Удалить всё</button>
+            {% for board in boards %}
+                <div class="board_item"
+                     data-favorites="{{ board.favorites }}"
+                     data-updated="{{ board.updated_at|date:'Y-m-d H:i:s' }}">
+                    <button class="popup-btn">☰</button>
+                    <div class="popup">
+                        <button class="restore-btn" data-url_hash="{{ board.url_hash }}">Восстановить</button>
+                        <button class="delete-btn" data-url_hash="{{ board.url_hash }}">Удалить</button>
+                    </div>
+                    <div class="board_{{ board.name }}">
+                        <h2>{{ board.name }}</h2>
+                        <h3>Владелец: {{ board.user__username }}</h3>
+                        <p class="date time" data-time="{{ board.updated_at|date:'Y-m-d\TH:i:s' }}"></p>
+                        <p class="date time" data-time="{{ board.deleted_at|date:'Y-m-d\TH:i:s' }}"></p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+      window.currentUsername = "{{ request.user.username }}";
+    </script>
+    <script src="{% static 'boards/js/trash.js' %}"></script>
+{% endblock %}

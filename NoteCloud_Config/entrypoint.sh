@@ -14,6 +14,8 @@ fi
 #python manage.py flush --no-input
 python manage.py makemigrations
 python manage.py migrate
-python telegram_bot.py &
+#python upload_static_to_minio.py
+#python telegram_bot.py &
 
+#daphne -b 0.0.0.0 -p 8000 NoteCloud_Config.asgi:application
 exec "$@"

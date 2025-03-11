@@ -1,0 +1,53 @@
+{% extends 'boards/layout.html' %}
+{% load static %}
+
+{% block title %}
+    CoNote | Доски
+{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'boards/css/boards.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="main_block">
+        <div class="board_creation_block">
+            +
+        </div>
+        {% if boards %}
+            {% for board in boards %}
+                <div class="board_item"
+                     data-favorites="{{ board.favorites }}"
+                     data-updated="{{ board.updated_at|date:'Y-m-d H:i:s' }}">
+                    <a href="/workspace/{{ board.url_hash }}/" class="board_link"></a>
+                    <button class="popup-btn">☰</button>
+                    <div class="popup">
+                        {% if board.favorites %}
+                            <button class="favorite-btn" data-url_hash="{{ board.url_hash }}">Удалить из избранного</button>
+                        {% else %}
+                            <button class="favorite-btn" data-url_hash="{{ board.url_hash }}">Добавить в избранное</button>
+                        {% endif %}
+                        {% if user.username == board.user__username %}
+                            <button class="delete-btn" data-url_hash="{{ board.url_hash }}">Удалить</button>
+                        {% else %}
+                            <button class="exit-board-btn" data-url_hash="{{ board.url_hash }}">Выйти</button>
+                        {% endif %}
+                    </div>
+                    <div class="board_{{ board.name }}">
+                        {% if user.username == board.user__username %}
+                            <input type="text" class="board-name-input" data-url_hash="{{ board.url_hash }}" value="{{ board.name }}" data-original="{{ board.name }}">
+                        {% else %}
+                            <h2>{{ board.name }}</h2>
+                        {% endif %}
+                        <h3>Владелец: {{ board.user__username }}</h3>
+                        <p class="date time" data-time="{{ board.updated_at|date:'Y-m-d\TH:i:s' }}"></p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script src="{% static 'boards/js/boards.js' %}"></script>
+{% endblock %}

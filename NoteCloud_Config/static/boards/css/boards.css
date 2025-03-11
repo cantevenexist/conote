@@ -1,0 +1,117 @@
+.main_block {
+    width: 80%;
+    background-color: #ffffff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: flex-start;
+    padding: 20px;
+}
+
+/* Блок создания доски */
+.board_creation_block {
+    width: 200px;
+    height: 200px;
+    background-color: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 2px dashed #aaa;
+    flex: none;
+}
+
+/* Карточка доски */
+.board_item {
+    width: 200px;
+    height: 200px;
+    background-color: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-size: 10px;
+    border-radius: 5px;
+    border: 2px dashed #aaa;
+    cursor: pointer;
+    flex: none;
+    text-align: center;
+    position: relative;
+    padding: 20px;
+}
+
+/* Название доски (ссылка) */
+.board_item a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Текст заголовков */
+.board_item h2,
+.board_item h3 {
+    margin: 5px 0;
+    font-size: inherit;
+}
+
+/* Адаптив: 2 блока в ряд */
+@media (max-width: 700px) {
+    .main_block {
+        justify-content: center;
+    }
+}
+
+/* Адаптив: 1 блок в ряд */
+@media (max-width: 480px) {
+    .main_block {
+        justify-content: center;
+    }
+}
+
+.popup {
+    display: none;
+    position: absolute;
+    top: 40px; /* регулируй, чтобы окно было ниже кнопки */
+    right: 10px;
+    background-color: #fff;
+    border: 1px solid #333;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    border-radius: 6px;
+}
+
+.popup.show {
+    display: block;
+}
+
+.popup-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 5px 8px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.board_link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Ставим низкий z-index, чтобы другие элементы могли быть поверх */
+    z-index: 1;
+    /* Если нужно, можно убрать визуальные эффекты */
+    background: transparent;
+}
+
+.board_item > div[class^="board_"] {
+  position: relative;
+  z-index: 2;
+}

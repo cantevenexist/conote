@@ -26,8 +26,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if links_data is not None:
             instance.links = links_data[:3]
 
-        if 'avatar' in validated_data and validated_data['avatar'] is not None:
-            instance.avatar = validated_data['avatar']
+        avatar_data = validated_data.get('avatar', None)
+        if avatar_data:
+            instance.avatar = avatar_data
         else:
             instance.avatar = old_avatar
 
