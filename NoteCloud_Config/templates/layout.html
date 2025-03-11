@@ -181,6 +181,63 @@
 
 <div class="scrollable-container">
     <div class="layout_central_block" id="page-content">
+        <!-- <button id="fullscreenButton">Открыть в полноэкранном режиме</button>
+        <button id="exitFullscreenButton" style="display: none;">Выйти из полноэкранного режима</button>
+        <script>
+            // Функция для входа в полноэкранный режим
+            function openFullscreen() {
+              const elem = document.documentElement;
+              if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+              } else if (elem.mozRequestFullScreen) { // Firefox
+                elem.mozRequestFullScreen();
+              } else if (elem.webkitRequestFullscreen) { // Chrome, Safari и Opera
+                elem.webkitRequestFullscreen();
+              } else if (elem.msRequestFullscreen) { // IE/Edge
+                elem.msRequestFullscreen();
+              }
+        
+              // Показываем кнопку выхода и скрываем кнопку входа
+              document.getElementById('fullscreenButton').style.display = 'none';
+              document.getElementById('exitFullscreenButton').style.display = 'inline-block';
+            }
+        
+            // Функция для выхода из полноэкранного режима
+            function exitFullscreen() {
+              if (document.exitFullscreen) {
+                document.exitFullscreen();
+              } else if (document.mozCancelFullScreen) { // Firefox
+                document.mozCancelFullScreen();
+              } else if (document.webkitExitFullscreen) { // Chrome, Safari и Opera
+                document.webkitExitFullscreen();
+              } else if (document.msExitFullscreen) { // IE/Edge
+                document.msExitFullscreen();
+              }
+        
+              // Показываем кнопку входа и скрываем кнопку выхода
+              document.getElementById('fullscreenButton').style.display = 'inline-block';
+              document.getElementById('exitFullscreenButton').style.display = 'none';
+            }
+        
+            // Обработчики событий для кнопок
+            document.getElementById('fullscreenButton').addEventListener('click', openFullscreen);
+            document.getElementById('exitFullscreenButton').addEventListener('click', exitFullscreen);
+        
+            // Отслеживаем изменение состояния полноэкранного режима
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.addEventListener('msfullscreenchange', handleFullscreenChange);
+        
+            // Функция для обработки изменения состояния полноэкранного режима
+            function handleFullscreenChange() {
+              if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                // Если полноэкранный режим выключен
+                document.getElementById('fullscreenButton').style.display = 'inline-block';
+                document.getElementById('exitFullscreenButton').style.display = 'none';
+              }
+            }
+          </script> -->
         {% block content %}
         {% endblock %}
     </div>
