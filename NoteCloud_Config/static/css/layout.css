@@ -26,7 +26,16 @@ html, body {
     -webkit-user-select: none; /* Для Safari */
     -moz-user-select: none; /* Для Firefox */
     -ms-user-select: none; /* Для IE/Edge */
-}             
+}
+
+.selectable {
+    user-select: auto; /* Разрешает стандартное поведение выделения */
+    -webkit-user-select: auto; /* Для Safari */
+    -moz-user-select: auto; /* Для Firefox */
+    -ms-user-select: auto; /* Для IE/Edge */
+}    
+
+a {width: fit-content;max-width: 100%;}
 
 .scrollable-container {
     overflow-y: scroll; /* Позволяем прокрутку только для этого контейнера */
@@ -49,16 +58,16 @@ html, body {
     border-radius: 4px; /* Скругленные углы ползунка */
 }
 
-.scrollable-container::-webkit-scrollbar-thumb:hover {
+@media (hover:hover) {.scrollable-container::-webkit-scrollbar-thumb:hover {
     background: #6B8BC4; /* Цвет ползунка при наведении */
-}
+}}
 
 .scrollable-container::-webkit-scrollbar-thumb:active {
     background: #5B7DAC; /* Цвет ползунка при активном взаимодействии */
 }
 
 :focus-visible {
-    outline: 2px solid #4A6E9F; /* Цвет и размер обводки фокуса при нажатии Tab */
+    outline: 1px solid black; /* Цвет и размер обводки фокуса при нажатии Tab */
     border-radius: 2px / 2px 
 }
 
@@ -110,7 +119,7 @@ html, body {
 
     .button_header:hover .user_profile{transform: scale(1.2);}
     .button_header:hover .user_notifications{animation: bell 0.5s;}
-    .button_header:hover .user_settings{transform: rotate(360deg);}
+    .button_header:hover .user_settings{transform: rotate(180deg);}
     .button_header:hover .user_help{animation: help 0.5s forwards;}
     .button_header:hover .user_logout{transform: translateX(5px);}
 
@@ -123,15 +132,12 @@ html, body {
 .layout_header .logotype .logo{display: block;}
 .layout_header .logotype .logo_mini{display: none;}
 
-@media (max-width:319px) {
-    .QRCHECKBADASS{display: block;}
-}
-@media (max-height:319px) {
+@media (max-width:319.9px),(max-height:319.9px) {
     .QRCHECKBADASS{display: block;}
 }
 
 /* MINIMIZE LOGO */
-@media (max-width:425px) {
+@media (max-width:450px) {
     .layout_header .logotype .logo{display: none;}
     .layout_header .logotype .logo_mini{display: block;}
 }
@@ -303,7 +309,6 @@ html, body {
     }
 }
 
-
 /* Desktop */
 @media (min-width:426px) and (min-height:426px) {
     .layout_header {
@@ -317,13 +322,23 @@ html, body {
     }
 
     .layout_central_block {
-        padding-left: 10%;
-        padding-right: 10%;
+        padding-left: 7.5%;
+        padding-right: 7.5%;
         border: none;
         position: absolute;
         width: 100%;
     }
 
+    /* Tablet */
+    @media (min-width:600px) {
+        .layout_central_block {
+            padding-left: 10%;
+            padding-right: 10%;
+            border: none;
+            position: absolute;
+            width: 100%;
+        }
+    }
     .layout_header .logotype {
         float: left;
         margin-left: 10%;
@@ -399,7 +414,6 @@ html, body {
         border: transparent;
         background: cornflowerblue;
         border-radius: 7.5px;
-        font-family: 'Marmelad', sans-serif;
         transition: transform 0.5s ease, background 0.5s ease, color 0.5s ease; 
     }
 
@@ -483,5 +497,147 @@ html, body {
 
     .user_settings_container button {
         position: relative;
+    }
+}
+
+
+
+#externalLinkRedirectConfirmationDivPanel{
+    overflow-y: scroll;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background: white;
+}
+
+#externalLinkRedirectConfirmationDivPanel::-webkit-scrollbar {
+    width: 8px; /* Ширина ползунка */
+    height: 8px; /* Высота ползунка */
+}
+#externalLinkRedirectConfirmationDivPanel::-webkit-scrollbar-track {
+    background: black; /* Цвет фона ползунка */
+}
+#externalLinkRedirectConfirmationDivPanel::-webkit-scrollbar-thumb {
+    background: crimson; /* Цвет самого ползунка */
+    border-radius: 4px; /* Скругленные углы ползунка */
+}
+@media (hover:hover) {#externalLinkRedirectConfirmationDivPanel::-webkit-scrollbar-thumb:hover {
+    background: rgb(195, 25, 60); /* Цвет ползунка при наведении */
+}}
+#externalLinkRedirectConfirmationDivPanel::-webkit-scrollbar-thumb:active {
+    background: rgb(155, 20, 50); /* Цвет ползунка при активном взаимодействии */
+}
+
+#externalLinkRedirectCloseButton {
+    position: fixed;
+    cursor: pointer;
+    width: calc(100% - 16px);
+    height: 100%;
+}
+.externalLinkRedirectConfirmationBox {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin: auto;
+    width: 100%;
+    max-width: calc(540px * 1.5);
+    height: 100%;
+    padding: 0px;
+    padding-top: 84px;
+    border-radius: 0px;
+    background-color: white;
+}
+.externalLinkRedirectConfirmationSign {
+    width: 128px;
+    height: 256px;
+}
+.externalLinkRedirectConfirmationSign svg{
+    transform: translate(-25%);
+    width: 200%;
+    height: 100%;
+}
+.externalLinkRedirectConfirmationTextContainer{
+    display: flex; flex-direction: column;
+    margin-right: 20px;
+    width: calc(100% - 128px);
+    height: calc(100% - 256px);
+}
+.externalLinkRedirectConfirmationTextContainerWarning{
+    font-size: 30px;
+}
+.externalLinkRedirectConfirmationTextContainerText {
+    overflow-wrap: break-word;
+    margin-top: 10px;
+    font-size: 14px;
+}
+.externalLinkRedirectConfirmationButtonContainer{
+    display: flex; flex-direction: column; margin-top: 20px; gap: 10px;
+}
+.externalLinkRedirectConfirmationButtonContainer::after {content: ''; height: 40px;}
+.externalLinkRedirectConfirmationButtonContainer button {
+    width: 100%;
+    max-width: 200px;
+    height: 40px;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    transition: background-color 0.5s ease;
+}
+#externalLinkRedirectCancelButton{background-color: cornflowerblue;}
+@media (hover:hover) {#externalLinkRedirectCancelButton:hover{background-color: rgb(80, 120, 180);}}
+#externalLinkRedirectConfirmButton {background-color: crimson;}
+@media (hover:hover) {#externalLinkRedirectConfirmButton:hover{background-color: rgb(195, 25, 60);}}
+
+@media (min-width:426px) {
+    #externalLinkRedirectConfirmationDivPanel {
+        background: rgba(0, 0, 0, 0.3);}
+    .externalLinkRedirectConfirmationBox {    
+        width: 90%;
+        height: auto;
+        border-radius: 30px;
+        padding: 20px;
+        padding-top: 44px;
+    }
+    .externalLinkRedirectConfirmationTextContainerWarning{
+        font-size: 35px;
+    }
+    .externalLinkRedirectConfirmationTextContainerText {
+        margin-top: 15px;
+        font-size: 16px;
+    }
+    .externalLinkRedirectConfirmationButtonContainer{
+        display: flex; flex-direction: row;gap: 15px;
+    }
+    .externalLinkRedirectConfirmationButtonContainer::after {content: ''; height: 10px;}
+}
+
+@media (min-width:750px) {
+    .externalLinkRedirectConfirmationBox{width: 80%;padding-top: 84px;}
+    .externalLinkRedirectConfirmationSign {
+        width: 256px;
+        height: 256px;
+    }
+    .externalLinkRedirectConfirmationSign svg{
+        transform: translate(0);
+        width: 100%;
+        height: 100%;
+    }
+    .externalLinkRedirectConfirmationTextContainer{
+        margin-right: 20px;
+        width: calc(100% - 256px);
+        height: calc(100% - 256px);
+    }
+    .externalLinkRedirectConfirmationTextContainerWarning{
+        font-size: 50px;
+    }
+    .externalLinkRedirectConfirmationTextContainerText {
+        margin-top: 20px;
+        font-size: 18px;
+    }
+    .externalLinkRedirectConfirmationButtonContainer{
+        display: flex; flex-direction: row;gap: 20px;
     }
 }

@@ -10,6 +10,7 @@ from django.urls import reverse_lazy
 from .models import News, Comment
 from .forms import NewsForm, CommentForm
 
+from django.db.models import Count
 
 class NewsListView(ListView):
     model = News
@@ -17,7 +18,7 @@ class NewsListView(ListView):
     context_object_name = 'news'
 
     def get_queryset(self):
-        return News.objects.order_by('-created_at')
+        return News.objects.annotate(comment_count=Count('comments')).order_by('-created_at')
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.headers.get('HX-Request'):
@@ -53,10 +54,8 @@ class NewsDetailView(DetailView):
             "Все молчат… Может, это ваш шанс высказаться?"
         ]
         
-        # Если комментариев нет, выбираем случайное сообщение
-        if not context['comments']:
-            context['random_message'] = random.choice(no_comments_messages)
-
+        # Выбираем случайное сообщение
+        context['random_message'] = random.choice(no_comments_messages)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -93,8 +92,12 @@ class NewsDetailView(DetailView):
         comment_id = request.POST.get('comment_id')
         try:
             comment = self.object.comments.get(id=comment_id)
+            if comment.author != request.user:
+                return JsonResponse({'success': False, 'error': 'У вас нет прав для удаления этого комментария'}, status=403)
+            
             comment.delete()
             return JsonResponse({'success': True})
+        
         except Comment.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Комментарий не найден'}, status=404)
 

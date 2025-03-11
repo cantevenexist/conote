@@ -6,49 +6,69 @@
 {% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="{% static 'news/css/index.css' %}">
+<link rel="stylesheet" href="{% static 'news/css/detail.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="news_block_detail">
+{% if news.image %}
+<div id="news_image_panel">
+    <div id="closeBtn_news_image_panel" class="closeBtn_news_image_panel"></div>
+    <div class="news_image_panel-box content_must_be_centered zoom_box">
+        <img src="{{ news.image.url }}" alt="{{ news.title }}"draggable="false">
+        <div class="news_image_panel-close" onclick="hidePanelNewsImagePanel()">
+            <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="Menu / Close_SM">
+            <path id="Vector" d="M16 16L12 12M12 12L8 8M12 12L16 8M12 12L8 16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            </svg>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="news_block_detail no_select">
+
     {% if user.is_authenticated %}
-    <div class="news_action_buttons_container no_select">
-        <a tabindex="0" class='news_action_button' href="{% url 'news_edit' news.slug %}">Изменить</a>
+    admin
+    <div class="news_action_buttons_container">
+        <a class='news_action_button' href="{% url 'news_edit' news.slug %}">Изменить</a>
         <div class="separator"></div>
-        <a tabindex="0" class='news_action_button' href="{% url 'news_delete' news.slug %}">Удалить</a>
-        <div class="separator"></div>
-        <a href="{% url 'news_list' %}" class='news_action_button'>Назад</a>
+        <a class='news_action_button' href="{% url 'news_delete' news.slug %}">Удалить</a>
     </div>
     {% endif%}
 
-    <div class="news_post_link news_post">
-        <div class="title"><strong>{{ news.title }}</strong><p class="author">{{ news.author.username }}</p><p class="date time"data-time="{{ news.updated_at|date:"Y-m-d\TH:i:s" }}"></p></div>
-        
-        {% if news.image %}
-        <div class="image_container">
-          <img class="image" src="{{ news.image.url }}" alt="{{ news.title }}">
+    <a href="{% url 'news_list' %}">Назад</a>
+    
+    <div class="news_post_link">
+        <div class="news_post">
+            <div class="title selectable"><strong>{{ news.title }}</strong><p class="author"><a href='/profile/{{ news.author.username }}/'>{{ news.author.username }}</a></p><p class="date time no_select"data-time="{{ news.updated_at|date:"Y-m-d\TH:i:s" }}"></p></div>
+            
+            {% if news.image %}
+            <div class="image_container">
+            <img class="image" src="{{ news.image.url }}" alt="{{ news.title }}" onclick="toggleDiv_news_image_panel(),centerElementsVertically()">
+            </div>
+            {% endif %}
+            
+            {% if news.content %}
+            <div class="content selectable text_could_be_url">{{ news.content }}</div>
+            {% endif %}
         </div>
-        {% endif %}
-        
-        {% if news.content %}
-        <div class="content">{{ news.content }}</div>
-        {% endif %}
+        <div class="comment_count_div">
+            <div>Комментарии:</div>
+            <div id="newsCommentCount"></div>
+        </div>
     </div>
-
+    
     <div class="news_comment_container">
         {% if user.is_authenticated %}
-        <form class="send_comment_container no_select" id="commentForm" method="POST">
+        <form class="send_comment_container" id="commentForm" method="POST">
             {% csrf_token %}
             <div id="commentInputArea" class="form_comment auto_expand_textarea">{{ form.content }}</div>
             <button id="sendCommentButton" class="button_send_comment" type="submit">
-                <svg class="icon" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g id="Communication / Paper_Plane">
-                <path id="Vector" d="M10.3078 13.6923L15.1539 8.84619M20.1113 5.88867L16.0207 19.1833C15.6541 20.3747 15.4706 20.9707 15.1544 21.1683C14.8802 21.3396 14.5406 21.3683 14.2419 21.2443C13.8975 21.1014 13.618 20.5433 13.0603 19.428L10.4694 14.2461C10.3809 14.0691 10.3366 13.981 10.2775 13.9043C10.225 13.8363 10.1645 13.7749 10.0965 13.7225C10.0215 13.6647 9.93486 13.6214 9.76577 13.5369L4.57192 10.9399C3.45662 10.3823 2.89892 10.1032 2.75601 9.75879C2.63207 9.4601 2.66033 9.12023 2.83169 8.84597C3.02928 8.52974 3.62523 8.34603 4.81704 7.97932L18.1116 3.88867C19.0486 3.60038 19.5173 3.45635 19.8337 3.57253C20.1094 3.67373 20.3267 3.89084 20.4279 4.16651C20.544 4.48283 20.3999 4.95126 20.1119 5.88729L20.1113 5.88867Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </g>
-                </svg>
-            </button>
+                <svg class='icon' fill="#fff" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M476 3.2L12.5 270.6c-18.1 10.4-15.8 35.6 2.2 43.2L121 358.4l287.3-253.2c5.5-4.9 13.3 2.6 8.6 8.3L176 407v80.5c0 23.6 28.5 32.9 42.5 15.8L282 426l124.6 52.2c14.2 6 30.4-2.9 33-18.2l72-432C515 7.8 493.3-6.8 476 3.2z"></path></g></svg>            </button>
         </form>
         {% else %}
-        <p style="margin: 0;">Чтобы оставить комментарий, необходимо <a href='/account/signup/'>зарегистрироваться</a> или <a href='/account/login/'>войти</a></p>
+        <p style="margin: 0;" class="">Чтобы оставить комментарий, необходимо <a href='/account/signup/'>зарегистрироваться</a> или <a href='/account/login/'>войти</a></p>
         {% endif %}
         <div class="comment_separator"></div>
         <div id="commentsList">
@@ -57,7 +77,7 @@
                     
                     <div id="comment-{{ comment.id }}" class="comment_area_container">
                         <div class="author_container">
-                            <p><a href='/profile/{{ comment.author.username }}/'><strong>{{ comment.author.username }}</strong></a></p>
+                            <p class="selectable"><a href='/profile/{{ comment.author.username }}/'><strong>{{ comment.author.username }}</strong></a></p>
                             <div class="comment_action_buttons_container">
                                 <button class="comment_action_button author_report_button">
                                     <svg class="icon" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,202 +97,23 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <p class="content">{{ comment.content }}</p>
+                        <p class="content selectable text_could_be_url">{{ comment.content }}</p>
                         <p class="date time"data-time="{{ comment.created_at|date:"Y-m-d\TH:i:s" }}"></p>
                         <div class="comment_separator"></div>
                     </div>
 
                 {% endfor %}
-            {% else %}
-                <p style="margin: 0;">{{ random_message }}</p>
             {% endif %}
         </div>
+        <div style="margin: 0;" id="randomMessageNoComments">{{ random_message }}</div>
     </div>
 </div>
-
+<div id="page-data"
+     data-user="{{ user }}"
+     data-request-path="{{ request.path }}">
+</div>
 {% endblock %}
 
 {% block javascript %}
-<script>
-(function (){
-    const commentInput = document.querySelector('.form_comment textarea');
-    const sendCommentButton = document.getElementById('sendCommentButton');
-    const commentInputArea = document.getElementById('commentInputArea');
-
-    // Проверяем, существуют ли необходимые элементы
-    if (!commentInput || !sendCommentButton || !commentInputArea) {
-        return; // Если элементы не найдены, прекращаем выполнение функции
-    }
-    
-    // Флаг, чтобы не запускать анимацию при первой загрузке
-    let firstCheckComment = true;
-
-    // Функция для проверки состояния поля ввода
-    function checkInputComment() {
-        const isEmpty = commentInput.value === ''; // Проверка на пустое поле
-
-        // Пропускаем логику на первой загрузке
-        if (firstCheckComment) {
-            firstCheckComment = false;
-            // Проводим проверку на пустое поле и сразу меняем классы, но без анимации
-            return checkInputComment();
-        }
-        toggleClasses(isEmpty);
-    }
-
-    // Функция для переключения классов
-    function toggleClasses(isEmpty) {
-        // Меняем класс для кнопки отправки
-        sendCommentButton.classList.toggle('show', !isEmpty);
-        sendCommentButton.classList.toggle('hide', isEmpty);
-        sendCommentButton.classList.toggle('restore', isEmpty);
-
-        // Перемещаем форму ввода в зависимости от состояния
-        commentInputArea.classList.toggle('form_comment_shifted', !isEmpty);
-        commentInputArea.classList.toggle('form_comment_shifted_restore', isEmpty);
-    }
-
-    // Добавляем обработчик события на изменение текста в поле ввода
-    commentInput.addEventListener('input', checkInputComment);
-
-// Удаление комментариев
-$(document).ready(function() {
-    // Проверка на мобильное устройство
-    function isMobile() {
-        const userAgent = window.navigator.userAgent;
-        return /Android|iPhone|iPad|iPod/i.test(userAgent);  // Проверка на мобильные устройства
-    }
-    
-    // Отправка комментария по нажатию Enter
-    const commentInputArea = $('#commentInputArea'); // Ваш div для ввода текста
-
-    commentInputArea.on('keydown', function(event) {
-        if (!isMobile() && event.key === 'Enter' && !event.shiftKey) {  // Если нажали Enter без Shift
-            event.preventDefault();  // Отменяем стандартное поведение (перенос строки)
-            $('#commentForm').submit();  // Отправляем форму
-        }
-    });
-
-    // Обработчик для отправки формы
-    $('#commentForm').on('submit', function(event) {
-        event.preventDefault();  // Отменяем стандартное поведение формы
-
-        const commentValue = commentInput.value.trim();
-        if (!commentValue) {
-            alert('Пожалуйста, введите текст комментария.');
-            return;
-        }
-
-        $.ajax({
-            type: 'POST',
-            url: $(this).attr('action'),  // URL, на который будет отправлен запрос
-            data: $(this).serialize(),  // Сериализуем данные формы
-            success: function(response) {
-                if (response.success) {
-                    // Очищаем форму
-                    $('#commentForm')[0].reset();
-                    checkInputComment();  // Проверяем, пустое ли поле
-                    
-                    commentInput.style.height = ''; // Восстанавливаем высоту поля
-                    
-                    // Обновляем список комментариев
-                    const commentsList = $('#commentsList');
-                    commentsList.empty();  // Очищаем текущий список
-                    
-                    // XSS escape HTML
-                    function escapeHtml(unsafe) {
-                        return String(unsafe)
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#039;');
-                    }
-
-                    function formatDate(date) {
-                        const pad = (n) => (n < 10 ? '0' + n : n);
-                        return date.getFullYear() + '-' +
-                            pad(date.getMonth() + 1) + '-' +
-                            pad(date.getDate()) + 'T' +
-                            pad(date.getHours()) + ':' +
-                            pad(date.getMinutes()) + ':' +
-                            pad(date.getSeconds());
-                    }
-
-                    response.comments.forEach(function(comment) {
-                        // Экранирование контента
-                        var escapedContent = escapeHtml(comment.content);
-                        var commentHtml = '<div id="comment-' + comment.id + '" class="comment_area_container"><div class="author_container"><p><strong>' + comment.author + '</strong></p>' + '<div class="comment_action_buttons_container"></button><button class="comment_action_button author_report_button"><svg class="icon" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="Warning / Octagon_Warning"><path id="Vector" d="M12 8.44971V12.4497M7.33173 3.9375L3.9375 7.33173L3.93442 7.33462C3.59057 7.67847 3.41824 7.85081 3.29492 8.05204C3.18526 8.23098 3.10425 8.4263 3.05526 8.63037C3 8.86055 3 9.10506 3 9.59424V14.4058C3 14.8949 3 15.1395 3.05526 15.3697C3.10425 15.5738 3.18526 15.7688 3.29492 15.9478C3.41857 16.1495 3.59182 16.3228 3.9375 16.6685L7.33173 20.0627C7.67763 20.4086 7.85021 20.5812 8.05204 20.7048C8.23099 20.8145 8.42581 20.8958 8.62988 20.9448C8.85971 21 9.10382 21 9.59151 21H14.4075C14.8952 21 15.1404 21 15.3702 20.9448C15.5743 20.8958 15.7693 20.8145 15.9482 20.7049C16.1501 20.5812 16.323 20.4086 16.6689 20.0627L20.0632 16.6685C20.4091 16.3226 20.5817 16.1496 20.7053 15.9478C20.815 15.7688 20.8953 15.5738 20.9443 15.3697C20.9996 15.1395 21 14.895 21 14.4058V9.59424C21 9.10506 20.9996 8.86055 20.9443 8.63037C20.8953 8.4263 20.815 8.23099 20.7053 8.05205C20.5817 7.85022 20.4091 7.67761 20.0632 7.33173L16.6689 3.9375C16.3233 3.59181 16.15 3.41857 15.9482 3.29492C15.7693 3.18526 15.5743 3.10425 15.3702 3.05526C15.14 3 14.8945 3 14.4053 3H9.59375C9.10457 3 8.86006 3 8.62988 3.05526C8.42581 3.10425 8.23099 3.18526 8.05204 3.29492C7.85204 3.41748 7.68106 3.58847 7.3414 3.92813L7.33173 3.9375ZM12.0498 15.4497V15.5497L11.9502 15.5499V15.4497H12.0498Z" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></g></svg></button>';
-                        // Форматирование времени
-                        var validDate = new Date(comment.created_at.split(/[\s,]+/).map((part, i) => {
-                            return i === 0 
-                                ? part.split('.').reverse().join('-') 
-                                : part.split(':').slice(0, 2).join(':') + ':00';
-                        }).join('T'));
-                        // Проверка, если текущий пользователь - это автор комментария
-                        if ('{{ user }}' === comment.author) {commentHtml += ' <button class="comment_action_button comment_delete_button" data-id="' + comment.id + '"><svg class="icon" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="Menu / Close_SM"><path id="Vector" d="M16 16L12 12M12 12L8 8M12 12L16 8M12 12L8 16" stroke-width="2" stroke-linecap="round"stroke-linejoin="round"/></g></svg></button>';}
-                        commentHtml += '</div></div><p class="content">' + escapedContent + '</p><p class="date time" data-time="' + validDate + '"></p><div class="comment_separator"></div></div>';
-                        commentsList.append(commentHtml);
-                        });
-                        
-                        // После добавления комментариев вызываем функцию для локализации времени
-                        localizeTime();  // Локализация времени для новых комментариев
-                    }
-            },
-            error: function(xhr) {
-                // Обработка ошибок
-                console.error(xhr.responseText);
-            }
-        });
-    });
-
-    // Обработчик для кнопок удаления комментариев
-    $(document).on('click', '.comment_delete_button', function() {
-    const commentId = $(this).data('id');
-
-    // Проверяем, что ID комментария существует
-    if (!commentId) {
-        alert('ID комментария не найден.');
-        return;
-    }
-
-    $.ajax({
-        type: 'POST',
-        url: '{{ request.path }}', // Используйте текущий URL
-        data: {
-            'comment_id': commentId,
-            'csrfmiddlewaretoken': '{{ csrf_token }}' // Передаём CSRF-токен
-        },
-        success: function(response) {
-            if (response.success) {
-                // Удаляем комментарий из списка
-                $('#comment-' + commentId).remove();
-                // alert('Комментарий успешно удалён.');
-            } else {
-                alert('Ошибка при удалении комментария: ' + response.error);
-                console.error('Server Response:', response);
-            }
-        },
-        error: function(xhr) {
-            try {
-                // Попытка разобрать JSON-ответ
-                const errorResponse = JSON.parse(xhr.responseText);
-                if (errorResponse.error) {
-                    alert('Ошибка сервера: ' + errorResponse.error);
-                } else {
-                    alert('Произошла ошибка при удалении комментария.');
-                }
-            } catch (e) {
-                // Если ответ не в формате JSON
-                alert('Не удалось получить ответ от сервера.');
-            }
-
-            // Логирование подробностей ошибки
-            console.error('AJAX Error:', xhr.status, xhr.statusText, xhr.responseText);
-        }
-    });
-});
-});
-}());
-</script>
+<script src="{% static 'news/js/detail.js' %}"></script>
 {% endblock %}

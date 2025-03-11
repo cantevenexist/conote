@@ -16,12 +16,12 @@ let croppedBlob = null;
 let originalFileName = '';
 let cropper = null;
 const cancelCropButton = document.getElementById('cancel-crop-btn');
+const profileCropActionContainer = document.getElementById('profile-crop-action-container');
 let originalImageContainerHTML = document.getElementById('image-container').innerHTML;
 const deleteAvatarBtn = document.getElementById('delete-avatar-btn');
-const avatarLabel = document.querySelector('label[for="id_avatar"]'); // Получаем label
-const avatarInput = document.getElementById('id_avatar'); // Получаем input
+const avatarLabel = document.querySelector('label[for="id_avatar"]'); 
+const avatarInput = document.getElementById('id_avatar'); 
 
-// Флаг для отслеживания состояния кропера
 let isCropperActive = false;
 
 document.getElementById('id_avatar').addEventListener('change', function(event) {
@@ -60,7 +60,7 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
                 autoCropArea: 1,
                 responsive: true,
             });
-            cancelCropButton.style.display = 'inline-block';
+            profileCropActionContainer.style.display = 'block';
             if (deleteAvatarBtn) {
                 deleteAvatarBtn.style.display = 'none';
             }
@@ -72,10 +72,10 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
     }
 });
 
-// Обработка кликов на label
+
 avatarLabel.addEventListener('click', function(event) {
     if (isCropperActive) {
-        event.preventDefault(); // Предотвращаем стандартное поведение (вызов диалога выбора файла)
+        event.preventDefault();
     }
 });
 
@@ -86,9 +86,9 @@ cancelCropButton.addEventListener('click', function() {
     }
     avatarInput.value = ''; // Очищаем значение input
     document.getElementById('image-container').innerHTML = originalImageContainerHTML;
-    cancelCropButton.style.display = 'none';
+    profileCropActionContainer.style.display = 'none';
     if (deleteAvatarBtn) {
-        deleteAvatarBtn.style.display = 'inline-block';
+        deleteAvatarBtn.style.display = 'block';
     }
 
     avatarLabel.setAttribute('for', 'id_avatar'); 
@@ -97,17 +97,39 @@ cancelCropButton.addEventListener('click', function() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const addLinkBtn = document.getElementById("add-link-btn");
-    const linkInputs = document.querySelectorAll("#links-container .link-input");
-
+    const linksContainer = document.getElementById("links-container");
     addLinkBtn.addEventListener("click", function () {
-        let hiddenInput = Array.from(linkInputs).find(input => input.style.display === "none");
-
-        if (hiddenInput) {
-            hiddenInput.style.display = "block";
+        // Находим все поля ввода
+        const linkInputs = linksContainer.querySelectorAll(".link-input");
+        // Считаем количество уже видимых полей
+        const visibleInputsCount = Array.from(linkInputs).filter(input => input.style.display !== "none").length;
+        // Проверяем, не превышено ли максимальное количество ссылок (3)
+        if (visibleInputsCount < 3) {
+            // Ищем скрытое поле для показа
+            let hiddenInput = Array.from(linkInputs).find(input => input.style.display === "none");
+            if (hiddenInput) {
+                hiddenInput.style.display = "block";
+            }
+            // Если теперь видимых полей стало ровно 3, скрываем кнопку
+            if (visibleInputsCount + 1 === 3) {
+                addLinkBtn.style.display = "none";
+            }
         } else {
+            // Если уже есть 3 видимых поля, сразу скрываем кнопку
+            addLinkBtn.style.display = "none";
             alert("Разрешено добавить не более 3 ссылок на сторонние сервисы");
         }
     });
+
+    // При загрузке страницы проверяем наличие всех трех полей
+    const initialLinkInputs = linksContainer.querySelectorAll(".link-input");
+    const initialVisibleInputsCount = Array.from(initialLinkInputs).filter(input => input.style.display !== "none").length;
+
+    if (initialVisibleInputsCount === 3) {
+        // Если уже есть 3 видимые ссылки, скрываем кнопку
+        addLinkBtn.style.display = "none";
+        alert('Уже добавлено 3 ссылки');
+    }
 });
 
 document.getElementById('profile-form').addEventListener('submit', function(event) {
@@ -214,3 +236,49 @@ function submitForm() {
         });
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Инициализация начальных значений
+    const initialUsername = document.getElementById('current-username').value || '';
+    const initialAboutMe = document.getElementById('id_about_me').value || '';
+    const initialLinks = Array.from(document.querySelectorAll('input[name="links"]'))
+        .map(input => input.value || '');
+
+    let hasChanges = false;
+
+    // Функция проверки изменений
+    function checkChanges() {
+        hasChanges = false;
+
+        // Проверка никнейма
+        const currentUsername = document.getElementById('id_username').value || '';
+        if (currentUsername !== initialUsername) {
+            hasChanges = true;
+        }
+
+        // Проверка описания
+        const currentAbout = document.getElementById('id_about_me').value || '';
+        if (currentAbout !== initialAboutMe) {
+            hasChanges = true;
+        }
+
+        // Проверка ссылок
+        const currentLinks = Array.from(document.querySelectorAll('input[name="links"]'))
+            .map(input => input.value || '');
+        if (JSON.stringify(currentLinks) !== JSON.stringify(initialLinks)) {
+            hasChanges = true;
+        }
+
+        // Обновление видимости кнопки
+        const saveButton = document.getElementById('profileEditSaveChangesDownButton');
+        saveButton.disabled = !hasChanges;
+        
+    }
+
+    // Добавление обработчиков событий для существующих полей
+    document.querySelectorAll('input[name="links"], #id_username, #id_about_me')
+        .forEach(element => element.addEventListener('input', checkChanges));
+
+    // Инициализация проверки при загрузке страницы
+    checkChanges();
+});

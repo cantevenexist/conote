@@ -1,11 +1,12 @@
 .profile-page {display: flex;flex-direction: column; max-width: 540px; margin: auto;
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgb(224, 224, 224, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
     border-radius: 15px;}
-    .profile-container {width: 100%; padding: 20px; border-bottom: 1px solid #e0e0e0;}
+    .profile-container {width: 100%; padding: 20px; border-bottom: 1px solid rgb(224, 224, 224,0.5);}
         .profile-container-avatar-info {display: flex;flex-direction: row;}
-            .profile-info-container {margin-left: 10px; background-color: transparent; width: calc(100% - 128px - 10px);}
-                .profile-username-about-container {transition: max-height 0.5s ease-in-out;max-height: calc(98px - 31px); margin-top: 5px; margin-bottom: 5px; width: 100%; background-color: transparent; overflow: hidden;}
+            .profile-info-container {margin-left: 20px; background-color: transparent; width: calc(100% - 128px - 20px);}
+                .profile-username-about-container {transition: max-height 0.5s ease-in-out;max-height: calc(98px - 31px); margin-top: 5px; margin-bottom: 5px;width: fit-content; max-width: 100%; background-color: transparent; overflow: hidden;}
                 .profile-username-about-container.overflowing{
                     mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
                     -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);}
@@ -21,21 +22,59 @@
                     color: white;
                     border: none;
                     transition: background 0.5s ease;}
-                    
+                
+                .profile-username-about {
+                    font-size: 14px;
+                    /* line-height: 25px; Высота строки  */
+                    text-indent: 0; /* Убирает отступ на первой строке */
+                    white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
+                    word-wrap: break-word; /* Переносит длинные слова */
+                    overflow-wrap: break-word; /* Переносит слова на новой строке */}
+                .profile-username-about a {color: black; text-decoration: underline;}
+                @media (hover:hover) {.profile-username-about a:hover {color: cornflowerblue;}}
+
 
                 .profile-social-followers-and-following {margin-top: 10px; display: flex; flex-direction: column; gap: 5px;}
-                    .profile-social-followers {background-color:transparent;stroke: gray; color: gray; transition: color 0.5s ease, stroke 0.5s ease, transform 0.5s ease;}
-                    .profile-social-following {background-color:transparent;stroke: gray; color: gray; transition: color 0.5s ease, stroke 0.5s ease, transform 0.5s ease;}
+                    .profile-social-followers {width: fit-content;max-width: 100%;background-color:transparent;stroke: gray; color: gray; transition: color 0.5s ease, stroke 0.5s ease, transform 0.5s ease;}
+                    .profile-social-following {width: fit-content;max-width: 100%;background-color:transparent;stroke: gray; color: gray; transition: color 0.5s ease, stroke 0.5s ease, transform 0.5s ease;}
                     .profile-social-followers-and-following .hide-red-icon {stroke: gray ;transition: stroke 0.5s ease;}
 
                 /* BASED CLEAR STYLE */
                 .profile-page p {margin: 0;}
-                .profile-avatar-container {transition: scale 0.5s ease;}
-                .profile-avatar-container img {width: 100%;height: 100%;}
-                .profile-avatar-container svg {width: 100%;height: 100%;}
+                .profile-avatar-container { cursor: pointer; overflow: hidden;border-radius: 5px;}
+                .profile-avatar-container img {width: 100%;height: 100%; transition: scale 0.5s ease;}
+                .profile-avatar-container svg {width: 100%;height: 100%; transition: scale 0.5s ease;background-color: #dedede;}
+                
+                @media (hover:hover) {
+                    .profile-avatar-container:hover img {scale: 1.05;}
+                    .profile-avatar-container:hover svg {scale: 1.05}
+                }
+
+                #profile-fullsize-avatar-panel {width: 100%;height: 100%;top: 0;left: 0;position: fixed;background-color: rgba(0, 0, 0, 0.3);display: none;z-index: 1000;}
+                #profile-fullsize-avatar-panel.show {display: block;}
+
+                .profile-fullsize-avatar-panel-box {
+                    position: relative;
+                    width: fit-content;
+                    height: fit-content;
+                    margin: auto;
+                }
+
+                .profile-fullsize-avatar-panel-avatar img{width: 100%;height: 100%;border-radius: 10px;
+                      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);}
+                .profile-fullsize-avatar-panel-avatar svg{width: 100%;height: 100%;border-radius: 10px;
+                    box-shadow: 0 2px 5px 5px rgba(0, 0, 0, 0.5);}
+                .profile-fullsize-avatar-panel-close {cursor: pointer; padding: 6px;position: absolute; top:0;right: 0; width: 40px; height: 40px; background-color: rgba(0, 0, 0, 0.75);border-radius: 0 10px 0 10px; border-color: transparent;transition: background-color 0.5s ease,  width 0.5s ease, height 0.5s ease;}
+                .profile-fullsize-avatar-panel-close svg {box-shadow: none;width: 100%; height: 100%; stroke: white; transition: stroke 0.5s ease;}
+
+                #closeBtn-fullsize-avatar-panel {
+                    cursor: pointer;
+                    position: fixed;
+                    width: 120%;
+                    height: 100%;
+                    transform: translateX(-20%);}
 
                 @media (hover:hover) {
-                    .profile-avatar-container:hover {scale: 1.05;}
                     .profile-social-button:hover {background:rgb(80, 120, 180);}
                     .profile-username-copy-btn:hover {stroke: black; scale: 1.1;}
                     .profile-social-followers:hover{color:black; stroke: black;}
@@ -43,8 +82,13 @@
 
                     .profile-link-container:hover .profile-social-link-item {color:cornflowerblue;text-decoration: underline;}
                     .profile-link-container:hover .icon .fa-vk{color: rgb(0, 119, 255);}
-                    .profile-link-container:hover .icon .fa-telegram{color: rgb(0, 136, 204);}
+                    .profile-link-container:hover .icon .fa-telegram{color: rgb(70, 151, 228);}
                     .profile-link-container:hover .icon .fa-youtube{color: rgb(242, 0, 38);}
+
+                    .profile-fullsize-avatar-panel-close {background-color: rgba(0, 0, 0, 0.5);}
+                    .profile-fullsize-avatar-panel-close svg {width: 100%; height: 100%; stroke: rgba(255, 255, 255, 0.5);}
+                    .profile-fullsize-avatar-panel-close:hover {background-color: rgba(0, 0, 0, 0.75);width: 50px; height: 50px;}
+                    .profile-fullsize-avatar-panel-close:hover svg {width: 100%; height: 100%; stroke: white;}
                 }
 
                 ul {padding-left: 0;list-style-type: none; margin: 0;}
@@ -52,22 +96,22 @@
                 
         /* from 0 to 425 portrait */
         @media (max-width:425px) {
+        .profile-page {border: none;box-shadow: none;}
         .profile-container-avatar-info {display: block}
-            .profile-info-container {margin-left: 0;margin-top: calc(10px); background-color: transparent; width:100%;}
-                .profile-avatar-container {max-width: 100% !important; aspect-ratio: 1;}}
-
-                    .profile-avatar-container img {border-radius: 5px; transition: border-radius 0.5s ease;}
-                    .profile-avatar-container svg {border-radius: 5px; background-color: #dedede; transition: border-radius 0.5s ease;}
-                    @media (hover:hover) {
-                        .profile-avatar-container:hover img {border-radius: 4.5px;}
-                        .profile-avatar-container:hover svg {border-radius: 4.5px;}
-                    }
-                .profile-username-about {font-size: 14px;
-                    text-indent: 0; /* Убирает отступ на первой строке */
-                    white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
-                    word-wrap: break-word; /* Переносит длинные слова */
-                    overflow-wrap: break-word; /* Переносит слова на новой строке */}
-                
+        .profile-fullsize-avatar-panel-box {width: calc(min(90vw, 90vh));height: calc(min(90vw, 90vh));}
+        .profile-info-container {margin-left: 0;margin-top: calc(10px); background-color: transparent; width:100%;}
+        .profile-avatar-container {max-width: 100% !important; aspect-ratio: 1; cursor:auto;}
+        #profile-fullsize-avatar-panel.show {display: none;}
+        }
+        @media (max-width:425px) or (max-height:425px){
+            .profile-container {padding: 10px;}
+            #profile-fullsize-avatar-panel {display: none !important;}
+            .profile-avatar-container {cursor: auto; border-radius: 30px;}
+            @media (hover:hover) {
+                .profile-avatar-container:hover img {scale: 1;}
+                .profile-avatar-container:hover svg {scale: 1}
+            }
+        }
         /* from 668 to ... portrait */
         @media (min-width:749.9px) {
         .profile-container-avatar-info {display: block}    
@@ -82,12 +126,12 @@
             .profile-social-button {width: 128px; border-radius: 5px;}
         }
             .profile-social-button-show-followers-and-following {display: flex; flex-direction: row;}
-            .profile-social-followers-and-following {font-size: 14px; width: 100%;}
+            .profile-social-followers-and-following {font-size: 14px;}
             .profile-social-followers-and-following .icon {height: 21px;width: 21px;}
             .profile-social-followers-and-following .icon svg {padding: 2px;padding-top: 1px;height: 100%;width: 100%;}
         .profile-links-container {margin-top: 10px; background-color: transparent;}
             .profile-link-container {display: flex; flex-direction: row;}
-            .profile-link-container {font-size: 14px; width: 100%;}
+            .profile-link-container {font-size: 14px; width: fit-content;max-width: 100%}
             .profile-link-container .icon {height: 21px;width: 21px;}
             .profile-link-container .icon svg {padding: 2px;padding-top: 1px;height: 100%;width: 100%;}
     .side-container {width: 100%; padding: 20px;}
@@ -97,23 +141,14 @@
 /* SQUARE minimum for horizontal */
 @media (min-width:749.9px) {
 .profile-page {display: flex;flex-direction: row; max-width: 1080px; min-width: 592px; margin: auto;
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+    
     border-radius: 30px;}
-    .profile-container {width: 296px; padding: 20px;border-bottom: none ;border-right: 1px solid #e0e0e0;}
-        .profile-avatar-container {max-width: 256px; width: 256px; aspect-ratio: 1; margin: auto;}
-            .profile-avatar-container img {border-radius: 10px; transition: border-radius 0.5s ease;}
-            .profile-avatar-container svg {border-radius: 10px; background-color: #dedede; transition: border-radius 0.5s ease;}
-            @media (hover:hover) {
-                .profile-avatar-container:hover img {border-radius: 9px;}
-                .profile-avatar-container:hover svg {border-radius: 9px;}
-            }
+    .profile-container {width: 296px; padding: 20px;border-bottom: none ;border-right: 1px solid rgb(224, 224, 224,0.5);}
+        .profile-avatar-container {max-width: 256px; width: 256px; aspect-ratio: 1; margin: auto;border-radius: 10px;}
+            
         .profile-info-container {margin-top: 20px; background-color: transparent;}
-            .profile-username-about {font-size: 14px;
-                text-indent: 0; /* Убирает отступ на первой строке */
-                white-space: pre-wrap; /* Сохраняет пробелы и переносы строк */
-                word-wrap: break-word; /* Переносит длинные слова */
-                overflow-wrap: break-word; /* Переносит слова на новой строке */}
+            
         .profile-social-container {margin-top: 20px; background-color: transparent;}
             .profile-social-button {width: 100%; border-radius: 10px;}
             .profile-social-button-show-followers-and-following {display: flex; flex-direction: row;}
@@ -122,7 +157,7 @@
             .profile-social-followers-and-following .icon svg {padding: 2px;padding-top: 1px;height: 100%;width: 100%;}
         .profile-links-container {margin-top: 20px; background-color: transparent;}
             .profile-link-container {display: flex; flex-direction: row;}
-            .profile-link-container {font-size: 14px; width: 100%;}
+            .profile-link-container {font-size: 14px; width: fit-content;max-width: 100%}
             .profile-link-container .icon {height: 21px;width: 21px;}
             .profile-link-container .icon svg {padding: 2px;padding-top: 1px;height: 100%;width: 100%;}
     .side-container {width: 100%; padding: 20px;min-width: 296px;}
@@ -132,8 +167,8 @@
 .profile-username {font-size: 20px; max-width: calc(100% - 30px); background-color: transparent; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
 
 
-@media (orientation: portrait) {#panel-subscribers {padding-left: 5%;padding-right: 5%;}#panel-subscriptions {padding-left: 5%;padding-right: 5%;}}
-@media (orientation: landscape) {#panel-subscribers {padding-left: 10%;padding-right: 10%;}#panel-subscriptions {padding-left: 5%;padding-right: 5%;}}
+#panel-subscribers {padding-left: 5%;padding-right: 5%;}
+#panel-subscriptions {padding-left: 5%;padding-right: 5%;}
 
 #panel-subscribers {
     width: 100%;
@@ -141,7 +176,7 @@
     top: 0;
     left: 0;
     position: fixed;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.3);
     display: none;
     z-index: 1000;
 }
@@ -151,6 +186,7 @@
 }
 
 .close_btn_subscribers {
+    cursor: pointer;
     position: fixed;
     width: 120%;
     height: 100%;
@@ -163,7 +199,7 @@
     top: 0;
     left: 0;
     position: fixed;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.3);
     display: none;
     z-index: 1000;
 }
@@ -173,6 +209,7 @@
 }
 
 .close_btn_subscriptions {
+    cursor: pointer;
     position: fixed;
     width: 120%;
     height: 100%;
@@ -180,16 +217,18 @@
 }
 
 .panel_subs-box {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
     background-color: white;
     position: relative;
     max-width: 500px;
     height: 80%;
-    top:10%;
+    max-height: 768px;
     padding: 20px;
     border-radius: 30px;
     margin: auto;
 }
-
+#id_owner_profile_avatar {display: none;}
 .sub-text {font-size: 18px; margin-bottom: 10px; display: flex; flex-direction: row; justify-content: space-between; gap: 20px;}
 .sub-text .choice_subs_btn_container {width: calc(100% - 59px); display: flex; flex-direction: row; justify-content: space-between; gap: 20px;}
 
@@ -203,11 +242,16 @@
 .sub-text .close_btn_subs {border: 1px solid #e0e0e0; border-radius: 10px; background-color: white; width: 39px; height: 39px; cursor: pointer; transition: border 0.5s ease;}
 .sub-text .close_btn_subs svg{width: 100%; height: 100%; stroke: gray; transition: stroke 0.5s ease;}
 
+.search-sub-container {position: relative;}
+.search-sub-container .clear_search_input_subs_btn {position: absolute;top:0;right: 0; width: 40px; height: 40px; cursor: pointer; background: transparent; border: transparent;}
+.search-sub-container .clear_search_input_subs_btn svg{width: 100%; height: 100%; stroke: gray; transition: stroke 0.5s ease;}
+
 @media (hover:hover) {
 .sub-text .not-selected:hover {border-color: cornflowerblue; color: cornflowerblue;}
 .sub-text .close_btn_subs:hover {border-color: crimson;}
 .sub-text .close_btn_subs:hover svg{stroke: crimson;}
 .search-sub-container input:hover {border-color: cornflowerblue;}
+.search-sub-container .clear_search_input_subs_btn:hover svg{ stroke: crimson;}
 
 /* BLOCK SEARCHBOX COLOR HOVER */
 .search-sub-container input:hover::-webkit-input-placeholder {color: cornflowerblue;}
@@ -218,7 +262,7 @@
 }
 
 /* BLOCK SEARCHBOX COLOR */
-.search-sub-container input{width: 100%; height: 40px; border-radius: 10px; border: 1px solid #e0e0e0; padding-left: 15px; font-size: 18px;transition: border-color 0.5s ease;}
+.search-sub-container input{width: 100%; height: 40px; border-radius: 10px; border: 1px solid #e0e0e0; padding-left: 15px; padding-right: 55px; font-size: 18px;transition: border-color 0.5s ease;}
 .search-sub-container input:focus {outline: 0; border-color: cornflowerblue;}
 
 .search-sub-container input:focus::-webkit-input-placeholder {color: cornflowerblue;}
@@ -271,8 +315,15 @@ mask-image: linear-gradient(to bottom,
     background: #5B7DAC; /* Цвет ползунка при активном взаимодействии */
 }
 
-.sub_container {background-color: aqua; display: flex; flex-direction: row; padding: 10px; margin-bottom: 10px; width: calc(100% - 8px);}
-.sub_avatar_container {background-color: gainsboro; width: 40px; height: 40px;}
-.sub_avatar_container img {width: 40px;height: 40px;}
-.sub_avatar_container svg {width: 40px;height: 40px;}
-.sub_username {background-color:cadetblue ;margin-left: 10px;width: calc(100% - 50px);justify-self: center;font-size: 20px; overflow: hidden; text-overflow: ellipsis;}
+.sub_container {background-color: transparent; display: flex; flex-direction: row; padding: 10px; margin-bottom: 10px; width: calc(100% - 8px);}
+.sub_avatar_container {background-color: transparent; width: 50px; height: 50px; overflow: hidden; border-radius: 10px;}
+.sub_avatar_container img {width: 100%;height: 100%;}
+.sub_avatar_container svg {width: 100%;height: 100%;}
+.sub_username {background-color:transparent ;margin-left: 20px;width: calc(100% - 60px);justify-self: center;}
+.sub_username p {margin-top: 8.5px;font-size: 20px; overflow: hidden; text-overflow: ellipsis;}
+.sub_username p a {color: #000;}
+@media (hover:hover) {.sub_username a:hover {color: cornflowerblue; text-decoration: underline;}}
+/* 500 height */
+.panel_subs-box-sign {min-width: 35px;min-height: 35px;max-width: 200px;max-height: 200px;height: 10vh; stroke: none;margin: auto;}
+.panel_subs-box-sign svg{width: 100%;height: 100%;}
+.panel_subs-box-sign-text {text-align: center; cursor: default;}

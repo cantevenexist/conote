@@ -27,7 +27,6 @@
 
 .footer .content p {
     margin-bottom: 1.3rem;
-    font-family: 'Marmelad', sans-serif;
 }
 
 .footer .content a {
@@ -36,7 +35,8 @@
 }
 
 .footer .content a:hover {
-    color: #74C4F2;
+    color: cornflowerblue;
+    text-decoration: underline;
 }
 
 .footer .content h4 {
