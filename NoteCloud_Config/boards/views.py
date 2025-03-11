@@ -100,7 +100,7 @@ class BoardsView(AsyncLoginRequiredMixin, View):
         user = await get_request_user(request)
         board = await Board.objects.acreate(user=user)
 
-        updated_at_str = board.updated_at.strftime('%m-%d-%Y %H:%M')
+        updated_at_str = board.updated_at.strftime('%Y-%m-%dT%H:%M:%S')
         hidden_updated_at_str = board.updated_at.strftime('%Y-%m-%d %H:%M:%S')
 
         html = f'''
