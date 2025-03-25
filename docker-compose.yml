@@ -16,6 +16,7 @@ services:
       - minio
       - createbuckets
       - valkey
+      - rabbitmq
   db:
     image: postgres:16.4-alpine3.20
     volumes:
@@ -53,6 +54,14 @@ services:
       - valkey_data:/data
     ports:
       - "6379:6379"
+    restart: unless-stopped
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    env_file:
+      - ./.env.amqp
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     restart: unless-stopped
 
 

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'storages',
     'channels',
     'boards',
+    'django_celery_beat',
 ]
 
 
@@ -183,11 +184,10 @@ SOCIALACCOUNT_PROVIDERS = {
 TELEGRAM_BOT_API_TOKEN = os.environ.get("TELEGRAM_SECRET")
 TELEGRAM_CHANNEL_ID = os.environ.get("TELEGRAM_CLIENT_ID")
 
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 ACCOUNT_EMAIL_UNIQUE = True
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_USERNAME_BLACKLIST = ["admin", "administrator", "moderator"]
 ACCOUNT_USERNAME_MIN_LENGTH = 4
@@ -209,7 +209,9 @@ ACCOUNT_EMAIL_CONFIRMATION_REDIRECT_URL = '/account/login/'
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/account/login/'
 ACCOUNT_SIGNUP_REDIRECT_URL = '/account/login/'
 
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+# email settings
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'user_profiles.backends.AsyncSmtpEmailBackend'
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
@@ -253,3 +255,11 @@ MEDIA_URL = 'media/'
 # MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
 # MEDIA_ROOT = MEDIA_URL
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+
+# celery settings
+CELERY_BROKER_URL = f'amqp://{os.getenv("RABBITMQ_USER")}:{os.getenv("RABBITMQ_PASS")}@rabbitmq:5672/conote'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

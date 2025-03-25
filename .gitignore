@@ -5,6 +5,7 @@
 /.env.providers
 /.env.s3
 /.env
+/.env.amqp
 *.pyc
 __pycache__/
 /.venv
