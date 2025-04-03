@@ -9,8 +9,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .models import News, Comment
 from .forms import NewsForm, CommentForm
-
 from django.db.models import Count
+
 
 class NewsListView(ListView):
     model = News

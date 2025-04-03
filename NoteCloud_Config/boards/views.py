@@ -36,20 +36,20 @@ def get_request_user(request):
     return user
 
 
-async def async_get_object_or_404(klass, *args, **kwargs):
+async def async_get_object_or_404(model_or_queryset, *args, **kwargs):
     """
     Асинхронная версия функции get_object_or_404.
     Пытается получить объект из переданного queryset или модели,
     используя указанные параметры фильтрации.
     Если объект не найден, выбрасывает Http404.
 
-    :param klass: Модель или QuerySet, из которого нужно получить объект.
+    :param model_or_queryset: Модель или QuerySet, из которого нужно получить объект.
     :param args: Позиционные аргументы для фильтрации.
     :param kwargs: Именованные аргументы для фильтрации.
     :return: Найденный объект.
     """
     # Если klass является QuerySet-ом, используем его, иначе получаем менеджер модели.
-    queryset = klass if hasattr(klass, 'filter') else klass._default_manager.filter()
+    queryset = model_or_queryset if hasattr(model_or_queryset, 'filter') else model_or_queryset._default_manager.filter()
     queryset = queryset.filter(*args, **kwargs)
 
     try:

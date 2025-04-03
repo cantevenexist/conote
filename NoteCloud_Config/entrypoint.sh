@@ -29,6 +29,6 @@ python manage.py migrate django_celery_beat
 celery -A NoteCloud_Config worker --loglevel=info &
 celery -A NoteCloud_Config beat --loglevel=info &
 
-# Запуск ASGI-сервер (ТРЕБУЕТСЯ ЗАГРУЗКА СТАТИКИ) или WSGI-сервера
+# Запуск ASGI-сервера (ТРЕБУЕТСЯ ЗАГРУЗКА СТАТИКИ) или WSGI-сервера
 #daphne -b 0.0.0.0 -p 8000 NoteCloud_Config.asgi:application
 exec "$@"
