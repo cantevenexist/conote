@@ -19,8 +19,12 @@ from django.urls import path, include
 from django.conf.urls import handler404
 from django.conf import settings
 from django.conf.urls.static import static
+from allauth.account.decorators import secure_admin_login
 
 handler404 = 'main_page.views.custom_404'
+
+admin.autodiscover()
+admin.site.login = secure_admin_login(admin.site.login)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

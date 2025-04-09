@@ -17,6 +17,9 @@ from django.views import View
 from channels.db import database_sync_to_async
 
 
+ALLOWED_GROUPS = ['администраторы', 'модераторы', 'редакторы']
+
+
 @sync_to_async
 def render_sync(request, template, context):
     return render(request, template, context)
@@ -100,6 +103,27 @@ class AsyncLoginRequiredMixin(AccessMixin):
             self.get_login_url(),
             self.get_redirect_field_name()
         )
+
+
+async def group_exists(user):
+    return await user.groups.filter(name__in=ALLOWED_GROUPS).aexists()
+
+
+async def group_has_permission(group, perm_codename):
+    return await group.permissions.filter(codename=perm_codename).aexists()
+
+
+async def user_has_group_permission(user, perm_codename):
+    if user.is_superuser:
+        return True
+
+    if not await group_exists(user):
+        return False
+
+    async for group in user.groups.filter(name__in=ALLOWED_GROUPS):
+        if await group_has_permission(group, perm_codename):
+            return True
+    return False
 
 
 class NewsListView(View):
@@ -188,6 +212,10 @@ class NewsDetailView(View):
 
 class NewsCreateView(AsyncLoginRequiredMixin, View):
     async def get(self, request):
+        user = await get_request_user(request)
+        if not await user_has_group_permission(user, 'add_news'):
+            raise Http404(f'Access to news is denied!')
+
         form = NewsForm()
         context = {'form': form}
 
@@ -216,6 +244,10 @@ class NewsCreateView(AsyncLoginRequiredMixin, View):
 
 class NewsUpdateView(AsyncLoginRequiredMixin, View):
     async def get(self, request, slug):
+        user = await get_request_user(request)
+        if not await user_has_group_permission(user, 'change_news'):
+            raise Http404(f'Access to news is denied!')
+
         news_obj = await async_get_object_or_404(News, slug=slug)
         form = NewsForm(instance=news_obj)
         context = {'form': form, 'news': news_obj}
@@ -245,6 +277,10 @@ class NewsUpdateView(AsyncLoginRequiredMixin, View):
 
 class NewsDeleteView(AsyncLoginRequiredMixin, View):
     async def get(self, request, slug):
+        user = await get_request_user(request)
+        if not await user_has_group_permission(user, 'delete_news'):
+            raise Http404(f'Access to news is denied!')
+
         news_obj = await async_get_object_or_404(News, slug=slug)
         context = {'news': news_obj}
 
