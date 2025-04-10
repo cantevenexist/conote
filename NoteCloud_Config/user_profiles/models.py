@@ -53,7 +53,7 @@ class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to=UploadToPath('media/'), blank=True, null=True, storage=MinioStorage(),
                                validators=[
-                                   FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg']),
+                                   FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg', 'heic']),
                                    file_size
                                ])
     about_me = models.CharField(max_length=500, blank=True, null=True)

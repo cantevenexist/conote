@@ -33,10 +33,10 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
             event.target.value = '';
             return;
         }
-        const allowedExtensions = ['bmp', 'jpeg', 'png', 'jpg'];
+        const allowedExtensions = ['bmp', 'jpeg', 'png', 'jpg', 'heic'];
         const fileExtension = file.name.split('.').pop().toLowerCase();
         if (!allowedExtensions.includes(fileExtension)) {
-            alert('Недопустимый формат изображения. Допустимые расширения: bmp, jpeg, png, jpg.');
+            alert('Недопустимый формат изображения. Допустимые расширения: bmp, jpeg, png, jpg, heic.');
             event.target.value = '';
             return;
         }
