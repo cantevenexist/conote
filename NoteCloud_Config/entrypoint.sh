@@ -20,7 +20,8 @@ python manage.py migrate django_celery_beat
 #python manage.py flush --no-input
 
 # Загрузка статики (js, css) в S3-хранилище
-#python upload_static_to_minio.py
+python manage.py collectstatic
+python upload_static_to_minio.py
 
 # Запуск telegram-бота (в фоновом режиме)
 #python telegram_bot.py &
@@ -36,5 +37,5 @@ sh init_superadmin.sh
 python init_groups.py
 
 # Запуск ASGI-сервера (ТРЕБУЕТСЯ ЗАГРУЗКА СТАТИКИ) или WSGI-сервера
-#daphne -b 0.0.0.0 -p 8000 NoteCloud_Config.asgi:application
-exec "$@"
+daphne -b 0.0.0.0 -p 8000 NoteCloud_Config.asgi:application
+#exec "$@"

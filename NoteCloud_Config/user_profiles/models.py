@@ -153,3 +153,24 @@ class PremiumSubscription(models.Model):
     def __str__(self):
         status = "Активна" if self.check_subscription else "Неактивна"
         return f'Статус подписки для  {self.user.username}: {status}'
+
+
+class Notification(models.Model):
+    LEVELS = (
+        ('info', 'Информация'),
+        ('warning', 'Предупреждение'),
+        ('error', 'Ошибка'),
+        ('critical', 'Критично'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    level = models.CharField(max_length=10, choices=LEVELS, default='info')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.level.upper()}] {self.message[:50]}"

@@ -237,16 +237,18 @@ AWS_S3_CUSTOM_DOMAIN = f'{os.getenv("AWS_S3_CUSTOM_DOMAIN")}/{AWS_STORAGE_BUCKET
 # static settings
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-# STATICFILES_STORAGE = 'main_page.storages.MinioStorageStatic'
+STATICFILES_STORAGE = 'main_page.storages.MinioStorageStatic'
+
+STATIC_URL = f"{MINIO_ACCESS_URL}/static/"
+
+STATIC_ROOT = os.path.join(BASE_DIR, "collectstatic")
+
+# STATICFILES_STORAGE = 'backend.storages.StaticStorage'
 #
-# STATIC_URL = f"{MINIO_ACCESS_URL}/static/"
-
-STATICFILES_STORAGE = 'backend.storages.StaticStorage'
-
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+# STATIC_URL = 'static/'
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'static',
+# ]
 
 
 # media settings

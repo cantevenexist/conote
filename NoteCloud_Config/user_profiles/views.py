@@ -6,7 +6,7 @@ from .models import UserProfile
 from .serializers import UserProfileSerializer
 from .forms import ProfileForm
 from django.contrib.auth.models import User
-from .models import Subscription, SettingsPrivacy, SettingsNotifications
+from .models import Subscription, SettingsPrivacy, SettingsNotifications, Notification
 from rest_framework.response import Response
 from django.urls import reverse
 from asgiref.sync import sync_to_async
@@ -15,8 +15,11 @@ from django.contrib.auth.mixins import AccessMixin
 from django.urls import reverse_lazy
 from django.contrib.auth.views import redirect_to_login
 from django.views import View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 from channels.db import database_sync_to_async
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.views.decorators.http import require_POST
 
 
 @sync_to_async
@@ -296,3 +299,51 @@ class UnsubscribeView(AsyncLoginRequiredMixin, View):
         await sync_to_async(subscription.unsubscribe)(unsubscribing_user)
 
         return JsonResponse({'success': True, 'current_user': unsubscribing_user.username})
+
+
+class AsyncNotificationsView(View):
+    async def get(self, request, *args, **kwargs):
+        user = await get_request_user(request)
+        try:
+            offset = int(request.GET.get('offset', 0))
+        except ValueError:
+            offset = 0
+        try:
+            limit = int(request.GET.get('limit', 10))
+        except ValueError:
+            limit = 10
+
+        is_read_param = request.GET.get('is_read')  # ожидается 'true' или 'false'
+        level = request.GET.get('level')  # 'info', 'warning', 'error', 'critical'
+
+        filters = Q(user=user)
+        if is_read_param in ['true', 'false']:
+            filters &= Q(is_read=(is_read_param == 'true'))
+        if level in ['info', 'warning', 'error', 'critical']:
+            filters &= Q(level=level)
+
+        qs = Notification.objects.filter(filters).order_by('-created_at')[offset:offset+limit]
+        notifications_list = []
+        # Если поддерживается асинхронный итератор, то:
+        async for notif in qs:
+            notifications_list.append({
+                'id': notif.id,
+                'message': notif.message,
+                'is_read': notif.is_read,
+                'level': notif.level,
+                'created_at': notif.created_at.isoformat(),
+            })
+
+        return JsonResponse(notifications_list, safe=False)
+
+
+@login_required
+@require_POST
+def mark_read_notification(request, pk):
+    try:
+        notif = Notification.objects.get(pk=pk, user=request.user)
+        notif.is_read = True
+        notif.save()
+        return JsonResponse({'status': 'ok'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'error': 'not found'}, status=404)

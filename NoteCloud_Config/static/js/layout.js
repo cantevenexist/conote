@@ -1,3 +1,8 @@
+function getCookie(name) {
+    const value = $.cookie(name);
+    return value ? decodeURIComponent(value) : null;
+}
+
 
 // Проверка на мобильное устройство
 function isMobile() {
@@ -104,6 +109,20 @@ function toggleMenu() {
     toggle_button.classList.toggle('active');
 }
 
+function toggleMenuNotifications() {
+    var user_notifications_panel = document.getElementById("user_notifications_panel");
+    var toggle_button_notifications = document.getElementById("toggle_button_notifications");
+
+    // Проверяем, существуют ли необходимые элементы
+    if (!user_notifications_panel || !toggle_button_notifications) {
+        return; // Если хотя бы один элемент отсутствует, выходим из функции
+    }
+
+    // Если элементы существуют, выполняем логику
+    user_notifications_panel.classList.toggle("show");
+    toggle_button_notifications.classList.toggle('active');
+}
+
 window.addEventListener('click', function(event) {
     var user_settings_panel = document.getElementById("user_settings_panel");
     var toggle_button = document.getElementById("toggle_button");
@@ -120,6 +139,25 @@ window.addEventListener('click', function(event) {
     ) {
         user_settings_panel.classList.remove("show");
         toggle_button.classList.remove('active');
+    }
+});
+
+window.addEventListener('click', function(event) {
+    var user_notifications_panel = document.getElementById("user_notifications_panel");
+    var toggle_button_notifications = document.getElementById("toggle_button_notifications");
+
+    // Проверяем, существуют ли необходимые элементы
+    if (!user_notifications_panel || !toggle_button_notifications) {
+        return; // Если хотя бы один элемент отсутствует, выходим из обработчика
+    }
+
+    // Логика для скрытия панели при клике вне её или кнопки
+    if (
+        !user_notifications_panel.contains(event.target) &&
+        !toggle_button_notifications.contains(event.target)
+    ) {
+        user_notifications_panel.classList.remove("show");
+        toggle_button_notifications.classList.remove('active');
     }
 });
 
@@ -318,4 +356,48 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.smallPanel = document.getElementById('user_notifications_panel');
+    window.fullPanel = document.getElementById('user_all_notifications_panel');
+    window.notifContainer = document.getElementById('notifications_container');
+    window.loadMoreBtn = document.getElementById('load_more');
+    window.filters = {
+        isRead: document.getElementById('filter_is_read'),
+        level:  document.getElementById('filter_level'),
+    };
+    window.isFullOpen = false;
+
+    // Открытие полной панели
+    window.openFullPanel = () => {
+        fullPanel.style.display = 'block';
+        isFullOpen = true;
+        loadNotifications({ offset: 0, limit: 10, panel: fullPanel, useFilters: true, append: false });
+    };
+
+    // Скрытие по клику вне
+    document.addEventListener('click', e => {
+        if (isFullOpen && !fullPanel.contains(e.target) && e.target.id !== 'load_all') {
+            fullPanel.style.display = 'none';
+            isFullOpen = false;
+        }
+    });
+
+    // "Загрузить еще" в полной панели
+    loadMoreBtn.addEventListener('click', () => {
+        const cnt = notifContainer.querySelectorAll('.notification').length;
+        loadNotifications({ offset: cnt, limit: 10, panel: fullPanel, useFilters: true, append: true });
+    });
+
+    // Фильтры
+    [filters.isRead, filters.level].forEach(sel => {
+        if (sel) sel.addEventListener('change', () => {
+            loadNotifications({ offset: 0, limit: 10, panel: fullPanel, useFilters: true, append: false });
+        });
+    });
+
+    // Стартовая загрузка
+    loadNotifications();
 });

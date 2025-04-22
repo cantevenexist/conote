@@ -12,6 +12,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 from channels.auth import AuthMiddlewareStack
 from boards import routing
+from user_profiles import routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NoteCloud_Config.settings')
 

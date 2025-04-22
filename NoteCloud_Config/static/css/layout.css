@@ -298,6 +298,30 @@ a {width: fit-content;max-width: 100%;}
         visibility: visible; /* Делаем его доступным для фокуса */
         transform: translate(-18px, 5px); /* Возвращаем в исходное положение */
     }
+
+    #user_notifications_panel {
+        transform: translate(-18px, -100%);
+        width: 50px;
+        position: fixed;
+        z-index: 999;
+        top: 50px;
+        right: 10;
+        background-color: white;
+        padding: 5px;
+        opacity: 0; /* Изначально полностью прозрачный */
+        pointer-events: none; /* Блокируем события, пока скрыто */
+        visibility: hidden; /* Элемент не доступен для фокуса */
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease; /* Плавный переход */
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
+        border-radius: 10px;
+    }
+
+    #user_notifications_panel.show {
+        opacity: 1; /* Делаем его видимым */
+        pointer-events: auto; /* Включаем события */
+        visibility: visible; /* Делаем его доступным для фокуса */
+        transform: translate(-18px, 5px); /* Возвращаем в исходное положение */
+    }
     
     .user_settings_container {
         display: flex;
@@ -489,6 +513,30 @@ a {width: fit-content;max-width: 100%;}
         visibility: visible; /* Делаем его доступным для фокуса */
         transform: translate(10px, 10px); /* Возвращаем в исходное положение */
     }
+
+    #user_notifications_panel {
+        transform: translate(10px, -100%);
+        width: 180px;
+        position: fixed;
+        z-index: 999;
+        top: 50px;
+        right: 22%;
+        background-color: white;
+        padding: 10px;
+        opacity: 0; /* Изначально полностью прозрачный */
+        pointer-events: none; /* Блокируем события, пока скрыто */
+        visibility: hidden; /* Элемент не доступен для фокуса */
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease; /* Плавный переход */
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px;
+        border-radius: 10px;
+    }
+
+    #user_notifications_panel.show {
+        opacity: 1; /* Делаем его видимым */
+        pointer-events: auto; /* Включаем события */
+        visibility: visible; /* Делаем его доступным для фокуса */
+        transform: translate(10px, 10px); /* Возвращаем в исходное положение */
+    }
     
     .user_settings_container {
         display: flex;
@@ -640,4 +688,63 @@ a {width: fit-content;max-width: 100%;}
     .externalLinkRedirectConfirmationButtonContainer{
         display: flex; flex-direction: row;gap: 20px;
     }
+}
+
+#user_all_notifications_panel {
+    display: none; /* Скрыта изначально */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 80vh;
+    overflow-y: auto;
+    background-color: white;
+    z-index: 1000;
+    padding: 20px;
+    width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+#notifications_container {
+  max-height: calc(80vh - 120px); /* высота панели минус фильтры и кнопку */
+  overflow-y: auto;
+}
+
+.notification.unread {
+  background-color: #eef;
+}
+.notification.read {
+  opacity: 0.6;
+}
+
+#filters_container label {
+    font-size: 14px;
+}
+
+.load-more-btn {
+  margin-top: 10px;
+  display: block;
+  width: 100%;
+}
+
+.unread-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
+}
+/* Динамический уменьшенный шрифт для трёх или более цифр */
+.unread-badge.large {
+  font-size: 10px;
 }
