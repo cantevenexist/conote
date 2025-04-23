@@ -20,8 +20,8 @@ python manage.py migrate django_celery_beat
 #python manage.py flush --no-input
 
 # Загрузка статики (js, css) в S3-хранилище
-#python manage.py collectstatic
-#python upload_static_to_minio.py
+python manage.py collectstatic
+python upload_static_to_minio.py
 
 # Запуск telegram-бота (в фоновом режиме)
 #python telegram_bot.py &

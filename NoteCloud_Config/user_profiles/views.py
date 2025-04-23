@@ -351,3 +351,11 @@ class MarkReadNotificationView(AsyncLoginRequiredMixin, View):
         await database_sync_to_async(notification.save)()
 
         return JsonResponse({'status': 'ok'})
+
+
+class UnreadCountView(AsyncLoginRequiredMixin, View):
+    async def get(self, request, *args, **kwargs):
+        user = await get_request_user(request)
+        count = await Notification.objects.filter(user=user, is_read=False).acount()
+
+        return JsonResponse({'count': count})

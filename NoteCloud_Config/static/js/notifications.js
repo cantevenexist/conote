@@ -11,12 +11,12 @@ function buildNotificationHTML(n) {
 }
 
 // Обновление счётчика непрочитанных
-function updateUnreadCount() {
-    const count = document.querySelectorAll('#user_notifications_panel .notification.unread').length;
+async function updateUnreadCount() {
+    const resp = await fetch('/notifications/api/count/');
+    const { count } = await resp.json();
     const badge = document.getElementById('unread_count_badge');
     badge.textContent = count;
-    // адаптация размера шрифта
-    if (count >= 100) badge.classList.add('large'); else badge.classList.remove('large');
+    badge.classList.toggle('large', count >= 100);
 }
 
 // Универсальная загрузка уведомлений
