@@ -14,5 +14,5 @@ urlpatterns = [
     path('account/logout/', LogoutView.as_view(), name='account_logout'),
     path('account/signup/', SignupView.as_view(), name='account_signup'),
     path('notifications/api/', views.AsyncNotificationsView.as_view(), name='notifications_api'),
-    path('notifications/api/<int:pk>/mark_read/', views.mark_read_notification, name='mark_read_notification'),
+    path('notifications/api/<int:pk>/mark_read/', views.MarkReadNotificationView.as_view(), name='mark_read_notification'),
 ]

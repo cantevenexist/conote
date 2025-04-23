@@ -301,9 +301,10 @@ class UnsubscribeView(AsyncLoginRequiredMixin, View):
         return JsonResponse({'success': True, 'current_user': unsubscribing_user.username})
 
 
-class AsyncNotificationsView(View):
+class AsyncNotificationsView(AsyncLoginRequiredMixin, View):
     async def get(self, request, *args, **kwargs):
         user = await get_request_user(request)
+
         try:
             offset = int(request.GET.get('offset', 0))
         except ValueError:
@@ -313,8 +314,8 @@ class AsyncNotificationsView(View):
         except ValueError:
             limit = 10
 
-        is_read_param = request.GET.get('is_read')  # ожидается 'true' или 'false'
-        level = request.GET.get('level')  # 'info', 'warning', 'error', 'critical'
+        is_read_param = request.GET.get('is_read')
+        level = request.GET.get('level')
 
         filters = Q(user=user)
         if is_read_param in ['true', 'false']:
@@ -324,7 +325,7 @@ class AsyncNotificationsView(View):
 
         qs = Notification.objects.filter(filters).order_by('-created_at')[offset:offset+limit]
         notifications_list = []
-        # Если поддерживается асинхронный итератор, то:
+
         async for notif in qs:
             notifications_list.append({
                 'id': notif.id,
@@ -337,13 +338,16 @@ class AsyncNotificationsView(View):
         return JsonResponse(notifications_list, safe=False)
 
 
-@login_required
-@require_POST
-def mark_read_notification(request, pk):
-    try:
-        notif = Notification.objects.get(pk=pk, user=request.user)
-        notif.is_read = True
-        notif.save()
+class MarkReadNotificationView(AsyncLoginRequiredMixin, View):
+    async def post(self, request, pk, *args, **kwargs):
+        user = await get_request_user(request)
+
+        try:
+            notification = await Notification.objects.aget(pk=pk, user=user)
+        except Notification.DoesNotExist:
+            return JsonResponse({'status': 'error', 'error': 'not found'}, status=404)
+
+        notification.is_read = True
+        await database_sync_to_async(notification.save)()
+
         return JsonResponse({'status': 'ok'})
-    except Notification.DoesNotExist:
-        return JsonResponse({'status': 'error', 'error': 'not found'}, status=404)

@@ -9,7 +9,6 @@ CHUNK_SIZE = 100
 
 
 async def async_delete_old_trash(seconds: int):
-    """Асинхронное пакетное удаление досок из корзины"""
     threshold_time = now() - timedelta(seconds=seconds)
 
     while True:
@@ -25,5 +24,4 @@ async def async_delete_old_trash(seconds: int):
 
 @shared_task
 def delete_old_trash():
-    """Celery-задача для удаления объектов старше 30 дней"""
     asyncio.run(async_delete_old_trash(30 * 24 * 60 * 60))

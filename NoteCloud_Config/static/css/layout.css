@@ -707,15 +707,15 @@ a {width: fit-content;max-width: 100%;}
 }
 
 #notifications_container {
-  max-height: calc(80vh - 120px); /* высота панели минус фильтры и кнопку */
-  overflow-y: auto;
+    max-height: calc(80vh - 120px); /* высота панели минус фильтры и кнопку */
+    overflow-y: auto;
 }
 
 .notification.unread {
-  background-color: #eef;
+    background-color: #eef;
 }
 .notification.read {
-  opacity: 0.6;
+    opacity: 0.6;
 }
 
 #filters_container label {
@@ -723,28 +723,29 @@ a {width: fit-content;max-width: 100%;}
 }
 
 .load-more-btn {
-  margin-top: 10px;
-  display: block;
-  width: 100%;
+    margin-top: 10px;
+    display: block;
+    width: 100%;
 }
 
 .unread-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(50%, -50%);
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: red;
-  color: white;
-  font-weight: bold;
-  text-align: center;
-  line-height: 20px;
-  font-size: 12px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: red;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    line-height: 20px;
+    font-size: 12px;
 }
+
 /* Динамический уменьшенный шрифт для трёх или более цифр */
 .unread-badge.large {
-  font-size: 10px;
+    font-size: 10px;
 }

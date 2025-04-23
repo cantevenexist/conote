@@ -163,7 +163,7 @@ class Notification(models.Model):
         ('critical', 'Критично'),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     message = models.TextField()
     level = models.CharField(max_length=10, choices=LEVELS, default='info')
     is_read = models.BooleanField(default=False)

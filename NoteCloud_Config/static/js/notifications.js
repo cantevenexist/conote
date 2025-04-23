@@ -72,7 +72,16 @@ socket.onmessage = e => {
     const n = JSON.parse(e.data);
     const html = buildNotificationHTML(n);
     const loadBtn = document.getElementById('load_all');
-    if (loadBtn) loadBtn.insertAdjacentHTML('afterend', html);
+    if (loadBtn) {
+        loadBtn.insertAdjacentHTML('afterend', html);
+        const items = smallPanel.querySelectorAll('.notification');
+        if (items.length > 5) {
+            // удаляем самые старые внизу
+            for (let i = 0; i < items.length - 5; i++) {
+                items[items.length - 1 - i].remove();
+            }
+        }
+    }
     if (isFullOpen) notifContainer.insertAdjacentHTML('afterbegin', html);
     updateUnreadCount();
 };
