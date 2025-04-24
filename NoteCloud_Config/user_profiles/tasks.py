@@ -9,6 +9,7 @@ import json
 import asyncio
 from django.utils.timezone import now
 from asgiref.sync import sync_to_async
+import json
 
 
 CHUNK_SIZE = 100
@@ -72,55 +73,67 @@ def send_push_notification(notification_ids):
     asyncio.run(async_send_push_notification(notification_ids))
 
 
-async def async_send_push_notification_all(notif_ids):
+async def async_send_push_notification_all(notification_ids,
+                                           filter_kwargs: list[dict] = None, exclude_kwargs: list[dict] = None):
     channel_layer = get_channel_layer()
-
-    notifications = [
-        notification async for notification in Notification.objects.filter(
-            id__in=notif_ids, user__isnull=True
-        ).aiterator()
-    ]
-
     User = get_user_model()
 
-    user_ids = [
-        user_id async for user_id in User.objects.values_list("id", flat=True).aiterator()
+    templates = [
+        tpl async for tpl in Notification.objects
+            .filter(id__in=notification_ids, user__isnull=True)
+            .aiterator()
     ]
 
-    for i in range(0, len(user_ids), CHUNK_SIZE):
-        chunk_ids = user_ids[i:i + CHUNK_SIZE]
+    users_qs = User.objects.all()
+    for kw in filter_kwargs or []:
+        users_qs = users_qs.filter(**kw)
+    for kw in exclude_kwargs or []:
+        users_qs = users_qs.exclude(**kw)
+    users_qs = users_qs.distinct()
 
-        users_chunk = [
-            user async for user in User.objects.filter(id__in=chunk_ids).aiterator()
+    all_user_ids = [uid async for uid in users_qs.values_list("id", flat=True).aiterator()]
+
+    for i in range(0, len(all_user_ids), CHUNK_SIZE):
+        chunk = all_user_ids[i : i + CHUNK_SIZE]
+        users = [
+            u async for u in User.objects.filter(id__in=chunk).aiterator()
         ]
 
-        for user in users_chunk:
-            for notification in notifications:
-                new_notification = await Notification.objects.acreate(
+        for user in users:
+            group_name = f"notifications_{user.username}_{user.id}"
+
+            for tpl in templates:
+                new_notif = await Notification.objects.acreate(
                     user=user,
-                    message=notification.message,
-                    level=notification.level,
+                    message=tpl.message,
+                    level=tpl.level,
                     is_read=False,
                     created_at=now(),
+                    content_type_id=tpl.content_type_id,
+                    object_id=tpl.object_id,
                 )
-
-                group_name = f"notifications_{user.username}_{user.id}"
 
                 await channel_layer.group_send(
                     group_name,
                     {
                         "type": "notification_push",
                         "message": json.dumps({
-                            "id": new_notification.id,
-                            "message": new_notification.message,
-                            "is_read": new_notification.is_read,
-                            "level": new_notification.level,
-                            "created_at": new_notification.created_at.isoformat(),
-                        })
+                            "id": new_notif.id,
+                            "message": new_notif.message,
+                            "is_read": new_notif.is_read,
+                            "level": new_notif.level,
+                            "created_at": new_notif.created_at.isoformat(),
+                        }),
                     }
                 )
 
 
 @shared_task
-def send_push_notification_all(notification_ids):
-    asyncio.run(async_send_push_notification_all(notification_ids))
+def send_push_notification_all(notification_ids, filter_kwargs: list[dict] = None, exclude_kwargs: list[dict] = None):
+    asyncio.run(
+        async_send_push_notification_all(
+            notification_ids,
+            filter_kwargs=filter_kwargs or [],
+            exclude_kwargs=exclude_kwargs or [],
+        )
+    )

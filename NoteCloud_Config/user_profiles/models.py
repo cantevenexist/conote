@@ -10,6 +10,8 @@ from .storages import MinioStorage
 import re
 import uuid
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 User = get_user_model()
 
@@ -162,6 +164,10 @@ class Notification(models.Model):
         ('error', 'Ошибка'),
         ('critical', 'Критично'),
     )
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True,)
+    object_id = models.PositiveIntegerField(null=True, blank=True,)
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     message = models.TextField()
