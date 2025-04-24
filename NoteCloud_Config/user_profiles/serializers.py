@@ -4,6 +4,23 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 from django.conf import settings
+from PIL import Image
+from io import BytesIO
+from django.core.files.base import ContentFile
+
+
+def remove_exif(image_field):
+    try:
+        image = Image.open(image_field)
+        output = BytesIO()
+
+        image.save(output, format=image.format, exif=b"")
+        output.seek(0)
+
+        return ContentFile(output.read(), name=image_field.name)
+
+    except Exception:
+        return image_field
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -28,6 +45,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         avatar_data = validated_data.get('avatar', None)
         if avatar_data:
+            avatar_data = remove_exif(avatar_data)
             instance.avatar = avatar_data
         else:
             instance.avatar = old_avatar

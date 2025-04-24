@@ -6,8 +6,26 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from user_profiles.models import MinioStorage
+from io import BytesIO
+from PIL import Image
+from django.core.files.base import ContentFile
 
 User = get_user_model()
+
+
+def remove_exif(image_field):
+    try:
+        image = Image.open(image_field)
+        output = BytesIO()
+
+        image.save(output, format=image.format, exif=b"")
+        output.seek(0)
+
+        return ContentFile(output.read(), name=image_field.name)
+
+    except Exception:
+
+        return image_field
 
 
 class News(models.Model):
@@ -51,6 +69,9 @@ class News(models.Model):
             if old_image:
                 if old_image.name:
                     old_image.storage.delete(old_image.name)
+
+        if self.image:
+            self.image = remove_exif(self.image)
 
         super().save(*args, **kwargs)
 
