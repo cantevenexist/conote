@@ -15,3 +15,4 @@ NoteCloud_Config/subscribers.db
 NoteCloud_Config/telegram_bot.log
 developments
 NoteCloud_Config/collectstatic
+NoteCloud_Config/celerybeat-schedule
