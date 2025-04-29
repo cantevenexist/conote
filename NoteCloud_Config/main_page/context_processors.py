@@ -1,5 +1,6 @@
 from user_profiles.models import UserProfile
 
+
 def user_profile(request):
     user_profile = None
     if request.user.is_authenticated:

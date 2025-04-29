@@ -5,14 +5,9 @@
     <h1>Изменить настройки уведомлений</h1>
     <form method="POST" style="display: flex;flex-direction: column;">
         {% csrf_token %}
-        <label class="switch">
-            <p>Отключить уведомления</p>
-            <input type="checkbox" name="disable_notifications" {% if disable_notifications %}checked{% endif %}>
-            <span class="slider"></span>
-        </label>
-        <label class="switch2">
-            <p>Отключить сообщения с новостями</p>
-            <input type="checkbox" name="disabling_news_messages" {% if disabling_news_messages %}checked{% endif %}>
+        <label class="switch1">
+            <p>Отключить уведомления с новостями</p>
+            <input type="checkbox" name="disabling_news_notifications" {% if disabling_news_notifications %}checked{% endif %}>
             <span class="slider"></span>
         </label>
 

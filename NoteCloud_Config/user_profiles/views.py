@@ -236,36 +236,30 @@ class SettingsNotificationsView(AsyncLoginRequiredMixin, View):
             SettingsNotifications,
             user=user,
             defaults={
-                'disable_notifications': False,
-                'disabling_news_messages': False
+                'disabling_news_notifications': False,
             }
         )
 
         return await render_sync(request, 'profile/settings_notifications.html', {
-            'disable_notifications': user_settings_notifications.disable_notifications,
-            'disabling_news_messages': user_settings_notifications.disabling_news_messages,
+            'disabling_news_notifications': user_settings_notifications.disabling_news_notifications,
         })
 
     async def post(self, request):
-        disable_notifications = request.POST.get('disable_notifications') == 'on'
-        disabling_news_messages = request.POST.get('disabling_news_messages') == 'on'
+        disabling_news_notifications = request.POST.get('disabling_news_notifications') == 'on'
 
         user = await get_request_user(request)
         user_settings_notifications = await async_get_or_create_object(
             SettingsNotifications,
             user=user,
             defaults={
-                'disable_notifications': disable_notifications,
-                'disabling_news_messages': disabling_news_messages
+                'disabling_news_notifications': disabling_news_notifications,
             }
         )
-        user_settings_notifications.disable_notifications = disable_notifications
-        user_settings_notifications.disabling_news_messages = disabling_news_messages
+        user_settings_notifications.disabling_news_notifications = disabling_news_notifications
         await sync_to_async(user_settings_notifications.save)()
 
         return await render_sync(request, 'profile/settings_notifications.html', {
-            'disable_notifications': user_settings_notifications.disable_notifications,
-            'disabling_news_messages': user_settings_notifications.disabling_news_messages,
+            'disabling_news_notifications': user_settings_notifications.disabling_news_notifications,
         })
 
 

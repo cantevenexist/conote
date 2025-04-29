@@ -98,9 +98,7 @@ async def start_handler(message: Message):
     )
 
 
-async def send_message_to_users_handler(
-    user_id: int, text: str, disable_notification: bool = False
-) -> bool:
+async def send_message_to_users_handler(bot: Bot, user_id: int, text: str, disable_notification: bool = False) -> bool:
     """
     Безопасная отправка сообщений
     :param user_id:
@@ -135,7 +133,7 @@ async def send_message_to_users_handler(
     return False
 
 
-async def send_message_to_users(text, users_list) -> int:
+async def send_message_to_users(bot: Bot, text, users_list, disable_notification=False) -> int:
     """
     Отправка сообщения все пользователям
     :return: количество отправленных сообщений
@@ -143,7 +141,7 @@ async def send_message_to_users(text, users_list) -> int:
     count = 0
     try:
         for user_id in users_list:
-            if await send_message_to_users_handler(user_id, text):
+            if await send_message_to_users_handler(bot, user_id, text, disable_notification=disable_notification):
                 count += 1
             # 20 сообщений в секунду (Ограничение: 30 сообщений в секунду)
             await asyncio.sleep(.05)

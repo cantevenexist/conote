@@ -24,7 +24,7 @@ python manage.py migrate django_celery_beat
 #python upload_static_to_minio.py
 
 # Запуск telegram-бота (в фоновом режиме)
-#python telegram_bot.py &
+python telegram_bot.py &
 
 # Запуск Celery worker и Celery beat в фоне
 celery -A NoteCloud_Config worker --loglevel=info &

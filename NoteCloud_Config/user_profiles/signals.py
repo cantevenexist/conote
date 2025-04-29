@@ -96,8 +96,7 @@ def news_post_save(sender, instance: News, created, **kwargs):
         lambda tpl_id=tpl.id: send_push_notification_all.delay(
             [tpl_id],
             exclude_kwargs=[
-                {'user_settings_notifications__disable_notifications': True},
-                {'user_settings_notifications__disabling_news_messages': True},
+                {'user_settings_notifications__disabling_news_notifications': True},
             ]
         )
     )

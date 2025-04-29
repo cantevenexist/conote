@@ -122,8 +122,7 @@ class SettingsPrivacy(models.Model):
 
 class SettingsNotifications(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_notifications')
-    disable_notifications = models.BooleanField(default=False)
-    disabling_news_messages = models.BooleanField(default=False)
+    disabling_news_notifications = models.BooleanField(default=False)
 
 
 class PremiumSubscription(models.Model):
@@ -180,3 +179,28 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"[{self.level.upper()}] {self.message[:50]}"
+
+
+class EmailMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_message', null=True, blank=True)
+    subject = models.TextField()
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.subject}: {self.body}"
+
+
+class TelegramMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='telegram_message', null=True, blank=True)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"MessageTelegram: {self.text}"
