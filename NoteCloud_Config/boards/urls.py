@@ -12,4 +12,6 @@ urlpatterns = [
     path('trash/<str:url_hash>/restore/', views.TrashView.as_view(), name='trash_restore_board'),
     path('trash/restore_all/', views.TrashRestoreAllView.as_view(), name='trash_restore_boards_all'),
     path('<str:url_hash>/', views.BoardView.as_view(), name='board_view'),
+    path('api/sub_and_users/', views.AsyncShareView.as_view(), name='api_sub_and_users'),
+    path('api/invite/', views.AsyncInviteView.as_view(), name='api_invite'),
 ]

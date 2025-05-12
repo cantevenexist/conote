@@ -51,4 +51,4 @@ def upload_directory(local_directory, bucket):
 
 if __name__ == "__main__":
     upload_directory("static", MINIO_BUCKET_NAME)
-    upload_directory("collectstatic", MINIO_BUCKET_NAME)
+    # upload_directory("collectstatic", MINIO_BUCKET_NAME)

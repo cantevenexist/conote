@@ -13,10 +13,12 @@ from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.mixins import AccessMixin
 from django.urls import reverse_lazy
 from django.db.models import Case, When, Value, IntegerField, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.template.loader import render_to_string
 from django.db import transaction
 import json
+from user_profiles.models import Subscription, UserProfile, Notification
+from user_profiles.tasks import send_push_notification
 
 
 @sync_to_async
@@ -48,18 +50,44 @@ async def async_get_object_or_404(model_or_queryset, *args, **kwargs):
     :param kwargs: Именованные аргументы для фильтрации.
     :return: Найденный объект.
     """
-    # Если klass является QuerySet-ом, используем его, иначе получаем менеджер модели.
     queryset = model_or_queryset if hasattr(model_or_queryset, 'filter') else model_or_queryset._default_manager.filter()
     queryset = queryset.filter(*args, **kwargs)
 
     try:
-        # Асинхронно получаем объект.
         obj = await queryset.aget()
+
     except queryset.model.DoesNotExist:
-        # return redirect('404')
         raise Http404(f'No {queryset.model._meta.object_name} matches the given query.')
 
     return obj
+
+
+async def async_get_or_create_object(model_or_queryset, *args, defaults=None, **kwargs):
+    """
+    Асинхронная версия get_object_or_create, которая при отсутствии объекта создаёт его.
+
+    :param model_or_queryset: Модель или QuerySet, в котором производится поиск.
+    :param args: Позиционные аргументы для фильтрации.
+    :param defaults: Словарь значений по умолчанию для создания объекта, если его нет.
+    :param kwargs: Именованные аргументы для фильтрации.
+    :return: Найденный или созданный объект.
+    :raises Http404: Если объект не найден и создать его не удалось.
+    """
+    queryset = model_or_queryset if hasattr(model_or_queryset, 'filter') else model_or_queryset._default_manager.filter()
+    queryset = queryset.filter(*args, **kwargs)
+
+    try:
+        obj = await queryset.aget()
+        return obj
+
+    except queryset.model.DoesNotExist:
+        create_data = {}
+        if defaults:
+            create_data.update(defaults)
+        create_data.update(kwargs)
+
+        obj = await model_or_queryset._default_manager.acreate(**create_data)
+        return obj
 
 
 class AsyncLoginRequiredMixin(AccessMixin):
@@ -238,34 +266,88 @@ class TrashRestoreAllView(AsyncLoginRequiredMixin, View):
 
 class BoardView(AsyncLoginRequiredMixin, View):
     async def get(self, request, url_hash):
+        user = await get_request_user(request)
+        board = await async_get_object_or_404(Board, user=user, url_hash=url_hash)
 
         context = {
+            'board': board,
         }
 
-        return await render_sync(request, 'boards/board.html', context)
+        return await render_sync(request, 'boards/board_test.html', context)
 
 
-# class BoardView(APIView):
-#     async def get(self, request, username, board_name):
-#         user = await async_get_object_or_404(User, username=username)
-#         board = await async_get_object_or_404(Board, user=user, name=board_name)
-#
-#         access_users_count = await board.access_users.acount()
-#         sync_mode = 'direct' if access_users_count == 0 else 'shared'
-#
-#         return Response({
-#             'board_id': board.id,
-#             'board_value': board.board_value,
-#             'sync_mode': sync_mode
-#         })
-#
-#     async def post(self, request, username, board_name):
-#         user = await async_get_object_or_404(User, username=username)
-#         board = await async_get_object_or_404(Board, user=user, name=board_name)
-#
-#         board_state = request.data.get('board_value')
-#         board.board_value = board_state
-#         # Асинхронное сохранение состояния доски (Django 5 поддерживает asave)
-#         await board.asave()
-#
-#         return Response({'status': 'Доска успешно обновлена'})
+class AsyncShareView(AsyncLoginRequiredMixin, View):
+    async def get(self, request):
+        user = await get_request_user(request)
+
+        try:
+            offset = int(request.GET.get('offset', 0))
+        except ValueError:
+            offset = 0
+        try:
+            limit = int(request.GET.get('limit', 10))
+        except ValueError:
+            limit = 10
+
+        list_type = request.GET.get('type')
+        search = request.GET.get('search', '').strip()
+
+        if search:
+            base_qs = User.objects.filter(username__icontains=search).exclude(pk=user.pk)
+        else:
+            sub_obj = await async_get_or_create_object(Subscription, user=user)
+            if list_type == 'subscriptions':
+                base_qs = sub_obj.subscriptions.all()
+            else:
+                base_qs = sub_obj.subscribers.all()
+
+        qs = base_qs.order_by('username')[offset:offset+limit]
+
+        result = []
+        async for user_i in qs.aiterator():
+            profile = await async_get_or_create_object(UserProfile, user=user_i)
+            avatar = profile.avatar.url if profile and profile.avatar else None
+            result.append({
+                'id': user_i.id,
+                'username': user_i.username,
+                'avatar': avatar,
+            })
+
+        has_more = await base_qs.order_by('username')[offset + limit:offset + limit + 1].aexists()
+
+        return JsonResponse({'results': result, 'has_more': has_more, }, safe=False)
+
+
+class AsyncInviteView(AsyncLoginRequiredMixin, View):
+    async def post(self, request, *args, **kwargs):
+        sender = await get_request_user(request)
+
+        try:
+            data = json.loads(request.body)
+            print(data)
+            to_user_id = int(data['user_id'])
+            to_username = data['user'].strip()
+        except (ValueError, KeyError, json.JSONDecodeError):
+            return HttpResponseBadRequest('Неправильный формат запроса')
+
+        try:
+            to_user = await User.objects.aget(pk=to_user_id, username=to_username)
+        except User.DoesNotExist:
+            return HttpResponseBadRequest('Пользователь не найден')
+
+        message = f'Пользователь {sender.username} приглашает вас принять участие в доске'
+        level = 'warning'
+
+        notif = await Notification.objects.acreate(
+            user=to_user,
+            message=message,
+            level=level,
+        )
+
+        send_push_notification.delay([notif.id])
+
+        return JsonResponse({
+            'status': 'ok',
+            'notification_id': notif.id,
+            'message': 'Приглашение отправлено'
+        })

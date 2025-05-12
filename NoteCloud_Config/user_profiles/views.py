@@ -46,15 +46,13 @@ async def async_get_object_or_404(model_or_queryset, *args, **kwargs):
     :param kwargs: Именованные аргументы для фильтрации.
     :return: Найденный объект.
     """
-    # Если klass является QuerySet-ом, используем его, иначе получаем менеджер модели.
     queryset = model_or_queryset if hasattr(model_or_queryset, 'filter') else model_or_queryset._default_manager.filter()
     queryset = queryset.filter(*args, **kwargs)
 
     try:
-        # Асинхронно получаем объект.
         obj = await queryset.aget()
+
     except queryset.model.DoesNotExist:
-        # return redirect('404')
         raise Http404(f'No {queryset.model._meta.object_name} matches the given query.')
 
     return obj
@@ -71,21 +69,19 @@ async def async_get_or_create_object(model_or_queryset, *args, defaults=None, **
     :return: Найденный или созданный объект.
     :raises Http404: Если объект не найден и создать его не удалось.
     """
-    # Если передан QuerySet, используем его, иначе получаем менеджер модели
     queryset = model_or_queryset if hasattr(model_or_queryset, 'filter') else model_or_queryset._default_manager.filter()
     queryset = queryset.filter(*args, **kwargs)
 
     try:
-        # Пытаемся асинхронно получить объект
         obj = await queryset.aget()
         return obj
+
     except queryset.model.DoesNotExist:
-        # Подготавливаем данные для создания объекта
         create_data = {}
         if defaults:
             create_data.update(defaults)
         create_data.update(kwargs)
-        # Создаём объект асинхронно
+
         obj = await model_or_queryset._default_manager.acreate(**create_data)
         return obj
 

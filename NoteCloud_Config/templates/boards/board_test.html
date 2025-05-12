@@ -1,0 +1,291 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Conote | Доска '{{ board.name }}'</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/konva/8.4.3/konva.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            touch-action: none;
+        }
+        #container {
+            width: 100%;
+            height: 100%;
+            background-color: #f8f8f8;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #ui_toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: opacity 0.2s ease;
+        }
+        #ui_toolbar.inactive {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        #ui_toolbar button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        #zoom-controls {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+        #zoom-level {
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+        .ui_block_pos {
+            overscroll-behavior-x: contain;
+        }
+        #draw-settings {
+            position: absolute;
+            top: 100px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            display: none;
+        }
+        #shape-settings {
+            position: absolute;
+            top: 100px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            display: none;
+        }
+        #draw-settings label {
+            display: block;
+            margin: 5px 0;
+        }
+        #draw-settings input {
+            margin: 5px 0;
+        }
+        .color-preview {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ccc;
+            vertical-align: middle;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        .line-preview {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .line-preview-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .line-preview-outer {
+            position: absolute;
+            border-radius: 50%;
+            background-color: white;
+            border: 1px solid #ccc;
+        }
+        .line-preview-inner {
+            position: absolute;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+        #line-color {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #json-output {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: #fff;
+            padding: 10px;
+            border: 1px solid #000;
+            z-index: 9999;
+            font-family: monospace;
+            white-space: pre;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 400px;
+            resize: both;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        #json-output div {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        #toggle_share {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 200;
+        }
+        #toggle_share.active {
+            background: #0056b3;
+        }
+        #share_panel {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            width: 200px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 200;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        #share_panel.show {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #share_panel .share-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        #share_panel .share-item .avatar {
+          width: 24px;
+          height: 24px;
+          flex-shrink: 0;
+          overflow: hidden;
+          border-radius: 50%;
+        }
+        #share_panel .share-item .avatar img,
+        #share_panel .share-item .avatar svg {
+          width: 24px;
+          height: 24px;
+          display: block;
+        }
+        #share_panel .share-item .username {
+          margin-left: 8px;
+          font-size: 14px;
+          line-height: 1;
+        }
+        #share_panel .share-item .invite-btn {
+          margin-left: auto;
+          padding: 4px 8px;
+          font-size: 13px;
+          cursor: pointer;
+        }
+        .spinner {
+          width: 24px; height: 24px;
+          border: 3px solid #ccc;
+          border-top-color: #007bff;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+          margin: 10px auto;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    <div id="ui_toolbar" class="ui_block_pos">
+        <button id="panselect-toggle">Select</button>
+        <button id="toggle-draw" data-mode="draw">Draw</button>
+        <button id="toggle-shapes" data-mode="shapes">Shapes</button>
+        <div id="zoom-controls">
+            <button id="zoom-in">+</button>
+            <button id="zoom-out">-</button>
+            <button id="zoom-reset">Reset</button>
+            <input id="zoom-input" value="100" style="width: 60px;cursor: pointer; font-size: 16px;" type="text" inputmode="numeric" pattern="[0-9]*"/> %
+        </div>
+        <button id="go-home">Home</button>
+        <div id="mode-info"></div>
+    </div>
+
+    <button id="toggle_share">Share</button>
+
+    <div id="share_panel">
+        <p>Поделиться доской:</p>
+
+        <!-- Поле поиска -->
+        <input type="text" id="share-search" placeholder="Поиск по нику…" />
+
+        <!-- Навигация по спискам -->
+        <div id="share-tabs">
+            <button data-type="subscriptions" class="share-tab active">Подписки</button>
+            <button data-type="subscribers" class="share-tab">Подписчики</button>
+        </div>
+
+        <!-- Контейнеры списков -->
+        <div id="share-list"></div>
+        <div id="share-spinner" style="display:none;">
+          <div class="spinner"></div>
+        </div>
+        <button id="share-load-more" style="display: none;">Загрузить ещё</button>
+    </div>
+
+    <div id="draw-settings">
+        <div class="line-preview">
+            <div class="line-preview-container" id="color-picker">
+                <div class="line-preview-outer" id="line-preview-outer"></div>
+                <div class="line-preview-inner" id="line-preview-inner"></div>
+                <input type="color" id="line-color" value="#000000">
+            </div>
+        </div>
+        <label>
+            Толщина линии:
+            <input type="range" id="line-width" min="1" max="20" value="5">
+            <span id="width-value">5</span>px
+        </label>
+    </div>
+
+    <div id="shape-settings">
+        <div>
+            <button id="shape-rect">Rectangle</button>
+            <button id="shape-circle">Circle</button>
+            <button id="shape-triangle">Triangle</button>
+        </div>
+    </div>
+
+    <div id="container"></div>
+
+    <script src="{% static 'boards/js/board_test.js' %}"></script>
+</body>
+</html>
