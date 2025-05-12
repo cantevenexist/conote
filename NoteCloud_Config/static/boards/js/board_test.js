@@ -4,7 +4,16 @@ function getCookie(name) {
 }
 
 
+function getBoardHashFromUrl() {
+    // Разбиваем путь на сегменты, убираем пустые
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    // Последний сегмент — это url_hash
+    return parts[parts.length - 1];
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
+    const BOARD_URL_HASH = getBoardHashFromUrl();
     const toggleBtn = document.getElementById('toggle_share');
     const panel = document.getElementById('share_panel');
     const searchInp = document.getElementById('share-search');
@@ -134,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const csrftoken = getCookie('csrftoken');
-            const resp = await fetch('/workspace/api/invite/', {
+            const resp = await fetch(`/workspace/api/invite/${BOARD_URL_HASH}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -142,10 +151,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                  body: JSON.stringify(payload),
             });
-            if (!resp.ok) throw new Error(`Server error: ${resp.status}`);
             const data = await resp.json();
-            console.log('Notification created:', data);
-            // можно показать какое-нибудь подтверждение
+            if (data.status === 'error') {
+                // Сервер вернул оставшееся время
+                const retry = data.retry_after;
+                btn.classList.add('cooldown');
+                setTimeout(() => btn.classList.remove('cooldown'), retry * 1000);
+                alert(data.message);
+            } else {
+                // Успех — запускаем таймер на продолжительность cooldown
+                btn.classList.add('cooldown');
+                setTimeout(() => btn.classList.remove('cooldown'), data.cooldown * 1000);
+            }
         } catch (err) {
             console.error(err);
             alert('Не удалось отправить приглашение');

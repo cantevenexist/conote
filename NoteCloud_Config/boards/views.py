@@ -19,6 +19,9 @@ from django.db import transaction
 import json
 from user_profiles.models import Subscription, UserProfile, Notification
 from user_profiles.tasks import send_push_notification
+from django.core.cache import cache
+from django.utils import timezone
+from channels.db import database_sync_to_async
 
 
 @sync_to_async
@@ -319,35 +322,54 @@ class AsyncShareView(AsyncLoginRequiredMixin, View):
 
 
 class AsyncInviteView(AsyncLoginRequiredMixin, View):
-    async def post(self, request, *args, **kwargs):
+    async def post(self, request, url_hash, *args, **kwargs):
         sender = await get_request_user(request)
+        board = await async_get_object_or_404(Board, user=sender, url_hash=url_hash)
 
         try:
             data = json.loads(request.body)
-            print(data)
             to_user_id = int(data['user_id'])
             to_username = data['user'].strip()
         except (ValueError, KeyError, json.JSONDecodeError):
-            return HttpResponseBadRequest('Неправильный формат запроса')
+            raise Http404('При приглашении другого пользователя возникла ошибка: "Неправильный формат запроса"')
 
-        try:
-            to_user = await User.objects.aget(pk=to_user_id, username=to_username)
-        except User.DoesNotExist:
-            return HttpResponseBadRequest('Пользователь не найден')
+        to_user = await async_get_object_or_404(User, pk=to_user_id, username=to_username)
 
-        message = f'Пользователь {sender.username} приглашает вас принять участие в доске'
-        level = 'warning'
+        cache_key = f'invite_cooldown:{sender.id}:{to_user.id}:{board.id}'
+        last = cache.get(cache_key)
+        if last:
+            retry_after = int(60 - (timezone.now() - last).total_seconds())
+            return JsonResponse({
+                'status': 'error',
+                'retry_after': retry_after,
+                'message': f'Подождите еще {retry_after} сек. перед повторным приглашением'
+            })
 
+        cache.set(cache_key, timezone.now(), 60)
+
+        message = (
+            f'📝 Пользователь <b>{sender.username}</b> приглашает вас присоединиться к доске '
+            f'<i>"{board.name}"</i>.'
+        )
         notif = await Notification.objects.acreate(
             user=to_user,
             message=message,
-            level=level,
+            level='warning',
         )
+
+        notif_html = (
+            f'{message}<br>'
+            f'<button class="notif-accept" data-notif-id="{notif.id}">Принять</button> '
+            f'<button class="notif-decline" data-notif-id="{notif.id}">Отменить</button>'
+        )
+        notif.message = notif_html
+        await database_sync_to_async(notif.save)(update_fields=['message'])
 
         send_push_notification.delay([notif.id])
 
         return JsonResponse({
             'status': 'ok',
             'notification_id': notif.id,
-            'message': 'Приглашение отправлено'
+            'message': 'Приглашение отправлено',
+            'cooldown': 60
         })
