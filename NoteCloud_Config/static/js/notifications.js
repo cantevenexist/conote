@@ -106,3 +106,44 @@ async function markAsRead(id, el) {
         updateUnreadCount();
     }
 }
+
+
+document.addEventListener('click', async e => {
+    // «Принять»
+    let btn = e.target.closest('.notif-accept');
+    if (btn) {
+        const url = btn.dataset.url;
+        try {
+            // просто переходим по ссылке — сервер вернёт редирект на доску
+            window.location.href = url;
+        } catch {
+            alert('Не удалось принять приглашение');
+        }
+        removeButtons(btn);
+        return;
+    }
+
+    // «Отменить»
+    btn = e.target.closest('.notif-decline');
+    if (btn) {
+        const url = btn.dataset.url;
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            if (!resp.ok) throw '';
+        } catch {
+            alert('Не удалось отменить приглашение');
+        }
+        removeButtons(btn);
+    }
+});
+
+// удаляем обе кнопки из нотификации
+function removeButtons(buttonClicked) {
+    const container = buttonClicked.closest('.notification');
+    if (!container) return;
+    container.querySelectorAll('button.notif-accept, button.notif-decline')
+        .forEach(b => b.remove());
+}

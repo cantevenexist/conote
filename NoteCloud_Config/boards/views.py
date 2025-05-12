@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .models import Board, Trash
+from .models import Board, Trash, Invitation
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
@@ -22,6 +22,9 @@ from user_profiles.tasks import send_push_notification
 from django.core.cache import cache
 from django.utils import timezone
 from channels.db import database_sync_to_async
+from django.urls import reverse
+from django.db import models
+import re
 
 
 @sync_to_async
@@ -357,10 +360,17 @@ class AsyncInviteView(AsyncLoginRequiredMixin, View):
             level='warning',
         )
 
+        invitation = await Invitation.objects.acreate(board=board, invited_user=to_user, sender=sender)
+        accept_url = request.build_absolute_uri(
+            reverse('invite_accept', kwargs={'token': invitation.token}) + f'?notif_id={notif.id}'
+        )
+        decline_url = request.build_absolute_uri(
+            reverse('invite_decline', kwargs={'token': invitation.token}) + f'?notif_id={notif.id}'
+        )
         notif_html = (
             f'{message}<br>'
-            f'<button class="notif-accept" data-notif-id="{notif.id}">Принять</button> '
-            f'<button class="notif-decline" data-notif-id="{notif.id}">Отменить</button>'
+            f'<button class="notif-accept" data-url="{accept_url}">Принять</button> '
+            f'<button class="notif-decline" data-url="{decline_url}">Отменить</button>'
         )
         notif.message = notif_html
         await database_sync_to_async(notif.save)(update_fields=['message'])
@@ -373,3 +383,69 @@ class AsyncInviteView(AsyncLoginRequiredMixin, View):
             'message': 'Приглашение отправлено',
             'cooldown': 60
         })
+
+
+def _remove_buttons_for_notification(notif_id):
+    try:
+        notif = Notification.objects.get(pk=notif_id)
+    except Notification.DoesNotExist:
+        return
+    clean_msg = re.sub(r'<button[^>]*>.*?</button>', '', notif.message, flags=re.S)
+    notif.message = clean_msg
+    notif.save(update_fields=['message'])
+
+
+class InvitationAcceptView(AsyncLoginRequiredMixin, View):
+    async def get(self, request, token):
+        invitation = await async_get_object_or_404(
+            Invitation.objects.select_related('board', 'invited_user'),
+            token=token
+        )
+
+        user = await get_request_user(request)
+        if invitation.used or user != invitation.invited_user:
+            raise Http404()
+
+        await database_sync_to_async(invitation.board.access_users.add)(user)
+        await database_sync_to_async(invitation.mark_used)()
+
+        try:
+            notif_id = int(request.GET.get('notif_id'))
+        except (ValueError, KeyError, json.JSONDecodeError):
+            raise Http404('При принятии приглашения возникла ошибка: "Неправильный формат запроса"')
+        if notif_id:
+            await database_sync_to_async(_remove_buttons_for_notification)(notif_id)
+
+        return redirect('board_view', url_hash=invitation.board.url_hash)
+
+
+class InvitationDeclineView(AsyncLoginRequiredMixin, View):
+    async def post(self, request, token):
+        invitation = await async_get_object_or_404(
+            Invitation.objects.select_related('board', 'invited_user', 'sender'),
+            token=token
+        )
+
+        user = await get_request_user(request)
+        if invitation.used or user != invitation.invited_user:
+            raise Http404()
+
+        await database_sync_to_async(invitation.mark_used)()
+
+        text = (
+            f'❌ <b>{user.username}</b> отклонил приглашение на доску '
+            f'"{invitation.board.name}".'
+        )
+        notif = await Notification.objects.acreate(
+            user=invitation.sender, message=text, level='info'
+        )
+        send_push_notification.delay([notif.id])
+
+        try:
+            notif_id = int(request.GET.get('notif_id'))
+        except (ValueError, KeyError, json.JSONDecodeError):
+            raise Http404('При отмене приглашения возникла ошибка: "Неправильный формат запроса"')
+        if notif_id:
+            await database_sync_to_async(_remove_buttons_for_notification)(notif_id)
+
+        return JsonResponse({'status': 'ok'})

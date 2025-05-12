@@ -14,4 +14,6 @@ urlpatterns = [
     path('<str:url_hash>/', views.BoardView.as_view(), name='board_view'),
     path('api/sub_and_users/', views.AsyncShareView.as_view(), name='api_sub_and_users'),
     path('api/invite/<str:url_hash>/', views.AsyncInviteView.as_view(), name='api_invite'),
+    path('invite/accept/<uuid:token>/', views.InvitationAcceptView.as_view(), name='invite_accept'),
+    path('invite/decline/<uuid:token>/', views.InvitationDeclineView.as_view(), name='invite_decline'),
 ]

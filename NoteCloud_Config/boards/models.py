@@ -5,6 +5,7 @@ from user_profiles.models import PremiumSubscription
 import uuid
 import time
 import hashlib
+from django.utils import timezone
 
 
 class Board(models.Model):
@@ -46,3 +47,18 @@ class Trash(models.Model):
 
     def __str__(self):
         return f"Доска {self.name} удалена"
+
+
+class Invitation(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='invitations')
+    invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitations_received')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitations_sent')
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    def mark_used(self):
+        self.used = True
+        self.used_at = timezone.now()
+        self.save(update_fields=['used', 'used_at'])
