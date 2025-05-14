@@ -17,12 +17,12 @@
         {% if boards %}
             {% for board in boards %}
                 <div class="board_item"
-                     data-favorites="{{ board.favorites }}"
+                     data-favorites="{{ board.fav }}"
                      data-updated="{{ board.updated_at|date:'Y-m-d H:i:s' }}">
                     <a href="/workspace/{{ board.url_hash }}/" class="board_link"></a>
                     <button class="popup-btn">☰</button>
                     <div class="popup">
-                        {% if board.favorites %}
+                        {% if board.fav %}
                             <button class="favorite-btn" data-url_hash="{{ board.url_hash }}">Удалить из избранного</button>
                         {% else %}
                             <button class="favorite-btn" data-url_hash="{{ board.url_hash }}">Добавить в избранное</button>

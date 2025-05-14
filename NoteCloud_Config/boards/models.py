@@ -16,7 +16,7 @@ class Board(models.Model):
     access_users = models.ManyToManyField(User, blank=True, related_name='accessible_boards')
     board_value = models.TextField(blank=True)
     url_hash = models.CharField(max_length=64, unique=True, blank=True, null=True)
-    favorites = models.BooleanField(default=False)
+    favorites = models.ManyToManyField(User, blank=True, related_name='favorite_boards')
 
     def clean(self):
         subscription = PremiumSubscription.objects.get(user=self.user)
@@ -42,7 +42,6 @@ class Trash(models.Model):
     updated_at = models.DateTimeField(null=False)
     board_value = models.TextField(blank=True, null=True)
     url_hash = models.CharField(max_length=64, unique=True, blank=True, null=False)
-    favorites = models.BooleanField(null=False)
     deleted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

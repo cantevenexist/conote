@@ -246,18 +246,18 @@
     <button id="toggle_share">Share</button>
 
     <div id="share_panel">
-        <p>Поделиться доской:</p>
+        <p>Поделиться доской</p>
 
-        <!-- Поле поиска -->
+        <label for="invite-link">Ссылка-приглашение:</label>
+        <input type="text" id="invite-link" readonly value="{{ invite_url }}" style="width: 100%; margin-bottom: 1em;"/>
+
         <input type="text" id="share-search" placeholder="Поиск по нику…" />
 
-        <!-- Навигация по спискам -->
         <div id="share-tabs">
             <button data-type="subscriptions" class="share-tab active">Подписки</button>
             <button data-type="subscribers" class="share-tab">Подписчики</button>
         </div>
 
-        <!-- Контейнеры списков -->
         <div id="share-list"></div>
         <div id="share-spinner" style="display:none;">
           <div class="spinner"></div>

@@ -12,7 +12,7 @@ from django.views import View
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.mixins import AccessMixin
 from django.urls import reverse_lazy
-from django.db.models import Case, When, Value, IntegerField, Q
+from django.db.models import Case, When, Value, IntegerField, Q, Exists, OuterRef
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.template.loader import render_to_string
 from django.db import transaction
@@ -116,13 +116,27 @@ class AsyncLoginRequiredMixin(AccessMixin):
 class BoardsView(AsyncLoginRequiredMixin, View):
     async def get(self, request):
         user = await get_request_user(request)
-        boards_qs = Board.objects.filter(Q(user=user) | Q(access_users=user)).annotate(
-            fav_order=Case(
-                When(favorites=True, then=Value(0)),
-                default=Value(1),
-                output_field=IntegerField()
+        fav_exists = Exists(
+            Board.favorites.through.objects.filter(
+                board_id=OuterRef('pk'),
+                user_id=user.pk
             )
-        ).order_by('fav_order', '-updated_at').values('name', 'url_hash', 'updated_at', 'user__username', 'favorites')
+        )
+
+        boards_qs = (
+            Board.objects
+            .filter(Q(user=user) | Q(access_users=user))
+            .annotate(
+                is_fav=Case(
+                    When(fav_exists, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                ),
+                fav=fav_exists
+            )
+            .order_by('is_fav', '-updated_at')
+            .values('name', 'url_hash', 'updated_at', 'user__username', 'fav')
+        )
         boards = [board async for board in boards_qs]
 
         context = {
@@ -139,7 +153,7 @@ class BoardsView(AsyncLoginRequiredMixin, View):
 
         html = f'''
                 <div class="board_item"
-                     data-favorites="{board.favorites}"
+                     data-favorites="false"
                      data-updated="{hidden_updated_at_str}">
                     <a href="/workspace/{board.url_hash}/" class="board_link"></a>
                     <button class="popup-btn">☰</button>
@@ -161,6 +175,8 @@ class BoardsView(AsyncLoginRequiredMixin, View):
 
         board = await async_get_object_or_404(Board.objects.select_related('user'), url_hash=url_hash, user=user)
 
+        await database_sync_to_async(board.favorites.clear)()
+
         await Trash.objects.acreate(
             user=board.user,
             name=board.name,
@@ -168,7 +184,6 @@ class BoardsView(AsyncLoginRequiredMixin, View):
             updated_at=board.updated_at,
             board_value=board.board_value,
             url_hash=board.url_hash,
-            favorites=board.favorites,
         )
         await board.adelete()
 
@@ -177,12 +192,24 @@ class BoardsView(AsyncLoginRequiredMixin, View):
     async def patch(self, request, url_hash):
         user = await get_request_user(request)
 
-        board = await async_get_object_or_404(Board.objects.select_related('user'), url_hash=url_hash, user=user)
+        board = await async_get_object_or_404(
+            Board.objects.select_related('user').prefetch_related('access_users', 'favorites'),
+            url_hash=url_hash,
+        )
 
-        board.favorites = not board.favorites
-        await board.asave()
+        if board.user != user:
+            has_access = await board.access_users.filter(pk=user.pk).aexists()
+            if not has_access:
+                raise Http404('При добавлении доски в избранное возникла ошибка: "Нет доступа к доске"')
 
-        return JsonResponse({'status': 'success', 'favorites': board.favorites})
+        if await board.favorites.filter(pk=user.pk).aexists():
+            await database_sync_to_async(board.favorites.remove)(user)
+            is_fav = False
+        else:
+            await database_sync_to_async(board.favorites.add)(user)
+            is_fav = True
+
+        return JsonResponse({'status': 'success', 'favorites': is_fav})
 
     async def put(self, request, url_hash):
         user = await get_request_user(request)
@@ -201,13 +228,11 @@ class BoardsView(AsyncLoginRequiredMixin, View):
 class TrashView(AsyncLoginRequiredMixin, View):
     async def get(self, request):
         user = await get_request_user(request)
-        boards_qs = Trash.objects.filter(user=user).annotate(
-            fav_order=Case(
-                When(favorites=True, then=Value(0)),
-                default=Value(1),
-                output_field=IntegerField()
-            )
-        ).order_by('fav_order', '-updated_at').values('name', 'url_hash', 'updated_at', 'user__username', 'deleted_at', 'favorites')
+        boards_qs = (
+            Trash.objects
+            .filter(user=user)
+            .order_by('-deleted_at', '-updated_at').values('name', 'url_hash', 'deleted_at', 'updated_at',)
+        )
         boards = [board async for board in boards_qs]
 
         context = {
@@ -236,7 +261,6 @@ class TrashView(AsyncLoginRequiredMixin, View):
             updated_at=board.updated_at,
             board_value=board.board_value,
             url_hash=board.url_hash,
-            favorites=board.favorites,
         )
         await board.adelete()
 
@@ -275,8 +299,12 @@ class BoardView(AsyncLoginRequiredMixin, View):
         user = await get_request_user(request)
         board = await async_get_object_or_404(Board, user=user, url_hash=url_hash)
 
+        path = reverse('invite_users', kwargs={'url_hash': board.url_hash})
+        invite_url = request.build_absolute_uri(path)
+
         context = {
             'board': board,
+            'invite_url': invite_url,
         }
 
         return await render_sync(request, 'boards/board_test.html', context)
@@ -398,15 +426,21 @@ def _remove_buttons_for_notification(notif_id):
 class InvitationAcceptView(AsyncLoginRequiredMixin, View):
     async def get(self, request, token):
         invitation = await async_get_object_or_404(
-            Invitation.objects.select_related('board', 'invited_user'),
+            Invitation.objects.select_related('board__user', 'invited_user'),
             token=token
         )
 
         user = await get_request_user(request)
-        if invitation.used or user != invitation.invited_user:
-            raise Http404()
+        if invitation.used:
+            raise Http404('При принятии приглашения возникла ошибка: "Приглашение уже было использовано"')
+        if user == invitation.invited_user:
+            target = invitation.invited_user
+        elif user == invitation.board.user:
+            target = invitation.invited_user
+        else:
+            raise Http404('При принятии приглашения возникла ошибка: "Нет доступа к приглашению"')
 
-        await database_sync_to_async(invitation.board.access_users.add)(user)
+        await database_sync_to_async(invitation.board.access_users.add)(target)
         await database_sync_to_async(invitation.mark_used)()
 
         try:
@@ -422,22 +456,32 @@ class InvitationAcceptView(AsyncLoginRequiredMixin, View):
 class InvitationDeclineView(AsyncLoginRequiredMixin, View):
     async def post(self, request, token):
         invitation = await async_get_object_or_404(
-            Invitation.objects.select_related('board', 'invited_user', 'sender'),
+            Invitation.objects.select_related('board__user', 'invited_user', 'sender'),
             token=token
         )
 
         user = await get_request_user(request)
-        if invitation.used or user != invitation.invited_user:
-            raise Http404()
+        if invitation.used:
+            raise Http404('При отмене приглашения возникла ошибка: "Приглашение уже было использовано"')
+        if user == invitation.invited_user:
+            notify_to = invitation.board.user
+            text = (
+                f'❌ <b>{invitation.invited_user.username}</b> отклонил ваше приглашение '
+                f'на доску "<i>{invitation.board.name}</i>".'
+            )
+        elif user == invitation.board.user:
+            notify_to = invitation.invited_user
+            text = (
+                f'❌ Владелец доски "<i>{invitation.board.name}</i>" отклонил ваш запрос '
+                f'на присоединение.'
+            )
+        else:
+            raise Http404('При отмене приглашения возникла ошибка: "Нет доступа к приглашению"')
 
         await database_sync_to_async(invitation.mark_used)()
 
-        text = (
-            f'❌ <b>{user.username}</b> отклонил приглашение на доску '
-            f'"{invitation.board.name}".'
-        )
         notif = await Notification.objects.acreate(
-            user=invitation.sender, message=text, level='info'
+            user=notify_to, message=text, level='info'
         )
         send_push_notification.delay([notif.id])
 
@@ -449,3 +493,62 @@ class InvitationDeclineView(AsyncLoginRequiredMixin, View):
             await database_sync_to_async(_remove_buttons_for_notification)(notif_id)
 
         return JsonResponse({'status': 'ok'})
+
+
+class AsyncInviteLinkView(AsyncLoginRequiredMixin, View):
+    async def get(self, request, url_hash, *args, **kwargs):
+        visitor = await get_request_user(request)
+
+        board = await async_get_object_or_404(Board.objects.select_related('user').prefetch_related('access_users'),
+                                              url_hash=url_hash
+                                              )
+
+        if visitor == board.user or await sync_to_async(board.access_users.filter(pk=visitor.pk).exists)():
+            return redirect('board_view', url_hash=board.url_hash)
+
+        cache_key = f'invite_link_cooldown:{visitor.id}:{board.id}'
+        last = cache.get(cache_key)
+        if last:
+            retry_after = int(60 - (timezone.now() - last).total_seconds())
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Пожалуйста, подождите ещё {retry_after} сек. перед повторной отправкой'
+            }, status=429)
+        cache.set(cache_key, timezone.now(), 60)
+
+        message = (
+            f'🔗 Пользователь <b>{visitor.username}</b> хочет присоединиться к вашей доске '
+            f'<i>"{board.name}"</i>.'
+        )
+        notif = await Notification.objects.acreate(
+            user=board.user,
+            message=message,
+            level='warning',
+        )
+
+        invitation = await Invitation.objects.acreate(
+            board=board,
+            invited_user=visitor,
+            sender=visitor
+        )
+
+        accept_url = request.build_absolute_uri(
+            reverse('invite_accept', kwargs={'token': invitation.token})
+            + f'?notif_id={notif.id}'
+        )
+        decline_url = request.build_absolute_uri(
+            reverse('invite_decline', kwargs={'token': invitation.token})
+            + f'?notif_id={notif.id}'
+        )
+
+        notif_html = (
+            f'{message}<br>'
+            f'<button class="notif-accept" data-url="{accept_url}">Принять</button> '
+            f'<button class="notif-decline" data-url="{decline_url}">Отменить</button>'
+        )
+        notif.message = notif_html
+        await sync_to_async(notif.save)(update_fields=['message'])
+
+        send_push_notification.delay([notif.id])
+
+        return redirect('/workspace')
