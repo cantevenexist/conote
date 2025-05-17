@@ -25,6 +25,10 @@ from channels.db import database_sync_to_async
 from django.urls import reverse
 from django.db import models
 import re
+import hashlib
+import uuid
+from datetime import datetime
+from django.http import HttpResponse, HttpResponseNotFound
 
 
 @sync_to_async
@@ -297,17 +301,22 @@ class TrashRestoreAllView(AsyncLoginRequiredMixin, View):
 class BoardView(AsyncLoginRequiredMixin, View):
     async def get(self, request, url_hash):
         user = await get_request_user(request)
-        board = await async_get_object_or_404(Board, user=user, url_hash=url_hash)
+        board = await async_get_object_or_404(Board.objects.select_related('user').prefetch_related('access_users'),
+                                              url_hash=url_hash
+                                              )
 
-        path = reverse('invite_users', kwargs={'url_hash': board.url_hash})
-        invite_url = request.build_absolute_uri(path)
+        if user == board.user or await sync_to_async(board.access_users.filter(pk=user.pk).exists)():
+            path = reverse('invite_users', kwargs={'url_hash': board.url_hash})
+            invite_url = request.build_absolute_uri(path)
 
-        context = {
-            'board': board,
-            'invite_url': invite_url,
-        }
+            context = {
+                'board': board,
+                'invite_url': invite_url,
+            }
 
-        return await render_sync(request, 'boards/board_test.html', context)
+            return await render_sync(request, 'boards/board_test.html', context)
+        else:
+            raise Http404('При входе на доску возникла ошибка: "Нет доступа"')
 
 
 class AsyncShareView(AsyncLoginRequiredMixin, View):
@@ -552,3 +561,46 @@ class AsyncInviteLinkView(AsyncLoginRequiredMixin, View):
         send_push_notification.delay([notif.id])
 
         return redirect('/workspace')
+
+
+class GenerateIdView(AsyncLoginRequiredMixin, View):
+    async def post(self, request):
+        try:
+            data = json.loads(request.body)
+            url_hash = data.get('url_hash')
+            object_type = data.get('object_type')
+
+            if not url_hash or not object_type:
+                return JsonResponse({'error': 'url_hash and object_type are required'}, status=400)
+
+            timestamp = datetime.now().isoformat()
+            unique_id = str(uuid.uuid4())
+
+            hash_input = f"{url_hash}{object_type}{timestamp}{unique_id}".encode('utf-8')
+            generated_id = hashlib.sha256(hash_input).hexdigest()
+
+            return JsonResponse({'id': generated_id})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+class BoardDataView(View):
+    def get(self, request, url_hash):
+        try:
+            board = Board.objects.get(url_hash=url_hash)
+            if not board.board_value:
+                return HttpResponseNotFound()
+
+            # Check permissions
+            user = request.user
+            if user != board.user and user not in board.access_users.all():
+                return HttpResponse(status=403)
+
+            response = HttpResponse(board.board_value, content_type='application/json')
+            response['Content-Disposition'] = f'attachment; filename="{url_hash}.json"'
+            return response
+        except Board.DoesNotExist:
+            return HttpResponseNotFound()

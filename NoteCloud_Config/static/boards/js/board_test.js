@@ -3,1278 +3,1171 @@ function getCookie(name) {
     return value ? decodeURIComponent(value) : null;
 }
 
-
-function getBoardHashFromUrl() {
-    // Разбиваем путь на сегменты, убираем пустые
-    const parts = window.location.pathname.split('/').filter(Boolean);
-    // Последний сегмент — это url_hash
-    return parts[parts.length - 1];
-}
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    const BOARD_URL_HASH = getBoardHashFromUrl();
-    const toggleBtn = document.getElementById('toggle_share');
-    const panel = document.getElementById('share_panel');
-    const searchInp = document.getElementById('share-search');
-    const tabs = document.querySelectorAll('.share-tab');
-    const listBox = document.getElementById('share-list');
-    const spinner = document.getElementById('share-spinner');
-    const loadMore = document.getElementById('share-load-more');
-
-    let currentType = 'subscriptions';
-    let offset = 0;
-    const limit = 10;
-    let lastSearch = '';
-
-    // default-avatar SVG
-    const defaultAvatar = `<svg  width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g id="System / Camera">
-                            <path id="Vector" d="M9.48898 7H6.2002C5.08009 7 4.51962 7 4.0918 7.21799C3.71547 7.40973 3.40973 7.71547 3.21799 8.0918C3 8.51962 3 9.08009 3 10.2002V15.8002C3 16.9203 3 17.4796 3.21799 17.9074C3.40973 18.2837 3.71547 18.5905 4.0918 18.7822C4.5192 19 5.07899 19 6.19691 19H17.8031C18.921 19 19.48 19 19.9074 18.7822C20.2837 18.5905 20.5905 18.2837 20.7822 17.9074C21 17.48 21 16.921 21 15.8031V10.1969C21 9.07899 21 8.5192 20.7822 8.0918C20.5905 7.71547 20.2837 7.40973 19.9074 7.21799C19.4796 7 18.9203 7 17.8002 7H14.5108M9.48898 7H9.55078M9.48898 7C9.50151 7.00001 9.51468 7 9.52857 7L9.55078 7M9.48898 7C9.38286 6.99995 9.32339 6.99941 9.27637 6.99414C8.68878 6.92835 8.28578 6.36908 8.40918 5.79084C8.42066 5.73703 8.44336 5.66894 8.4883 5.53412L8.49023 5.52841C8.54156 5.37443 8.56723 5.29743 8.59558 5.22949C8.88586 4.53389 9.54322 4.06083 10.2949 4.00541C10.3683 4 10.449 4 10.6113 4H13.3886C13.5509 4 13.6322 4 13.7057 4.00541C14.4574 4.06083 15.114 4.53389 15.4043 5.22949C15.4326 5.29743 15.4584 5.37434 15.5098 5.52832C15.556 5.66699 15.5791 5.73636 15.5908 5.79093C15.7142 6.36917 15.3118 6.92835 14.7242 6.99414C14.6772 6.99941 14.6171 6.99995 14.5108 7M9.55078 7H14.449M14.449 7H14.5108M14.449 7L14.4712 7C14.4851 7 14.4983 7.00001 14.5108 7M12 16C10.3431 16 9 14.6569 9 13C9 11.3431 10.3431 10 12 10C13.6569 10 15 11.3431 15 13C15 14.6569 13.6569 16 12 16Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="stroke: #6f7276;"/>
-                            </g>
-                            </svg>`;
-
-    // дебаунс
-    function debounce(fn, delay) {
-        let tid;
-        return (...args) => {
-            clearTimeout(tid);
-            tid = setTimeout(() => fn.apply(this, args), delay);
-        };
-    }
-
-    function buildItem(u) {
-        const avatar = u.avatar
-        ? `<img src="${u.avatar}" width="40" height="40" style="border-radius:50%"/>`
-        : defaultAvatar;
-        return `
-                <div class="share-item" data-username="${u.username}">
-                <div class="avatar">${avatar}</div>
-                <div class="username">${u.username}</div>
-                <button
-                    class="invite-btn"
-                    data-user-id="${u.id}"
-                    data-username="${u.username}"
-                >Пригласить</button>
-                </div>`;
-    }
-
-    async function loadList({ append = false } = {}) {
-        // перед запросом — показываем спиннер и очищаем блок
-        if (!append) {
-            listBox.innerHTML = '';
-            loadMore.style.display = 'none';
-        }
-        spinner.style.display = 'block';
-        loadMore.disabled = true;
-
-        const params = new URLSearchParams({
-            offset, limit,
-            type: currentType,
-            search: lastSearch,
-        });
-        const resp = await fetch(`/workspace/api/sub_and_users/?` + params);
-        const { results: data, has_more } = await resp.json();
-
-        // прячем спиннер
-        spinner.style.display = 'none';
-        loadMore.disabled = false;
-
-        data.forEach(u => listBox.insertAdjacentHTML('beforeend', buildItem(u)));
-
-        // «Загрузить ещё»
-        loadMore.style.display = has_more ? 'block' : 'none';
-    }
-
-    // переключаем панель
-    toggleBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        panel.classList.toggle('show');
-        toggleBtn.classList.toggle('active');
-        if (panel.classList.contains('show')) {
-            offset = 0; lastSearch = ''; searchInp.value = '';
-            loadList({ append: false });
-        }
-    });
-
-    // клики вне
-    window.addEventListener('click', e => {
-        if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
-            panel.classList.remove('show');
-            toggleBtn.classList.remove('active');
-        }
-    });
-
-    // табы
-    tabs.forEach(tab => tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentType = tab.dataset.type;
-        offset = 0; lastSearch = ''; searchInp.value = '';
-        loadList({ append: false });
-    }));
-
-    // «Загрузить ещё»
-    loadMore.addEventListener('click', () => {
-        offset += limit;
-        loadList({ append: true });
-    });
-
-    // поиск с дебаунсом 100 мс
-    searchInp.addEventListener('input',
-        debounce(() => {
-            lastSearch = searchInp.value.trim();
-            offset = 0;
-            loadList({ append: false });
-        }, 100)
-    );
-
-    // Делегируем клик по кнопкам внутри списка
-    listBox.addEventListener('click', async e => {
-        const btn = e.target.closest('.invite-btn');
-        if (!btn) return;
-
-        const userId = btn.dataset.userId;
-        const username = btn.dataset.username;
-        const payload  = { user_id: Number(userId), user: username };
-
-        btn.disabled = true;
-
-        try {
-            const csrftoken = getCookie('csrftoken');
-            const resp = await fetch(`/workspace/api/invite/${BOARD_URL_HASH}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
-                },
-                 body: JSON.stringify(payload),
-            });
-            const data = await resp.json();
-            if (data.status === 'error') {
-                // Сервер вернул оставшееся время
-                const retry = data.retry_after;
-                btn.classList.add('cooldown');
-                setTimeout(() => btn.classList.remove('cooldown'), retry * 1000);
-                alert(data.message);
-            } else {
-                // Успех — запускаем таймер на продолжительность cooldown
-                btn.classList.add('cooldown');
-                setTimeout(() => btn.classList.remove('cooldown'), data.cooldown * 1000);
-            }
-        } catch (err) {
-            console.error(err);
-            alert('Не удалось отправить приглашение');
-        } finally {
-            btn.disabled = false;
-        }
-    });
-});
-
-
-
-// ДОСКА
-// Инициализация Stage
 const stage = new Konva.Stage({
-    container: 'container',
-    width: window.innerWidth,
-    height: window.innerHeight,
+  container: 'container',
+  width: window.innerWidth,
+  height: window.innerHeight
 });
-
-// Основной слой
 const layer = new Konva.Layer();
 stage.add(layer);
+stage.kanbanBoards = [];
 
-// Переменные состояния
-let currentMode = 'select';
-let isDrawing = false;
-let isDrawingShape = false;
-let currentLine = null;
-let currentShape = null;
-let shapeType = 'rect';
-let isPanning = false;
-let lastPos = null;
-let transformer = null;
-let currentZoom = 1;
-let selectionRectangle = null;
-let x1, y1, x2, y2;
-let lastWheelEventTime = 0;
-const baseZoomSensitivity = 0.01;
-const THROTTLE_DELAY = 100; // миллисекунд
-let lastSentTime = 0;
-let idCounter = 1;
+const COLUMN_WIDTH = 280;
+const COLUMN_MARGIN = 15;
+const CARD_MARGIN = 10;
+const INITIAL_BOARD_HEIGHT = 200;
+const HEADER_HEIGHT = 60;
+const BUTTON_HEIGHT = 40;
+const ADD_COLUMN_BUTTON_WIDTH = 40;
+const CARD_PADDING = 10;
+const MIN_CARD_HEIGHT = 60;
 
-// Настройки рисования
-let drawSettings = {
-    strokeWidth: 5,
-    strokeColor: '#000000'
-};
-
-// Фиксированные настройки для фигур
-const shapeSettings = {
-    strokeWidth: 5,
-    strokeColor: '#000000',
-    fillColor: 'transparent'
-};
-
-// Переменные для обработки мультитача
-let initialDistance = null;
-let initialCenter = null;
-let initialPosition = null;
-let initialScale = 1;
-
-// Функция генерации ID
-function generateId() {
-    return 'obj-' + idCounter++;
+let redrawScheduled = false;
+function scheduleRedraw() {
+  if (!redrawScheduled) {
+    redrawScheduled = true;
+    requestAnimationFrame(() => {
+      layer.batchDraw();
+      redrawScheduled = false;
+      updateDebugInfo();
+    });
+  }
 }
 
-// Функция логирования изменений
-function logChange(type, obj, changedAttrs = null) {
-    const changeData = {
-        timestamp: new Date().toISOString(),
-        type: type,
-        id: obj.id(),
-        attrs: type === 'U' && changedAttrs ? changedAttrs : getObjectAttributes(obj)
+const loadingScreen = document.getElementById('loading-screen');
+const overlay = document.getElementById('overlay');
+const cardModal = document.getElementById('card-modal');
+const cardTitleInput = document.getElementById('card-title');
+const cardContentInput = document.getElementById('card-content');
+const closeCardModalBtn = document.getElementById('close-card-modal');
+const deleteCardBtn = document.getElementById('delete-card');
+const columnModal = document.getElementById('column-modal');
+const columnTitleInput = document.getElementById('column-title');
+const closeColumnModalBtn = document.getElementById('close-column-modal');
+const deleteColumnBtn = document.getElementById('delete-column');
+const boardModal = document.getElementById('board-modal');
+const boardTitleInput = document.getElementById('board-title');
+const closeBoardModalBtn = document.getElementById('close-board-modal');
+const deleteBoardBtn = document.getElementById('delete-board');
+const debugToggle = document.getElementById('debug-toggle');
+const debugPanel = document.getElementById('debug-panel');
+const debugContent = document.getElementById('debug-content');
+const addBoardBtn = document.getElementById('add-board-btn');
+
+let currentEditingElement = null;
+let currentElementType = null;
+let isCreatingBoard = false;
+let previewBoard = null;
+
+// Async function to generate ID from server
+async function generateId(objectType) {
+  const csrftoken = getCookie('csrftoken');
+  const urlHash = window.location.pathname.split('/')[2];
+  const payload = {
+    url_hash: urlHash,
+    object_type: objectType
+  };
+  const response = await fetch('/workspace/generate_id/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  if (data.id) {
+    return data.id;
+  } else {
+    throw new Error('Failed to generate ID');
+  }
+}
+
+// Load initial JSON data
+async function loadInitialData() {
+  const urlHash = window.location.pathname.split('/')[2];
+  const response = await fetch(`/workspace/board_data/${urlHash}/`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      // Нет данных
+      return [];
+    }
+    throw new Error('Не удалось загрузить данные доски');
+  }
+  const data = await response.json();
+  if (Array.isArray(data)) {
+    return data;
+  } else if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
+    return [];
+  } else {
+    throw new Error('Неверный формат данных: ожидался массив или пустой объект');
+  }
+}
+
+function loadBoardFromJSON(data) {
+  data.forEach(boardData => {
+    const board = createBoardFromData(boardData);
+    const sortedColumns = boardData.columns.sort((a, b) => a.index - b.index);
+    sortedColumns.forEach((columnData, i) => {
+      const column = createColumnFromData(columnData, board, i + 1);
+      const sortedCards = columnData.cards.sort((a, b) => a.index - b.index);
+      sortedCards.forEach((cardData, j) => {
+        createCardFromData(cardData, column, j + 1);
+      });
+    });
+  });
+}
+
+// Command application
+function applyCommand(command) {
+  try {
+    switch(command.type) {
+      case "create":
+        handleCreateCommand(command);
+        break;
+      case "update":
+        handleUpdateCommand(command);
+        break;
+      case "delete":
+        handleDeleteCommand(command);
+        break;
+      default:
+        console.error(`Unknown command type: ${command.type}`);
+    }
+  } catch (error) {
+    console.error(`Error applying command: ${error.message}`);
+  }
+}
+
+// Create functions with IDs
+function createBoardFromData(data) {
+  const board = new Konva.Group({
+    x: data.x,
+    y: data.y,
+    draggable: true
+  });
+  board.setAttr('id', data.id);
+  const boardWidth = COLUMN_WIDTH + COLUMN_MARGIN * 2 + ADD_COLUMN_BUTTON_WIDTH;
+  const boardBg = new Konva.Rect({
+    width: boardWidth,
+    height: INITIAL_BOARD_HEIGHT,
+    fill: '#ECEFF1',
+    cornerRadius: 10,
+    stroke: '#B0BEC5',
+    strokeWidth: 2,
+    shadowColor: 'black',
+    shadowBlur: 10,
+    shadowOpacity: 0.2,
+    shadowOffset: { x: 5, y: 5 }
+  });
+  const header = new Konva.Text({
+    text: data.title,
+    fontSize: 18,
+    fontFamily: 'Arial',
+    fill: '#37474F',
+    width: boardBg.width() - 40,
+    padding: 20,
+    align: 'left',
+    fontStyle: 'bold',
+    ellipsis: true,
+    wrap: 'none'
+  });
+  board.add(boardBg, header);
+  createAddColumnButton(board);
+  layer.add(board);
+  stage.kanbanBoards.push(board);
+
+  header.on('click tap', function(e) {
+    if (!e.evt.ctrlKey && !e.evt.metaKey && !e.evt.shiftKey) {
+      showModal('board', board, header.text());
+      e.cancelBubble = true;
+    }
+  });
+  board.on('dragstart', () => {
+    document.body.style.cursor = 'grabbing';
+    board.moveToTop();
+    scheduleRedraw();
+  })
+  .on('dragmove', scheduleRedraw)
+  .on('dragend', () => {
+    document.body.style.cursor = 'default';
+    const command = {
+      type: "update",
+      objectType: "board",
+      id: board.getAttr('id'),
+      data: {
+        x: board.x(),
+        y: board.y()
+      }
     };
-
-    console.log(JSON.stringify(changeData));
-
-    const outputDiv = document.getElementById('json-output') || document.createElement('div');
-    outputDiv.id = 'json-output';
-    if (!outputDiv.hasChildNodes()) {
-        const header = document.createElement('div');
-        header.textContent = 'JSON Output:';
-        header.style.fontWeight = 'bold';
-        header.style.marginBottom = '10px';
-        outputDiv.appendChild(header);
-        document.body.appendChild(outputDiv);
-    }
-
-    const newEntry = document.createElement('div');
-    newEntry.textContent = JSON.stringify(changeData, null, 2);
-    outputDiv.appendChild(newEntry);
-    outputDiv.scrollTop = outputDiv.scrollHeight;
-
-    return changeData;
+    sendCommand(command);
+    scheduleRedraw();
+  });
+  return board;
 }
 
-// Получение атрибутов объекта
-function getObjectAttributes(obj) {
-    const attrs = {
-        x: obj.x(),
-        y: obj.y(),
-        rotation: obj.rotation(),
-        scaleX: obj.scaleX ? obj.scaleX() : 1,
-        scaleY: obj.scaleY ? obj.scaleY() : 1,
-        stroke: obj.stroke(),
-        strokeWidth: obj.originalStrokeWidth || obj.strokeWidth(),
-        name: obj.getClassName().toLowerCase(),
+function createBoardFromCommand(data) {
+  const existingBoard = findBoardById(data.id);
+  if (existingBoard) return;
+  const board = createBoardFromData({
+    id: data.id,
+    title: data.title || "Новая доска",
+    x: data.x || 100,
+    y: data.y || 100
+  });
+  scheduleRedraw();
+  return board;
+}
+
+function createColumnFromData(data, board, index) {
+  const col = new Konva.Group({
+    x: getColumnX(board, index),
+    y: HEADER_HEIGHT,
+    draggable: true,
+    name: 'kanban-column',
+    dragBoundFunc: function(pos) {
+      const boardRect = board.findOne('Rect');
+      const boardLeft = board.x();
+      const boardRight = boardLeft + boardRect.width();
+      const minX = boardLeft + COLUMN_MARGIN * 0.5;
+      const maxX = boardRight - COLUMN_WIDTH - COLUMN_MARGIN * 1.5 - ADD_COLUMN_BUTTON_WIDTH;
+      const newX = Math.max(minX, Math.min(pos.x, maxX));
+      return { x: newX, y: this.absolutePosition().y };
+    }
+  });
+  col.setAttr('id', data.id);
+  col.setAttr('index', index);
+  col.originalY = HEADER_HEIGHT;
+  const colBg = new Konva.Rect({
+    width: COLUMN_WIDTH,
+    height: 40 + CARD_MARGIN + MIN_CARD_HEIGHT + CARD_MARGIN,
+    fill: '#E0E0E0',
+    cornerRadius: 5,
+    stroke: '#BDBDBD',
+    strokeWidth: 1
+  });
+  const header = new Konva.Text({
+    text: data.title,
+    fontSize: 16,
+    fontFamily: 'Arial',
+    fill: 'black',
+    width: COLUMN_WIDTH - 20,
+    padding: 10,
+    offsetY: -7,
+    align: 'left',
+    fontStyle: 'bold',
+    ellipsis: true,
+    wrap: 'none'
+  });
+  header.on('click tap', function(e) {
+    if (!e.evt.ctrlKey && !e.evt.metaKey && !e.evt.shiftKey) {
+      showModal('column', col, header.text());
+      e.cancelBubble = true;
+    }
+  });
+  const addCardBtn = new Konva.Group({
+    x: CARD_MARGIN,
+    y: 40 + CARD_MARGIN,
+    name: 'add-card-button'
+  });
+  const addCardBg = new Konva.Rect({
+    width: COLUMN_WIDTH - 2 * CARD_MARGIN,
+    height: MIN_CARD_HEIGHT,
+    fill: '#66BB6A',
+    cornerRadius: 5
+  });
+  const addCardTxt = new Konva.Text({
+    text: 'Добавить карточку',
+    fontSize: 14,
+    fontFamily: 'Arial',
+    fill: 'white',
+    width: COLUMN_WIDTH - 2 * CARD_MARGIN,
+    padding: 10,
+    align: 'left',
+    verticalAlign: 'middle',
+    height: MIN_CARD_HEIGHT - 2 * CARD_PADDING,
+    offsetY: -11
+  });
+  addCardBtn.add(addCardBg, addCardTxt).on('click tap', e => {
+    e.cancelBubble = true;
+    addCardToColumn(col, board);
+    scheduleRedraw();
+  });
+  setupButtonHover(addCardBtn, addCardBg, '#66BB6A', '#81C784');
+  col.add(colBg, header, addCardBtn);
+  board.add(col);
+  setupColumnDragEvents(col, board);
+  return col;
+}
+
+function createColumnFromCommand(data) {
+  const existingColumn = findColumnById(data.id);
+  if (existingColumn) return;
+  const board = findBoardById(data.boardId);
+  if (!board) throw new Error(`Board with ID ${data.boardId} not found`);
+  const cols = board.find('.kanban-column').sort((a, b) => a.getAttr('index') - b.getAttr('index'));
+  const index = data.index || cols.length + 1;
+  const column = createColumnFromData({ id: data.id, title: data.title || "Новая колонка" }, board, index);
+  const btn = board.findOne('.add-column-button');
+  btn.x(getColumnX(board, cols.length + 2));
+  const boardBg = board.findOne('Rect');
+  boardBg.width(getColumnX(board, cols.length + 2) + ADD_COLUMN_BUTTON_WIDTH + COLUMN_MARGIN);
+  board.findOne('Text').width(boardBg.width() - 40);
+  recalcBoardHeight(board);
+  scheduleRedraw();
+  return column;
+}
+
+function createCardFromData(data, column, index) {
+  const card = new Konva.Group({
+    x: CARD_MARGIN,
+    y: getCardY(column, index),
+    name: 'card',
+    draggable: true
+  });
+  card.setAttr('id', data.id);
+  card.setAttr('index', index);
+  const cardTxt = new Konva.Text({
+    text: data.title,
+    fontSize: 14,
+    fontFamily: 'Arial',
+    fill: 'black',
+    width: COLUMN_WIDTH - 2 * CARD_MARGIN - 2 * CARD_PADDING,
+    padding: CARD_PADDING,
+    align: 'left'
+  });
+  const cardHeight = calculateCardHeight(cardTxt);
+  const cardBg = new Konva.Rect({
+    width: COLUMN_WIDTH - 2 * CARD_MARGIN,
+    height: cardHeight,
+    fill: '#FFF',
+    cornerRadius: 5,
+    stroke: '#9E9E9E',
+    strokeWidth: 1
+  });
+  cardTxt.y((cardHeight - cardTxt.height()) / 2);
+  card.add(cardBg, cardTxt);
+  card.content = data.content || '';
+  column.add(card);
+  card.on('click tap', function(e) {
+    if (!e.evt.ctrlKey && !e.evt.metaKey && !e.evt.shiftKey) {
+      showModal('card', this, cardTxt.text().split('\n')[0], this.content || '');
+    }
+  });
+  setupCardDragEvents(card);
+  return card;
+}
+
+function createCardFromCommand(data) {
+  const existingCard = findCardById(data.id);
+  if (existingCard) return;
+  const column = findColumnById(data.columnId);
+  if (!column) throw new Error(`Column with ID ${data.columnId} not found`);
+  const board = column.getParent();
+  const cards = column.find('.card').sort((a, b) => a.getAttr('index') - b.getAttr('index'));
+  const index = data.index || cards.length + 1;
+  const card = createCardFromData({ id: data.id, title: data.title || "Новая карточка", content: data.content || "" }, column, index);
+  reorderCardsInColumn(column);
+  recalcBoardHeight(board);
+  scheduleRedraw();
+  return card;
+}
+
+// Command handlers
+function handleCreateCommand(command) {
+  switch(command.objectType) {
+    case "board":
+      createBoardFromCommand(command.data);
+      break;
+    case "column":
+      createColumnFromCommand(command.data);
+      break;
+    case "card":
+      createCardFromCommand(command.data);
+      break;
+  }
+}
+
+function handleUpdateCommand(command) {
+  switch(command.objectType) {
+    case "board":
+      updateBoardFromCommand(command.id, command.data);
+      break;
+    case "column":
+      updateColumnFromCommand(command.id, command.data);
+      break;
+    case "card":
+      updateCardFromCommand(command.id, command.data);
+      break;
+  }
+}
+
+function handleDeleteCommand(command) {
+  switch(command.objectType) {
+    case "board":
+      deleteBoardFromCommand(command.id);
+      break;
+    case "column":
+      deleteColumnFromCommand(command.id);
+      break;
+    case "card":
+      deleteCardFromCommand(command.id);
+      break;
+  }
+}
+
+function updateBoardFromCommand(id, data) {
+  const board = findBoardById(id);
+  if (!board) return;
+  if (data.title) {
+    board.findOne('Text').text(data.title);
+  }
+  if (data.x !== undefined) board.x(data.x);
+  if (data.y !== undefined) board.y(data.y);
+  scheduleRedraw();
+}
+
+function updateColumnFromCommand(id, data) {
+  const column = findColumnById(id);
+  if (!column) return;
+  const board = column.getParent();
+  if (data.title) column.findOne('Text').text(data.title);
+  if (data.boardId && data.boardId !== board.getAttr('id')) {
+    const newBoard = findBoardById(data.boardId);
+    if (newBoard) {
+      column.remove();
+      newBoard.add(column);
+      column.setAttr('index', data.index || 1);
+      reorderColumnsInBoard(newBoard);
+      reorderColumnsInBoard(board);
+      recalcBoardHeight(newBoard);
+      recalcBoardHeight(board);
+    }
+  } else if (data.index && data.index !== column.getAttr('index')) {
+    column.setAttr('index', data.index);
+    reorderColumnsInBoard(board);
+    recalcBoardHeight(board);
+  }
+  scheduleRedraw();
+}
+
+function updateCardFromCommand(id, data) {
+  const card = findCardById(id);
+  if (!card) return;
+  const oldColumn = card.getParent();
+  const oldBoard = oldColumn.getParent();
+  if (data.title) {
+    const cardText = card.findOne('Text');
+    cardText.text(data.title);
+    const cardBg = card.findOne('Rect');
+    const newHeight = calculateCardHeight(cardText);
+    cardBg.height(newHeight);
+    cardText.y((newHeight - cardText.height()) / 2);
+  }
+  if (data.content) card.content = data.content;
+  if (data.columnId && data.columnId !== oldColumn.getAttr('id')) {
+    const newColumn = findColumnById(data.columnId);
+    if (newColumn) {
+      card.remove();
+      newColumn.add(card);
+      card.x(CARD_MARGIN);
+      card.setAttr('index', data.index || 1);
+      reorderCardsInColumn(newColumn);
+      reorderCardsInColumn(oldColumn);
+      recalcBoardHeight(newColumn.getParent());
+      recalcBoardHeight(oldBoard);
+    }
+  } else if (data.index && data.index !== card.getAttr('index')) {
+    card.setAttr('index', data.index);
+    reorderCardsInColumn(oldColumn);
+    recalcBoardHeight(oldBoard);
+  }
+  scheduleRedraw();
+}
+
+function deleteBoardFromCommand(id) {
+  const board = findBoardById(id);
+  if (!board) return;
+  const index = stage.kanbanBoards.indexOf(board);
+  if (index !== -1) stage.kanbanBoards.splice(index, 1);
+  board.destroy();
+  scheduleRedraw();
+}
+
+function deleteColumnFromCommand(id) {
+  const column = findColumnById(id);
+  if (!column) return;
+  const board = column.getParent();
+  column.destroy();
+  reorderColumnsInBoard(board);
+  recalcBoardHeight(board);
+  scheduleRedraw();
+}
+
+function deleteCardFromCommand(id) {
+  const card = findCardById(id);
+  if (!card) return;
+  const column = card.getParent();
+  const board = column.getParent();
+  card.destroy();
+  reorderCardsInColumn(column);
+  recalcBoardHeight(board);
+  scheduleRedraw();
+}
+
+// Find functions
+function findBoardById(id) {
+  return stage.kanbanBoards.find(board => board.getAttr('id') === id);
+}
+
+function findColumnById(id) {
+  for (const board of stage.kanbanBoards) {
+    const column = board.find('.kanban-column').find(col => col.getAttr('id') === id);
+    if (column) return column;
+  }
+  return null;
+}
+
+function findCardById(id) {
+  for (const board of stage.kanbanBoards) {
+    for (const column of board.find('.kanban-column')) {
+      const card = column.find('.card').find(card => card.getAttr('id') === id);
+      if (card) return card;
+    }
+  }
+  return null;
+}
+
+// UI event handlers
+debugToggle.addEventListener('click', () => {
+  const isVisible = debugPanel.style.display === 'block';
+  debugPanel.style.display = isVisible ? 'none' : 'block';
+  debugToggle.textContent = isVisible ? 'Показать структуру' : 'Скрыть структуру';
+});
+
+function showModal(type, element, title, content = '') {
+  currentEditingElement = element;
+  currentElementType = type;
+  overlay.style.display = 'block';
+  if (type === 'card') {
+    cardTitleInput.value = title;
+    cardContentInput.value = content;
+    cardModal.style.display = 'block';
+  } else if (type === 'column') {
+    columnTitleInput.value = title;
+    columnModal.style.display = 'block';
+  } else if (type === 'board') {
+    boardTitleInput.value = title;
+    boardModal.style.display = 'block';
+  }
+}
+
+function hideModals() {
+  overlay.style.display = 'none';
+  cardModal.style.display = 'none';
+  columnModal.style.display = 'none';
+  boardModal.style.display = 'none';
+  updateElementFromInputs();
+  currentEditingElement = null;
+  currentElementType = null;
+}
+
+function updateElementFromInputs() {
+  if (!currentEditingElement || !currentElementType) return;
+  let command;
+  if (currentElementType === 'card') {
+    const title = cardTitleInput.value;
+    const content = cardContentInput.value;
+    const cardText = currentEditingElement.findOne('Text');
+    cardText.text(title);
+    currentEditingElement.content = content;
+    const newHeight = calculateCardHeight(cardText);
+    const cardBg = currentEditingElement.findOne('Rect');
+    cardBg.height(newHeight);
+    cardText.y((newHeight - cardText.height()) / 2);
+    const column = currentEditingElement.getParent();
+    reorderCardsInColumn(column);
+    recalcBoardHeight(column.getParent());
+    command = {
+      type: "update",
+      objectType: "card",
+      id: currentEditingElement.getAttr('id'),
+      data: { title, content }
     };
-    if (obj.getClassName() === 'Rect') {
-        attrs.width = obj.width();
-        attrs.height = obj.height();
-        attrs.fill = obj.fill();
-    } else if (obj.getClassName() === 'Circle') {
-        attrs.radius = obj.radius();
-        attrs.fill = obj.fill();
-    } else if (obj.getClassName() === 'RegularPolygon') {
-        attrs.sides = obj.sides();
-        attrs.radius = obj.radius();
-        attrs.fill = obj.fill();
-    } else if (obj.getClassName() === 'Line') {
-        attrs.points = obj.points();
-    }
-    return attrs;
-}
-
-// Настройка отслеживания изменений объекта
-function setupChangeTracking(obj) {
-    let lastAttrs = getObjectAttributes(obj);
-    logChange('C', obj);
-
-    obj.on('transform dragmove', () => handleObjectChange(obj, lastAttrs));
-
-    obj.on('transformend dragend', () => {
-        logChange('U', obj);
-    });
-}
-
-// Обработка изменений объекта с троттлингом
-function handleObjectChange(obj, lastAttrs) {
-    const currentAttrs = getObjectAttributes(obj);
-    const changedAttrs = {};
-    let hasChanges = false;
-
-    for (const key in currentAttrs) {
-        if (JSON.stringify(currentAttrs[key]) !== JSON.stringify(lastAttrs[key])) {
-            changedAttrs[key] = currentAttrs[key];
-            hasChanges = true;
-        }
-    }
-
-    if (!hasChanges) return;
-
-    Object.assign(lastAttrs, currentAttrs);
-
-    const now = Date.now();
-    if (now - lastSentTime >= THROTTLE_DELAY) {
-        lastSentTime = now;
-        logChange('U', obj, changedAttrs);
-    }
-}
-
-// Функция для обновления предпросмотра линии
-function updateLinePreview() {
-    const maxSize = 20;
-    const outerCircle = document.getElementById('line-preview-outer');
-    const innerCircle = document.getElementById('line-preview-inner');
-
-    const innerSize = (drawSettings.strokeWidth / 20) * maxSize;
-
-    outerCircle.style.width = maxSize + 'px';
-    outerCircle.style.height = maxSize + 'px';
-
-    innerCircle.style.width = innerSize + 'px';
-    innerCircle.style.height = innerSize + 'px';
-    innerCircle.style.color = drawSettings.strokeColor;
-}
-
-// Функция для выбора цвета через color picker
-function setupColorPicker() {
-    const colorPicker = document.getElementById('color-picker');
-    const colorInput = document.getElementById('line-color');
-
-    colorPicker.addEventListener('click', function() {
-        colorInput.click();
-    });
-
-    colorInput.addEventListener('input', function() {
-        const color = this.value;
-        drawSettings.strokeColor = color;
-        updateLinePreview();
-    });
-}
-
-// Модифицируем toJSON для сохранения оригинальных значений
-const originalToJSON = Konva.Node.prototype.toJSON;
-Konva.Node.prototype.toJSON = function() {
-    const json = originalToJSON.call(this);
-
-    if (this.originalStrokeWidth !== undefined) {
-        json.attrs.strokeWidth = this.originalStrokeWidth;
-        json.attrs.hitStrokeWidth = this.originalHitStrokeWidth;
-    }
-
-    return json;
-};
-
-// Функция для обновления масштабирования stroke и hitStrokeWidth
-function updateStrokeScaling() {
-    const shapes = layer.find('Shape');
-    shapes.forEach(shape => {
-        if (shape.isUserTool) return;
-
-        if (shape.originalStrokeWidth === undefined) {
-            shape.originalStrokeWidth = shape.strokeWidth() || 0;
-            shape.originalHitStrokeWidth = shape.hitStrokeWidth() || shape.originalStrokeWidth * 4;
-        }
-
-        shape.strokeWidth(shape.originalStrokeWidth * currentZoom);
-        shape.hitStrokeWidth(shape.originalHitStrokeWidth * currentZoom);
-    });
-    layer.batchDraw();
-}
-
-// Функция для создания/обновления трансформера
-function updateTransformer(nodes = []) {
-    if (transformer) {
-        transformer.detach();
-        transformer.destroy();
-        transformer = null;
-    }
-
-    if (nodes.length > 0) {
-        transformer = new Konva.Transformer({
-            nodes: nodes,
-            rotateEnabled: true,
-            ignoreStroke: true,
-            boundBoxFunc: (oldBox, newBox) => newBox,
-            isUserTool: true,
-            shouldOverdrawWholeArea: true,
-        });
-        layer.add(transformer);
-        layer.draw();
-    }
-}
-
-// Функция для обновления draggable состояния всех объектов
-function updateObjectsDraggable() {
-    const shapes = layer.find('Shape');
-    shapes.forEach(shape => {
-        if (shape.isUserTool) return;
-        shape.draggable(currentMode === 'select');
-    });
-    layer.batchDraw();
-}
-
-// Функция для обновления отображения масштаба
-function updateZoomDisplay() {
-    const zoomPercentage = Math.round(currentZoom * 100);
-    document.getElementById('zoom-input').value = zoomPercentage;
-}
-
-// Функция масштабирования к точке
-function zoomToPoint(pointer, newScale) {
-    const mousePointTo = {
-        x: (pointer.x - stage.x()) / currentZoom,
-        y: (pointer.y - stage.y()) / currentZoom
+  } else if (currentElementType === 'column') {
+    const title = columnTitleInput.value;
+    currentEditingElement.findOne('Text').text(title);
+    command = {
+      type: "update",
+      objectType: "column",
+      id: currentEditingElement.getAttr('id'),
+      data: { title }
     };
-
-    const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale
+  } else if (currentElementType === 'board') {
+    const title = boardTitleInput.value;
+    currentEditingElement.findOne('Text').text(title);
+    command = {
+      type: "update",
+      objectType: "board",
+      id: currentEditingElement.getAttr('id'),
+      data: { title }
     };
-
-    stage.position(newPos);
-    stage.scale({ x: newScale, y: newScale });
-    currentZoom = newScale;
-    updateZoomDisplay();
-    stage.fire('scaleChange');
+  }
+  if (command) sendCommand(command);
+  scheduleRedraw();
 }
 
-// Инициализация кастомного зума
-function setupZoomControls(stage, layer) {
-    const minZoom = 0.1;
-    const maxZoom = 4;
-    let targetZoom = 1;
-
-    const allowedZoomPercentages = [10, 25, 50, 75, 100, 150, 200, 250, 300, 350, 400];
-
-    function findNextZoom(currentPercentage) {
-        for (let i = 0; i < allowedZoomPercentages.length; i++) {
-            if (currentPercentage < allowedZoomPercentages[i]) {
-                return allowedZoomPercentages[i];
-            }
-        }
-        return allowedZoomPercentages[allowedZoomPercentages.length - 1];
-    }
-
-    function findPrevZoom(currentPercentage) {
-        for (let i = allowedZoomPercentages.length - 1; i >= 0; i--) {
-            if (currentPercentage > allowedZoomPercentages[i]) {
-                return allowedZoomPercentages[i];
-            }
-        }
-        return allowedZoomPercentages[0];
-    }
-
-    function startSmoothZoom(newTargetZoom, pointer = null) {
-        targetZoom = Math.max(minZoom, Math.min(newTargetZoom, maxZoom));
-        if (!pointer) {
-            pointer = { x: stage.width() / 2, y: stage.height() / 2 };
-        }
-
-        if (stage.animatingZoom) return;
-
-        stage.animatingZoom = true;
-        animateZoom(pointer);
-    }
-
-    function animateZoom(pointer) {
-        const zoomStep = (targetZoom - currentZoom) * 0.3;
-        const newZoom = currentZoom + zoomStep;
-
-        zoomToPoint(pointer, newZoom);
-
-        if (Math.abs(newZoom - targetZoom) > 0.001) {
-            requestAnimationFrame(() => animateZoom(pointer));
-        } else {
-            zoomToPoint(pointer, targetZoom);
-            stage.animatingZoom = false;
-        }
-    }
-
-    function setZoomFromInput() {
-        const inputElement = document.getElementById('zoom-input');
-        const zoomPercentage = parseFloat(inputElement.value);
-
-        if (isNaN(zoomPercentage)) {
-            updateZoomDisplay();
-            return;
-        }
-
-        const newZoom = Math.max(minZoom, Math.min(zoomPercentage / 100, maxZoom));
-        startSmoothZoom(newZoom);
-    }
-
-    stage.on('wheel', function(e) {
-        e.evt.preventDefault();
-
-        const now = performance.now();
-        const deltaTime = now - lastWheelEventTime;
-        lastWheelEventTime = now;
-
-        if (e.evt.ctrlKey || e.evt.metaKey) {
-            const pointer = stage.getPointerPosition() || { x: stage.width() / 2, y: stage.height() / 2 };
-            const delta = e.evt.deltaY;
-
-            const scrollSpeed = Math.abs(delta) / (deltaTime || 1);
-            const zoomSensitivity = baseZoomSensitivity + scrollSpeed * 0.1;
-
-            const newZoom = currentZoom + (delta > 0 ? -zoomSensitivity : zoomSensitivity);
-            const constrainedZoom = Math.max(minZoom, Math.min(newZoom, maxZoom));
-
-            zoomToPoint(pointer, constrainedZoom);
-        } else {
-            stage.position({
-                x: stage.x() - e.evt.deltaX,
-                y: stage.y() - e.evt.deltaY
-            });
-            layer.batchDraw();
-        }
-    });
-
-    document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey || event.metaKey) {
-            const currentPercentage = Math.round(currentZoom * 100);
-
-            if (event.key === '+' || event.key === '=') {
-                event.preventDefault();
-                const nextZoomPercentage = findNextZoom(currentPercentage);
-                startSmoothZoom(nextZoomPercentage / 100);
-            } else if (event.key === '-') {
-                event.preventDefault();
-                const prevZoomPercentage = findPrevZoom(currentPercentage);
-                startSmoothZoom(prevZoomPercentage / 100);
-            } else if (event.key === '0') {
-                event.preventDefault();
-                startSmoothZoom(1);
-            }
-        }
-    });
-
-    document.getElementById('zoom-in').addEventListener('click', function() {
-        const currentPercentage = Math.round(currentZoom * 100);
-        const nextZoomPercentage = findNextZoom(currentPercentage);
-        startSmoothZoom(nextZoomPercentage / 100);
-    });
-
-    document.getElementById('zoom-out').addEventListener('click', function() {
-        const currentPercentage = Math.round(currentZoom * 100);
-        const prevZoomPercentage = findPrevZoom(currentPercentage);
-        startSmoothZoom(prevZoomPercentage / 100);
-    });
-
-    document.getElementById('zoom-reset').addEventListener('click', function() {
-        startSmoothZoom(1);
-    });
-
-    document.getElementById('zoom-input').addEventListener('change', setZoomFromInput);
-
-    updateZoomDisplay();
+function deleteCurrentElement() {
+  if (!currentEditingElement || !currentElementType) return;
+  const command = {
+    type: "delete",
+    objectType: currentElementType,
+    id: currentEditingElement.getAttr('id')
+  };
+  sendCommand(command);
+  if (currentElementType === 'card') {
+    const column = currentEditingElement.getParent();
+    currentEditingElement.destroy();
+    reorderCardsInColumn(column);
+    recalcBoardHeight(column.getParent());
+  } else if (currentElementType === 'column') {
+    const board = currentEditingElement.getParent();
+    currentEditingElement.destroy();
+    reorderColumnsInBoard(board);
+    recalcBoardHeight(board);
+  } else if (currentElementType === 'board') {
+    const index = stage.kanbanBoards.indexOf(currentEditingElement);
+    if (index !== -1) stage.kanbanBoards.splice(index, 1);
+    currentEditingElement.destroy();
+  }
+  hideModals();
 }
 
-// Центрирование холста на точке (0, 0)
-function centerStageAtZero() {
-    stage.position({
-        x: stage.width() / 2,
-        y: stage.height() / 2
+cardTitleInput.addEventListener('input', updateElementFromInputs);
+cardContentInput.addEventListener('input', updateElementFromInputs);
+closeCardModalBtn.addEventListener('click', hideModals);
+columnTitleInput.addEventListener('input', updateElementFromInputs);
+closeColumnModalBtn.addEventListener('click', hideModals);
+boardTitleInput.addEventListener('input', updateElementFromInputs);
+closeBoardModalBtn.addEventListener('click', hideModals);
+deleteCardBtn.addEventListener('click', deleteCurrentElement);
+deleteColumnBtn.addEventListener('click', deleteCurrentElement);
+deleteBoardBtn.addEventListener('click', deleteCurrentElement);
+overlay.addEventListener('click', hideModals);
+
+function setupButtonHover(button, bg, normal, hover) {
+  button.on('mouseover', () => {
+    document.body.style.cursor = 'pointer';
+    bg.fill(hover);
+    scheduleRedraw();
+  });
+  button.on('mouseout', () => {
+    document.body.style.cursor = 'default';
+    bg.fill(normal);
+    scheduleRedraw();
+  });
+}
+
+addBoardBtn.addEventListener('click', function() {
+  isCreatingBoard = !isCreatingBoard;
+  if (isCreatingBoard) {
+    addBoardBtn.classList.add('creating');
+    addBoardBtn.textContent = 'Отмена';
+    document.body.style.cursor = 'crosshair';
+    createPreviewBoard();
+  } else {
+    cancelBoardCreation();
+  }
+});
+
+function createPreviewBoard() {
+  if (previewBoard) previewBoard.destroy();
+  const boardWidth = COLUMN_WIDTH + COLUMN_MARGIN * 3 + ADD_COLUMN_BUTTON_WIDTH;
+  previewBoard = new Konva.Rect({
+    width: boardWidth,
+    height: INITIAL_BOARD_HEIGHT,
+    fill: 'rgba(236, 239, 241, 0.7)',
+    cornerRadius: 10,
+    stroke: 'rgba(176, 190, 197, 0.7)',
+    strokeWidth: 2,
+    shadowColor: 'black',
+    shadowBlur: 10,
+    shadowOpacity: 0.2,
+    shadowOffset: { x: 5, y: 5 }
+  });
+  layer.add(previewBoard);
+  previewBoard.moveToTop();
+  scheduleRedraw();
+}
+
+function updatePreviewBoardPosition(x, y) {
+  if (!previewBoard) return;
+  const boardWidth = previewBoard.width();
+  const boardHeight = previewBoard.height();
+  previewBoard.x(x - boardWidth / 2);
+  previewBoard.y(y - boardHeight / 2);
+  scheduleRedraw();
+}
+
+function cancelBoardCreation() {
+  if (previewBoard) {
+    previewBoard.destroy();
+    previewBoard = null;
+  }
+  addBoardBtn.classList.remove('creating');
+  addBoardBtn.textContent = 'Добавить доску Kanban';
+  document.body.style.cursor = 'default';
+  isCreatingBoard = false;
+  scheduleRedraw();
+}
+
+stage.on('mousemove', function(e) {
+  if (!isCreatingBoard || !previewBoard) return;
+  const pos = stage.getPointerPosition();
+  if (pos) updatePreviewBoardPosition(pos.x, pos.y);
+});
+
+stage.on('click tap', async function(e) {
+  if (!isCreatingBoard || !previewBoard) return;
+  const pos = stage.getPointerPosition();
+  if (pos) {
+    await addKanbanBoard(pos.x, pos.y);
+    cancelBoardCreation();
+  }
+});
+
+async function addKanbanBoard(x, y) {
+  const id = await generateId('board');
+  const boardWidth = COLUMN_WIDTH + COLUMN_MARGIN * 2 + ADD_COLUMN_BUTTON_WIDTH;
+  const boardX = x - boardWidth / 2;
+  const boardY = y - INITIAL_BOARD_HEIGHT / 2;
+  const board = createBoardFromCommand({
+    id: id,
+    title: 'Новая доска',
+    x: boardX,
+    y: boardY
+  });
+  const command = {
+    type: "create",
+    objectType: "board",
+    data: {
+      id: id,
+      title: 'Новая доска',
+      x: boardX,
+      y: boardY
+    }
+  };
+  sendCommand(command);
+}
+
+function createAddColumnButton(board) {
+  const btn = new Konva.Group({
+    x: getColumnX(board, 1),
+    y: HEADER_HEIGHT,
+    name: 'add-column-button'
+  });
+  const bg = new Konva.Rect({
+    width: ADD_COLUMN_BUTTON_WIDTH,
+    height: BUTTON_HEIGHT,
+    fill: '#42A5F5',
+    cornerRadius: 5
+  });
+  const txt = new Konva.Text({
+    text: '+',
+    fontSize: 20,
+    fontFamily: 'Arial',
+    fill: 'white',
+    width: ADD_COLUMN_BUTTON_WIDTH,
+    padding: 10,
+    align: 'center'
+  });
+  btn.add(bg, txt).on('click tap', async e => {
+    e.cancelBubble = true;
+    await addColumnToBoard(board);
+    scheduleRedraw();
+  });
+  setupButtonHover(btn, bg, '#42A5F5', '#64B5F6');
+  board.add(btn);
+  return btn;
+}
+
+function recalcBoardHeight(board) {
+  const cols = board.find('.kanban-column');
+  let maxH = 0;
+  cols.forEach(col => {
+    const bg = col.findOne('Rect');
+    const h = col.y() + bg.height();
+    if (h > maxH) maxH = h;
+  });
+  const newH = maxH + COLUMN_MARGIN;
+  board.findOne('Rect').height(newH);
+}
+
+function getColumnX(board, index) {
+  return COLUMN_MARGIN + (index - 1) * (COLUMN_WIDTH + COLUMN_MARGIN);
+}
+
+function getCardY(column, index) {
+  const cards = column.find('.card').sort((a, b) => a.getAttr('index') - b.getAttr('index'));
+  let y = 40 + CARD_MARGIN;
+  for (let i = 0; i < index - 1 && i < cards.length; i++) {
+    const prevCard = cards[i];
+    const cardBg = prevCard.findOne('Rect');
+    y += cardBg.height() + CARD_MARGIN;
+  }
+  return y;
+}
+
+async function addColumnToBoard(board) {
+  const id = await generateId('column');
+  const cols = board.find('.kanban-column').sort((a, b) => a.getAttr('index') - b.getAttr('index'));
+  const index = cols.length + 1;
+  const column = createColumnFromCommand({
+    id: id,
+    title: 'Новая колонка',
+    boardId: board.getAttr('id'),
+    index: index
+  });
+  const command = {
+    type: "create",
+    objectType: "column",
+    data: {
+      id: id,
+      title: 'Новая колонка',
+      boardId: board.getAttr('id'),
+      index: index
+    }
+  };
+  sendCommand(command);
+}
+
+function setupColumnDragEvents(col, board) {
+  let originalPositions = [];
+  let currentTweens = [];
+  let isDragging = false;
+
+  col.on('dragstart', function() {
+    document.body.style.cursor = 'grabbing';
+    this.moveToTop();
+    isDragging = true;
+    currentTweens.forEach(tween => tween.destroy());
+    currentTweens = [];
+    originalPositions = board.find('.kanban-column').map(c => ({
+      node: c,
+      x: c.x()
+    }));
+    scheduleRedraw();
+  })
+  .on('dragmove', function() {
+    if (!isDragging) return;
+    const draggedCol = this;
+    const cols = board.find('.kanban-column');
+    const draggedCenterX = draggedCol.x() + COLUMN_WIDTH / 2;
+    const sortedCols = [...cols].sort((a, b) => a.x() - b.x());
+    let newIndex = 0;
+    for (let i = 0; i < sortedCols.length; i++) {
+      if (draggedCol === sortedCols[i]) continue;
+      const centerX = sortedCols[i].x() + COLUMN_WIDTH / 2;
+      if (draggedCenterX > centerX) newIndex = i + 1;
+    }
+    let targetX = COLUMN_MARGIN;
+    const targets = [];
+    for (let i = 0, colIndex = 0; colIndex < sortedCols.length; colIndex++) {
+      if (i === newIndex) {
+        targets.push({ node: draggedCol, x: targetX, skip: true });
+        targetX += COLUMN_WIDTH + COLUMN_MARGIN;
+        i++;
+      }
+      if (colIndex < sortedCols.length && sortedCols[colIndex] !== draggedCol) {
+        targets.push({ node: sortedCols[colIndex], x: targetX });
+        targetX += COLUMN_WIDTH + COLUMN_MARGIN;
+        i++;
+      }
+    }
+    targets.forEach(target => {
+      if (target.skip) return;
+      const distance = Math.abs(target.node.x() - target.x);
+      if (distance < 1) return;
+      const duration = Math.min(0.3, Math.max(0.05, distance / 500));
+      const tween = new Konva.Tween({
+        node: target.node,
+        x: target.x,
+        duration: duration,
+        easing: Konva.Easings.Linear,
+        onFinish: function() {
+          currentTweens = currentTweens.filter(t => t !== this);
+        }
+      });
+      currentTweens = currentTweens.filter(t => t.node !== target.node);
+      currentTweens.push(tween);
+      tween.play();
     });
-    stage.scale({ x: 1, y: 1 });
-    currentZoom = 1;
-    updateZoomDisplay();
-}
-
-// Перемещение к точке (0, 0)
-function goHome() {
-    smoothMoveViewportTo(0, 0, 500);
-}
-
-// Плавное перемещение к точке
-function smoothMoveViewportTo(targetX, targetY, duration = 1000, targetZoom = 1) {
-    const startPos = { x: stage.x(), y: stage.y() };
-    const startZoom = currentZoom;
-    const startTime = performance.now();
-
-    const targetStageX = stage.width() / 2 - targetX * targetZoom;
-    const targetStageY = stage.height() / 2 - targetY * targetZoom;
-
-    function animate() {
-        const elapsed = performance.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeProgress = easeInOutCubic(progress);
-
-        stage.position({
-            x: startPos.x + (targetStageX - startPos.x) * easeProgress,
-            y: startPos.y + (targetStageY - startPos.y) * easeProgress
+    const btn = board.findOne('.add-column-button');
+    btn.x(targetX);
+    scheduleRedraw();
+  })
+  .on('dragend', function() {
+    document.body.style.cursor = 'default';
+    isDragging = false;
+    currentTweens.forEach(tween => tween.destroy());
+    currentTweens = [];
+    const cols = board.find('.kanban-column').sort((a, b) => a.x() - b.x());
+    cols.forEach((col, i) => {
+      const newIndex = i + 1;
+      if (col.getAttr('index') !== newIndex) {
+        col.setAttr('index', newIndex);
+        sendCommand({
+          type: "update",
+          objectType: "column",
+          id: col.getAttr('id'),
+          data: { index: newIndex }
         });
-
-        const newScale = startZoom + (targetZoom - startZoom) * easeProgress;
-        stage.scale({ x: newScale, y: newScale });
-        currentZoom = newScale;
-        updateZoomDisplay();
-
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        }
-    }
-
-    animate();
-}
-
-function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-// Применение настроек режима
-function applyModeSettings(mode) {
-    const settings = {
-        pan: { cursor: 'grab', selection: false },
-        select: { cursor: 'default', selection: true },
-        draw: { cursor: 'crosshair', selection: false },
-        shapes: { cursor: 'crosshair', selection: false }
-    }[mode];
-
-    currentMode = mode;
-
-    if (transformer) {
-        transformer.detach();
-        transformer.destroy();
-        transformer = null;
-        layer.draw();
-    }
-
-    stage.container().style.cursor = settings.cursor;
-    updateModeInfo();
-    updateObjectsDraggable();
-
-    const drawSettingsPanel = document.getElementById('draw-settings');
-    const shapeSettingsPanel = document.getElementById('shape-settings');
-
-    drawSettingsPanel.style.display = 'none';
-    shapeSettingsPanel.style.display = 'none';
-
-    if (mode === 'draw') {
-        drawSettingsPanel.style.display = 'block';
-    } else if (mode === 'shapes') {
-        shapeSettingsPanel.style.display = 'block';
-    }
-}
-
-// Обновление информации о режиме
-function updateModeInfo() {
-    const modes = {
-        pan: 'Текущий режим: Pan',
-        select: 'Текущий режим: Select',
-        draw: 'Текущий режим: Draw',
-        shapes: 'Текущий режим: Shapes'
-    };
-    document.getElementById('mode-info').textContent = modes[currentMode];
-}
-
-// Получение корректных координат с учетом масштаба и смещения
-function getCorrectedPointerPosition(e) {
-    const pos = e.evt.touches ?
-        { x: e.evt.changedTouches[0].clientX, y: e.evt.changedTouches[0].clientY } :
-        stage.getPointerPosition() || { x: 0, y: 0 };
-
-    return {
-        x: (pos.x - stage.x()) / currentZoom,
-        y: (pos.y - stage.y()) / currentZoom
-    };
-}
-
-// Получение абсолютных координат
-function getAbsolutePointerPosition(e) {
-    const pos = e.evt.touches ?
-        { x: e.evt.changedTouches[0].clientX, y: e.evt.changedTouches[0].clientY } :
-        stage.getPointerPosition() || { x: 0, y: 0 };
-    return {
-        x: pos.x,
-        y: pos.y
-    };
-}
-
-// Расчет центра между двумя точками
-function getCenterBetweenTouches(touch1, touch2) {
-    return {
-        x: (touch1.clientX + touch2.clientX) / 2,
-        y: (touch1.clientY + touch2.clientY) / 2
-    };
-}
-
-// Обработка событий мыши и касаний
-function handleMouseDown(e) {
-    const toolbar = document.getElementById('ui_toolbar');
-    toolbar.classList.add('inactive');
-
-    if (currentMode === 'draw' || currentMode === 'shapes') {
-        document.getElementById('draw-settings').style.display = 'none';
-        document.getElementById('shape-settings').style.display = 'none';
-    }
-
-    if (e.evt.touches && e.evt.touches.length > 1) {
-        if (currentMode === 'pan') {
-            const touch1 = e.evt.touches[0];
-            const touch2 = e.evt.touches[1];
-
-            initialDistance = Math.hypot(
-                touch2.clientX - touch1.clientX,
-                touch2.clientY - touch1.clientY
-            );
-            initialCenter = getCenterBetweenTouches(touch1, touch2);
-            initialPosition = { x: stage.x(), y: stage.y() };
-            initialScale = currentZoom;
-        }
-        e.evt.preventDefault();
-        return;
-    }
-
-    const isMiddleButton = e.evt.button === 1;
-    const isRightButton = e.evt.button === 2;
-    const isLeftButton = e.evt.button === 0 || e.evt.touches;
-
-    if (isMiddleButton || isRightButton) {
-        isPanning = true;
-        lastPos = getAbsolutePointerPosition(e);
-        stage.container().style.cursor = 'grabbing';
-        return;
-    }
-
-    if (currentMode === 'draw' && isLeftButton) {
-        isDrawing = true;
-        const pointerPos = getCorrectedPointerPosition(e);
-        currentLine = new Konva.Line({
-            id: generateId(),
-            stroke: drawSettings.strokeColor,
-            strokeWidth: drawSettings.strokeWidth * currentZoom,
-            _strokeWidthOriginal: drawSettings.strokeWidth,
-            points: [pointerPos.x, pointerPos.y],
-            draggable: false,
-            globalCompositeOperation: 'source-over',
-            strokeScaleEnabled: false,
-            hitStrokeWidth: (drawSettings.strokeWidth * 4) * currentZoom,
-            _hitStrokeWidthOriginal: drawSettings.strokeWidth * 4,
-            lineCap: 'round',
-            lineJoin: 'round',
-        });
-        currentLine.originalStrokeWidth = drawSettings.strokeWidth;
-        currentLine.originalHitStrokeWidth = drawSettings.strokeWidth * 4;
-        layer.add(currentLine);
-        setupChangeTracking(currentLine);
-        return;
-    }
-
-    if (currentMode === 'shapes' && isLeftButton) {
-        isDrawingShape = true;
-        const pointerPos = getCorrectedPointerPosition(e);
-
-        switch(shapeType) {
-            case 'rect':
-                currentShape = new Konva.Rect({
-                    id: generateId(),
-                    x: pointerPos.x,
-                    y: pointerPos.y,
-                    width: 0,
-                    height: 0,
-                    stroke: shapeSettings.strokeColor,
-                    strokeWidth: shapeSettings.strokeWidth * currentZoom,
-                    _strokeWidthOriginal: shapeSettings.strokeWidth,
-                    fill: shapeSettings.fillColor,
-                    draggable: false,
-                    strokeScaleEnabled: false,
-                    hitStrokeWidth: (shapeSettings.strokeWidth * 4) * currentZoom,
-                    _hitStrokeWidthOriginal: shapeSettings.strokeWidth * 4,
-                });
-                break;
-            case 'circle':
-                currentShape = new Konva.Circle({
-                    id: generateId(),
-                    x: pointerPos.x,
-                    y: pointerPos.y,
-                    radius: 0,
-                    stroke: shapeSettings.strokeColor,
-                    strokeWidth: shapeSettings.strokeWidth * currentZoom,
-                    _strokeWidthOriginal: shapeSettings.strokeWidth,
-                    fill: shapeSettings.fillColor,
-                    draggable: false,
-                    strokeScaleEnabled: false,
-                    hitStrokeWidth: (shapeSettings.strokeWidth * 4) * currentZoom,
-                    _hitStrokeWidthOriginal: shapeSettings.strokeWidth * 4,
-                });
-                break;
-            case 'triangle':
-                currentShape = new Konva.RegularPolygon({
-                    id: generateId(),
-                    x: pointerPos.x,
-                    y: pointerPos.y,
-                    sides: 3,
-                    radius: 0,
-                    stroke: shapeSettings.strokeColor,
-                    strokeWidth: shapeSettings.strokeWidth * currentZoom,
-                    _strokeWidthOriginal: shapeSettings.strokeWidth,
-                    fill: shapeSettings.fillColor,
-                    draggable: false,
-                    strokeScaleEnabled: false,
-                    hitStrokeWidth: (shapeSettings.strokeWidth * 4) * currentZoom,
-                    _hitStrokeWidthOriginal: shapeSettings.strokeWidth * 4,
-                });
-                break;
-        }
-
-        if (currentShape) {
-            currentShape.originalStrokeWidth = shapeSettings.strokeWidth;
-            currentShape.originalHitStrokeWidth = shapeSettings.strokeWidth * 4;
-            layer.add(currentShape);
-            setupChangeTracking(currentShape);
-        }
-        return;
-    }
-
-    if (currentMode === 'pan' && isLeftButton) {
-        isPanning = true;
-        lastPos = getAbsolutePointerPosition(e);
-        stage.container().style.cursor = 'grabbing';
-        return;
-    }
-
-    if (currentMode === 'select' && e.target === stage && isLeftButton) {
-        updateTransformer();
-
-        const pos = getAbsolutePointerPosition(e);
-        if (!pos) return;
-
-        x1 = pos.x;
-        y1 = pos.y;
-        x2 = pos.x;
-        y2 = pos.y;
-
-        selectionRectangle.setAttrs({
-            x: (x1 - stage.x()) / currentZoom,
-            y: (y1 - stage.y()) / currentZoom,
-            width: 0,
-            height: 0,
-            visible: true,
-        });
-        layer.draw();
-    }
-}
-
-function handleMouseMove(e) {
-    if (e.evt.touches && e.evt.touches.length > 1 && currentMode !== 'pan') {
-        e.evt.preventDefault();
-        return;
-    }
-
-    if (e.evt.touches && e.evt.touches.length > 1 && currentMode === 'pan') {
-        e.evt.preventDefault();
-
-        const touch1 = e.evt.touches[0];
-        const touch2 = e.evt.touches[1];
-        const currentDistance = Math.hypot(
-            touch2.clientX - touch1.clientX,
-            touch2.clientY - touch1.clientY
-        );
-
-        if (initialDistance !== null && initialCenter !== null) {
-            const scale = (currentDistance / initialDistance) * initialScale;
-            const newScale = Math.max(0.1, Math.min(scale, 4));
-
-            const currentCenter = getCenterBetweenTouches(touch1, touch2);
-            const centerDeltaX = currentCenter.x - initialCenter.x;
-            const centerDeltaY = currentCenter.y - initialCenter.y;
-
-            const newPos = {
-                x: initialPosition.x + centerDeltaX,
-                y: initialPosition.y + centerDeltaY
-            };
-
-            const mousePointTo = {
-                x: (currentCenter.x - newPos.x) / initialScale,
-                y: (currentCenter.y - newPos.y) / initialScale
-            };
-
-            const finalPos = {
-                x: currentCenter.x - mousePointTo.x * newScale,
-                y: currentCenter.y - mousePointTo.y * newScale
-            };
-
-            stage.position(finalPos);
-            stage.scale({ x: newScale, y: newScale });
-            currentZoom = newScale;
-            updateZoomDisplay();
-        }
-        return;
-    }
-
-    if (isDrawing && currentLine) {
-        const pointerPos = getCorrectedPointerPosition(e);
-        const newPoints = currentLine.points().concat([pointerPos.x, pointerPos.y]);
-        currentLine.points(newPoints);
-        layer.batchDraw();
-        return;
-    }
-
-    if (isDrawingShape && currentShape) {
-        const pointerPos = getCorrectedPointerPosition(e);
-        const startX = currentShape.x();
-        const startY = currentShape.y();
-
-        switch(shapeType) {
-            case 'rect':
-                currentShape.width(pointerPos.x - startX);
-                currentShape.height(pointerPos.y - startY);
-                break;
-            case 'circle':
-                const radius = Math.sqrt(
-                    Math.pow(pointerPos.x - startX, 2) +
-                    Math.pow(pointerPos.y - startY, 2)
-                );
-                currentShape.radius(radius);
-                break;
-            case 'triangle':
-                const triRadius = Math.sqrt(
-                    Math.pow(pointerPos.x - startX, 2) +
-                    Math.pow(pointerPos.y - startY, 2)
-                );
-                currentShape.radius(triRadius);
-                break;
-        }
-        layer.batchDraw();
-        return;
-    }
-
-    if (isPanning && lastPos) {
-        e.evt.preventDefault();
-        const currentPos = getAbsolutePointerPosition(e);
-        if (!currentPos) return;
-
-        const dx = currentPos.x - lastPos.x;
-        const dy = currentPos.y - lastPos.y;
-
-        stage.position({
-            x: stage.x() + dx,
-            y: stage.y() + dy
-        });
-
-        lastPos = currentPos;
-        layer.batchDraw();
-        return;
-    }
-
-    if (currentMode === 'select' && selectionRectangle.visible()) {
-        const pos = getAbsolutePointerPosition(e);
-        if (!pos) return;
-
-        x2 = pos.x;
-        y2 = pos.y;
-
-        const rectX = Math.min(x1, x2);
-        const rectY = Math.min(y1, y2);
-        const rectWidth = Math.abs(x2 - x1);
-        const rectHeight = Math.abs(y2 - y1);
-
-        const correctedX = (rectX - stage.x()) / currentZoom;
-        const correctedY = (rectY - stage.y()) / currentZoom;
-        const correctedWidth = rectWidth / currentZoom;
-        const correctedHeight = rectHeight / currentZoom;
-
-        selectionRectangle.setAttrs({
-            x: correctedX,
-            y: correctedY,
-            width: correctedWidth,
-            height: correctedHeight,
-        });
-        layer.batchDraw();
-    }
-}
-
-function handleMouseUp() {
-    const toolbar = document.getElementById('ui_toolbar');
-    toolbar.classList.remove('inactive');
-
-    initialDistance = null;
-    initialCenter = null;
-    initialPosition = null;
-    initialScale = currentZoom;
-
-    if (isDrawing) {
-        isDrawing = false;
-        if (currentMode === 'draw') {
-            document.getElementById('draw-settings').style.display = 'block';
-        }
-        currentLine = null;
-        return;
-    }
-
-    if (isDrawingShape) {
-        isDrawingShape = false;
-        if (currentMode === 'shapes') {
-            document.getElementById('shape-settings').style.display = 'block';
-        }
-
-        if (currentShape) {
-            const minSize = 5;
-            let shouldRemove = false;
-
-            if (shapeType === 'rect' &&
-                (Math.abs(currentShape.width()) < minSize ||
-                 Math.abs(currentShape.height()) < minSize)) {
-                shouldRemove = true;
-            } else if ((shapeType === 'circle' || shapeType === 'triangle') &&
-                       currentShape.radius() < minSize) {
-                shouldRemove = true;
-            }
-
-            if (shouldRemove) {
-                logChange('D', currentShape);
-                currentShape.destroy();
-                currentShape = null;
-                layer.batchDraw();
-                return;
-            }
-
-            currentShape = null;
-        }
-        return;
-    }
-
-    if (isPanning) {
-        isPanning = false;
-        if (currentMode === 'pan') {
-            stage.container().style.cursor = 'grab';
-        } else {
-            stage.container().style.cursor = 'default';
-        }
-        return;
-    }
-
-    if (currentMode === 'select' && selectionRectangle.visible()) {
-        setTimeout(() => {
-            selectionRectangle.visible(false);
-            layer.draw();
-        });
-
-        const rectX = Math.min(x1, x2);
-        const rectY = Math.min(y1, y2);
-        const rectWidth = Math.abs(x2 - x1);
-        const rectHeight = Math.abs(y2 - y1);
-
-        const selectionBox = new Konva.Rect({
-            x: rectX,
-            y: rectY,
-            width: rectWidth,
-            height: rectHeight
-        });
-
-        const selectionClientRect = selectionBox.getClientRect();
-        const shapes = layer.find('Shape');
-
-        const selected = shapes.filter((shape) => {
-            if (shape === selectionRectangle) return false;
-            const shapeClientRect = shape.getClientRect();
-
-            if (!Konva.Util.haveIntersection(selectionClientRect, shapeClientRect)) {
-                return false;
-            }
-
-            if (shape.getClassName() !== 'Line') {
-                return true;
-            }
-
-            return isLineIntersectingSelection(shape, selectionClientRect);
-        });
-
-        function isLineIntersectingSelection(line, selectionRect) {
-            const points = line.points();
-            const transform = line.getAbsoluteTransform();
-
-            for (let i = 0; i < points.length - 2; i += 2) {
-                const start = transform.point({
-                    x: points[i],
-                    y: points[i + 1]
-                });
-                const end = transform.point({
-                    x: points[i + 2],
-                    y: points[i + 3]
-                });
-
-                if (isPointInRect(start, selectionRect) || isPointInRect(end, selectionRect)) {
-                    return true;
-                }
-
-                if (checkLineSegmentIntersection(start, end, selectionRect)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        function isPointInRect(point, rect) {
-            return point.x >= rect.x &&
-                   point.x <= rect.x + rect.width &&
-                   point.y >= rect.y &&
-                   point.y <= rect.y + rect.height;
-        }
-
-        function checkLineSegmentIntersection(start, end, rect) {
-            const rectLines = [
-                { start: { x: rect.x, y: rect.y }, end: { x: rect.x + rect.width, y: rect.y } },
-                { start: { x: rect.x + rect.width, y: rect.y }, end: { x: rect.x + rect.width, y: rect.y + rect.height } },
-                { start: { x: rect.x, y: rect.y + rect.height }, end: { x: rect.x + rect.width, y: rect.y + rect.height } },
-                { start: { x: rect.x, y: rect.y }, end: { x: rect.x, y: rect.y + rect.height } }
-            ];
-
-            for (const border of rectLines) {
-                if (doLinesIntersect(start, end, border.start, border.end)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        function doLinesIntersect(a1, a2, b1, b2) {
-            const ccw = (A, B, C) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
-            return ccw(a1, b1, b2) !== ccw(a2, b1, b2) && ccw(a1, a2, b1) !== ccw(a1, a2, b2);
-        }
-
-        updateTransformer(selected);
-    }
-}
-
-function handleObjectSelect(e) {
-    if (currentMode !== 'select') return;
-
-    if (e.evt.button !== undefined && e.evt.button !== 0 && !e.evt.touches) return;
-
-    if (selectionRectangle.visible() &&
-        (selectionRectangle.width() > 0 || selectionRectangle.height() > 0)) {
-        return;
-    }
-
-    if (e.target === stage) {
-        updateTransformer();
-        return;
-    }
-
-    const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
-    const isSelected = transformer && transformer.nodes().indexOf(e.target) >= 0;
-
-    if (!metaPressed && !isSelected) {
-        updateTransformer([e.target]);
-    } else if (metaPressed && isSelected) {
-        const nodes = transformer.nodes().slice();
-        nodes.splice(nodes.indexOf(e.target), 1);
-        updateTransformer(nodes);
-    } else if (metaPressed && !isSelected) {
-        const nodes = transformer ? transformer.nodes().concat([e.target]) : [e.target];
-        updateTransformer(nodes);
-    }
-}
-
-function togglePanSelect() {
-    const newMode = currentMode === 'select' ? 'pan' : 'select';
-    applyModeSettings(newMode);
-    document.getElementById('panselect-toggle').textContent = newMode === 'pan' ? 'Pan' : 'Select';
-}
-
-function deleteSelectedObjects() {
-    if (transformer && transformer.nodes().length > 0) {
-        transformer.nodes().forEach(node => {
-            logChange('D', node);
-            node.destroy();
-        });
-        updateTransformer();
-    }
-}
-
-function exportToJSON() {
-    const data = stage.toJSON();
-    console.log(JSON.stringify(data, null, 2));
-}
-
-function handleResize() {
-    stage.width(window.innerWidth);
-    stage.height(window.innerHeight);
-    layer.batchDraw();
-}
-
-function init() {
-    centerStageAtZero();
-    setupZoomControls(stage, layer);
-
-    selectionRectangle = new Konva.Rect({
-        fill: 'rgba(0, 0, 255, 0.3)',
-        stroke: null,
-        visible: false,
-        isUserTool: true,
+      }
+      col.x(getColumnX(board, newIndex));
     });
-    layer.add(selectionRectangle);
-
-    stage.on('scaleChange', updateStrokeScaling);
-
-    stage.on('mousedown', handleMouseDown);
-    stage.on('touchstart', function(e) {
-        e.evt.preventDefault();
-        handleMouseDown(e);
-    });
-
-    stage.on('mousemove', handleMouseMove);
-    stage.on('touchmove', function(e) {
-        e.evt.preventDefault();
-        handleMouseMove(e);
-    });
-
-    stage.on('mouseup', handleMouseUp);
-    stage.on('touchend', function(e) {
-        e.evt.preventDefault();
-        handleMouseUp();
-    });
-
-    stage.on('click tap', function(e) {
-        const target = e.target;
-        const isTransformerPart = target.getParent() === transformer;
-        if (isTransformerPart) return;
-        if (target === stage) {
-            updateTransformer();
-        } else if (currentMode === 'select') {
-            handleObjectSelect(e);
-        }
-    });
-
-    stage.on('contextmenu', (e) => {
-        e.evt.preventDefault();
-    });
-
-    const lineWidthInput = document.getElementById('line-width');
-    const widthValue = document.getElementById('width-value');
-
-    lineWidthInput.addEventListener('input', function() {
-        const value = this.value;
-        widthValue.textContent = value;
-        drawSettings.strokeWidth = parseInt(value);
-        updateLinePreview();
-    });
-
-    setupColorPicker();
-    updateLinePreview();
-
-    document.getElementById('shape-rect').addEventListener('click', () => shapeType = 'rect');
-    document.getElementById('shape-circle').addEventListener('click', () => shapeType = 'circle');
-    document.getElementById('shape-triangle').addEventListener('click', () => shapeType = 'triangle');
-
-    document.getElementById('panselect-toggle').addEventListener('click', togglePanSelect);
-    document.getElementById('toggle-draw').addEventListener('click', () => applyModeSettings('draw'));
-    document.getElementById('toggle-shapes').addEventListener('click', () => applyModeSettings('shapes'));
-    document.getElementById('go-home').addEventListener('click', goHome);
-
-    window.addEventListener('resize', handleResize);
-
-    applyModeSettings('select');
-    updateStrokeScaling();
+    const btn = board.findOne('.add-column-button');
+    btn.x(getColumnX(board, cols.length + 1));
+    const boardBg = board.findOne('Rect');
+    boardBg.width(getColumnX(board, cols.length + 1) + ADD_COLUMN_BUTTON_WIDTH + COLUMN_MARGIN);
+    board.findOne('Text').width(boardBg.width() - 40);
+    recalcBoardHeight(board);
+    scheduleRedraw();
+  });
 }
 
-window.addEventListener('DOMContentLoaded', init);
+function reorderColumnsInBoard(board) {
+  const columns = board.find('.kanban-column').sort((a, b) => a.getAttr('index') - b.getAttr('index'));
+  const btn = board.findOne('.add-column-button');
+  columns.forEach((col, i) => {
+    col.setAttr('index', i + 1);
+    col.x(getColumnX(board, i + 1));
+  });
+  btn.x(getColumnX(board, columns.length + 1));
+  const boardBg = board.findOne('Rect');
+  boardBg.width(getColumnX(board, columns.length + 1) + ADD_COLUMN_BUTTON_WIDTH + COLUMN_MARGIN);
+  board.findOne('Text').width(boardBg.width() - 40);
+}
+
+function calculateCardHeight(textNode) {
+  textNode.height('auto');
+  const textHeight = textNode.height();
+  const calculatedHeight = textHeight + 2 * CARD_PADDING;
+  return Math.max(calculatedHeight, MIN_CARD_HEIGHT);
+}
+
+async function addCardToColumn(column, board) {
+  const id = await generateId('card');
+  const cards = column.find('.card').sort((a, b) => a.getAttr('index') - b.getAttr('index'));
+  const index = cards.length + 1;
+  const card = createCardFromCommand({
+    id: id,
+    title: 'Новая карточка',
+    columnId: column.getAttr('id'),
+    index: index
+  });
+  const command = {
+    type: "create",
+    objectType: "card",
+    data: {
+      id: id,
+      title: 'Новая карточка',
+      columnId: column.getAttr('id'),
+      index: index
+    }
+  };
+  sendCommand(command);
+}
+
+function setupCardDragEvents(card) {
+  let cardTweens = [];
+
+  card.on('dragstart', function() {
+    document.body.style.cursor = 'grabbing';
+    this.moveToTop();
+    this.startCol = this.getParent();
+    this.startBoard = this.startCol.getParent();
+    this.startPos = { x: this.x(), y: this.y() };
+    cardTweens.forEach(t => t.destroy());
+    cardTweens = [];
+    scheduleRedraw();
+  })
+  .on('dragmove', function() {
+    const draggedCard = this;
+    const cards = this.getParent().find('.card').filter(c => c !== draggedCard);
+    const draggedCenterY = draggedCard.y() + draggedCard.findOne('Rect').height() / 2;
+    cards.sort((a, b) => a.y() - b.y());
+    let newIndex = 0;
+    for (let i = 0; i < cards.length; i++) {
+      const centerY = cards[i].y() + cards[i].findOne('Rect').height() / 2;
+      if (draggedCenterY > centerY) newIndex = i + 1;
+    }
+    let targetY = 40 + CARD_MARGIN;
+    const targets = [];
+    for (let i = 0, cardIndex = 0; cardIndex < cards.length; cardIndex++) {
+      if (i === newIndex) {
+        targets.push({ node: draggedCard, y: targetY, skip: true });
+        targetY += draggedCard.findOne('Rect').height() + CARD_MARGIN;
+        i++;
+      }
+      if (cardIndex < cards.length && cards[cardIndex] !== draggedCard) {
+        targets.push({ node: cards[cardIndex], y: targetY });
+        targetY += cards[cardIndex].findOne('Rect').height() + CARD_MARGIN;
+        i++;
+      }
+    }
+    targets.forEach(target => {
+      if (target.skip) return;
+      const distance = Math.abs(target.node.y() - target.y);
+      if (distance < 1) return;
+      const duration = Math.min(0.3, Math.max(0.05, distance / 200));
+      const tween = new Konva.Tween({
+        node: target.node,
+        y: target.y,
+        duration: duration,
+        easing: Konva.Easings.Linear,
+        onFinish: function() {
+          cardTweens = cardTweens.filter(t => t !== this);
+        }
+      });
+      cardTweens = cardTweens.filter(t => t.node !== target.node);
+      cardTweens.push(tween);
+      tween.play();
+    });
+    scheduleRedraw();
+  })
+  .on('dragend', function() {
+    document.body.style.cursor = 'default';
+    cardTweens.forEach(t => t.destroy());
+    cardTweens = [];
+    handleCardDrop(this);
+    scheduleRedraw();
+  });
+}
+
+function reorderCardsInColumn(column) {
+  const cards = column.find('.card').sort((a, b) => a.getAttr('index') - b.getAttr('index'));
+  let y = 40 + CARD_MARGIN;
+  cards.forEach((c, i) => {
+    c.setAttr('index', i + 1);
+    c.y(y);
+    const cardBg = c.findOne('Rect');
+    y += cardBg.height() + CARD_MARGIN;
+  });
+  const addBtn = column.findOne('.add-card-button');
+  addBtn.y(y);
+  column.findOne('Rect').height(y + MIN_CARD_HEIGHT + CARD_MARGIN);
+}
+
+function handleCardDrop(card) {
+  const pos = card.getAbsolutePosition();
+  const cardBg = card.findOne('Rect');
+  const cardWidth = cardBg.width();
+  const cardHeight = cardBg.height();
+  const centerX = pos.x + cardWidth / 2;
+  const centerY = pos.y + cardHeight / 2;
+  let targetCol = null;
+  let targetBoard = null;
+  stage.kanbanBoards.forEach(b => {
+    const cols = b.find('.kanban-column');
+    cols.forEach(c => {
+      const colPos = c.getAbsolutePosition();
+      const colRect = c.findOne('Rect');
+      const colHeight = colRect.height();
+      if (centerX > colPos.x && centerX < colPos.x + COLUMN_WIDTH &&
+          centerY > colPos.y && centerY < colPos.y + colHeight) {
+        targetCol = c;
+        targetBoard = b;
+      }
+    });
+  });
+  const startCol = card.startCol;
+  const startBoard = card.startBoard;
+  if (targetCol) {
+    const targetColPos = targetCol.getAbsolutePosition();
+    const localY = centerY - targetColPos.y - cardHeight / 2;
+    card.moveTo(targetCol);
+    card.x(CARD_MARGIN);
+    card.y(localY);
+    reorderCardsInColumn(targetCol);
+    reorderCardsInColumn(startCol);
+    recalcBoardHeight(targetBoard);
+    recalcBoardHeight(startBoard);
+    const newIndex = targetCol.find('.card').sort((a, b) => a.y() - b.y()).indexOf(card) + 1;
+    sendCommand({
+      type: "update",
+      objectType: "card",
+      id: card.getAttr('id'),
+      data: {
+        columnId: targetCol.getAttr('id'),
+        index: newIndex
+      }
+    });
+  } else {
+    card.moveTo(startCol);
+    card.x(card.startPos.x);
+    card.y(card.startPos.y);
+    reorderCardsInColumn(startCol);
+    recalcBoardHeight(startBoard);
+  }
+}
+
+function updateDebugInfo() {
+  if (debugPanel.style.display !== 'block') return;
+  let html = '';
+  html += `<div class="debug-section">
+    <h3>Сцена (Stage)</h3>
+    <div class="debug-property"><div class="debug-property-name">Ширина:</div><div class="debug-property-value">${stage.width()}</div></div>
+    <div class="debug-property"><div class="debug-property-name">Высота:</div><div class="debug-property-value">${stage.height()}</div></div>
+  </div>`;
+  html += `<div class="debug-section"><h3>Доски (${stage.kanbanBoards.length})</h3>`;
+  stage.kanbanBoards.forEach((board, boardIndex) => {
+    const boardHeader = board.findOne('Text');
+    const boardBg = board.findOne('Rect');
+    html += `</br><div class="debug-object">
+      <div class="debug-property"><div class="debug-property-name">Доска (ID: ${board.getAttr('id')}):</div><div class="debug-property-value">${boardHeader.text()}</div></div>
+      <div class="debug-property"><div class="debug-property-name">Позиция:</div><div class="debug-property-value">x: ${board.x()}, y: ${board.y()}</div></div>
+      <div class="debug-property"><div class="debug-property-name">Размеры:</div><div class="debug-property-value">${boardBg.width()} × ${boardBg.height()}</div></div>`;
+    const columns = board.find('.kanban-column');
+    html += `<div class="debug-property"><div class="debug-property-name">Колонки:</div><div class="debug-property-value">${columns.length}</div></div>`;
+    columns.forEach((col, colIndex) => {
+      const colHeader = col.findOne('Text');
+      const colBg = col.findOne('Rect');
+      html += `</br><div class="debug-object">
+        <div class="debug-property"><div class="debug-property-name">Колонка (ID: ${col.getAttr('id')}, Индекс: ${col.getAttr('index')}):</div><div class="debug-property-value">${colHeader.text()}</div></div>
+        <div class="debug-property"><div class="debug-property-name">Позиция:</div><div class="debug-property-value">x: ${col.x()}, y: ${col.y()}</div></div>
+        <div class="debug-property"><div class="debug-property-name">Размеры:</div><div class="debug-property-value">${colBg.width()} × ${colBg.height()}</div></div>`;
+      const cards = col.find('.card');
+      html += `<div class="debug-property"><div class="debug-property-name">Карточки:</div><div class="debug-property-value">${cards.length}</div></div>`;
+      cards.forEach((card, cardIndex) => {
+        const cardText = card.findOne('Text');
+        const cardBg = card.findOne('Rect');
+        html += `</br><div class="debug-object">
+          <div class="debug-property"><div class="debug-property-name">Карточка (ID: ${card.getAttr('id')}, Индекс: ${card.getAttr('index')}):</div><div class="debug-property-value">${cardText.text().split('\n')[0]}</div></div>
+          <div class="debug-property"><div class="debug-property-name">Позиция:</div><div class="debug-property-value">x: ${card.x()}, y: ${card.y()}</div></div>
+          <div class="debug-property"><div class="debug-property-name">Размеры:</div><div class="debug-property-value">${cardBg.width()} × ${cardBg.height()}</div></div>
+          <div class="debug-property"><div class="debug-property-name">Содержание:</div><div class="debug-property-value">${card.content || ''}</div></div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  debugContent.innerHTML = html;
+}
+
+// Initialization
+async function initializeBoard() {
+  try {
+    const jsonData = await loadInitialData();
+    loadBoardFromJSON(jsonData);
+    connectWebSocket();
+    // Wait briefly for WebSocket commands to be applied
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    loadingScreen.style.display = 'none';
+  } catch (error) {
+    console.error('Error initializing board:', error);
+    loadingScreen.innerHTML = '<p>Ошибка загрузки доски</p>';
+  }
+}
+
+initializeBoard();

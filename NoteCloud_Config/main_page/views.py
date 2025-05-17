@@ -1,27 +1,25 @@
 from django.shortcuts import render
-from django.views.generic.base import TemplateView
+from django.views import View
 from django.http import JsonResponse
+from asgiref.sync import sync_to_async
 
 
-class IndexView(TemplateView):
-    template_name = 'main_page/index.html'
+@sync_to_async
+def render_sync(request, template_name, context=None, **kwargs):
+    return render(request, template_name, context or {}, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
 
-        return context
+class IndexView(View):
+    async def get(self, request, *args, **kwargs):
+        context = {}
 
-    def get(self, request, *args, **kwargs):
-        if request.headers.get('HX-Request'):
-            return render(request, 'main_page/partials/index.html', self.get_context_data())
+        return await render_sync(request, 'main_page/index.html', context)
 
-        return super().get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
+    async def post(self, request, *args, **kwargs):
         data = request.POST.get('data')
 
         return JsonResponse({'success': True, 'data': data})
 
 
-def custom_404(request, exception):
-    return render(request, '404.html', status=404)
+async def custom_404(request, exception):
+    return await render_sync(request, '404.html', context=None, status=404)

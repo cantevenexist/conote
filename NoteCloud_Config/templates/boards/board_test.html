@@ -10,142 +10,245 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100%;
-            touch-action: none;
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: #f0f0f0;
+          font-family: Arial, sans-serif;
         }
         #container {
-            width: 100%;
-            height: 100%;
-            background-color: #f8f8f8;
-            touch-action: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
+          width: 100vw;
+          height: 100vh;
         }
-        #ui_toolbar {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 100;
-            transition: opacity 0.2s ease;
+        .modal {
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: white;
+          padding: 20px;
+          border-radius: 5px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.3);
+          z-index: 1000;
         }
-        #ui_toolbar.inactive {
-            opacity: 0.5;
-            pointer-events: none;
+        #card-modal {
+          width: 400px;
         }
-        #ui_toolbar button {
-            margin: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
+        #column-modal, #board-modal {
+          width: 300px;
         }
-        #zoom-controls {
-            display: inline-flex;
-            align-items: center;
-            margin-left: 10px;
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
         }
-        #zoom-level {
-            font-size: 14px;
-            font-family: Arial, sans-serif;
+        .modal-title {
+          font-size: 18px;
+          font-weight: bold;
         }
-        .ui_block_pos {
-            overscroll-behavior-x: contain;
+        .modal-actions {
+          display: flex;
+          gap: 5px;
         }
-        #draw-settings {
-            position: absolute;
-            top: 100px;
-            left: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 100;
-            display: none;
+        .modal label {
+          display: block;
+          margin-bottom: 5px;
+          font-weight: bold;
         }
-        #shape-settings {
-            position: absolute;
-            top: 100px;
-            left: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 100;
-            display: none;
+        .modal input, .modal textarea {
+          width: 100%;
+          padding: 8px;
+          margin-bottom: 15px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          box-sizing: border-box;
         }
-        #draw-settings label {
-            display: block;
-            margin: 5px 0;
+        .modal textarea {
+          height: 100px;
+          resize: vertical;
         }
-        #draw-settings input {
-            margin: 5px 0;
+        .modal button {
+          padding: 5px 10px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
         }
-        .color-preview {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 1px solid #ccc;
-            vertical-align: middle;
-            margin-left: 5px;
-            cursor: pointer;
+        .close-btn {
+          background: #B0BEC5;
+          color: white;
         }
-        .line-preview {
-            display: flex;
-            justify-content: center;
-            margin: 10px 0;
+        .close-btn:hover {
+          background: #90A4AE;
         }
-        .line-preview-container {
-            position: relative;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+        .delete-btn {
+          background: #EF5350;
+          color: white;
         }
-        .line-preview-outer {
-            position: absolute;
-            border-radius: 50%;
-            background-color: white;
-            border: 1px solid #ccc;
+        .delete-btn:hover {
+          background: #E53935;
         }
-        .line-preview-inner {
-            position: absolute;
-            border-radius: 50%;
-            background-color: currentColor;
+        #overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          z-index: 999;
         }
-        #line-color {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
+        #debug-panel {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 300px;
+          background: white;
+          border-top: 1px solid #ccc;
+          overflow: auto;
+          font-family: monospace;
+          font-size: 12px;
+          padding: 10px;
+          box-sizing: border-box;
+          z-index: 1001;
         }
-        #json-output {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: #fff;
-            padding: 10px;
-            border: 1px solid #000;
-            z-index: 9999;
-            font-family: monospace;
-            white-space: pre;
-            max-height: 300px;
-            overflow-y: auto;
-            width: 400px;
-            resize: both;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        #debug-toggle {
+          position: fixed;
+          bottom: 300px;
+          left: 10px;
+          padding: 5px 10px;
+          background: #333;
+          color: white;
+          border: none;
+          border-radius: 3px 3px 0 0;
+          cursor: pointer;
+          z-index: 1002;
         }
-        #json-output div {
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+        .debug-section {
+          margin-bottom: 10px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid #eee;
+        }
+        .debug-section h3 {
+          margin: 0 0 5px 0;
+          font-size: 14px;
+        }
+        .debug-property {
+          display: flex;
+          margin-bottom: 3px;
+        }
+        .debug-property-name {
+          font-weight: bold;
+          min-width: 150px;
+        }
+        .debug-property-value {
+          flex-grow: 1;
+          word-break: break-all;
+        }
+        .debug-object {
+          margin-left: 15px;
+        }
+        #add-board-container {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          z-index: 10;
+        }
+        #add-board-btn {
+          padding: 10px 15px;
+          background: blue;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 16px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #add-board-btn.creating {
+          background: crimson;
+        }
+        #commands-panel {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          width: 400px;
+          background: white;
+          border-radius: 5px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.3);
+          z-index: 1000;
+          padding: 15px;
+          box-sizing: border-box;
+        }
+        #commands-panel h2 {
+          margin-top: 0;
+          font-size: 16px;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 10px;
+        }
+        #command-input {
+          width: 100%;
+          height: 100px;
+          margin-bottom: 10px;
+          font-family: monospace;
+          padding: 8px;
+          box-sizing: border-box;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+        #apply-command {
+          padding: 8px 15px;
+          background: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-bottom: 15px;
+        }
+        #apply-command:hover {
+          background: #388E3C;
+        }
+        .command-examples {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 5px;
+          margin-bottom: 10px;
+        }
+        .command-example-btn {
+          padding: 5px;
+          background: #2196F3;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 12px;
+          text-align: left;
+        }
+        .command-example-btn:hover {
+          background: #1976D2;
+        }
+        .command-group {
+          margin-bottom: 15px;
+        }
+        .command-group-title {
+          font-weight: bold;
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        #loading-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: white;
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         #toggle_share {
             position: absolute;
@@ -229,20 +332,6 @@
     </style>
 </head>
 <body oncontextmenu="return false;">
-    <div id="ui_toolbar" class="ui_block_pos">
-        <button id="panselect-toggle">Select</button>
-        <button id="toggle-draw" data-mode="draw">Draw</button>
-        <button id="toggle-shapes" data-mode="shapes">Shapes</button>
-        <div id="zoom-controls">
-            <button id="zoom-in">+</button>
-            <button id="zoom-out">-</button>
-            <button id="zoom-reset">Reset</button>
-            <input id="zoom-input" value="100" style="width: 60px;cursor: pointer; font-size: 16px;" type="text" inputmode="numeric" pattern="[0-9]*"/> %
-        </div>
-        <button id="go-home">Home</button>
-        <div id="mode-info"></div>
-    </div>
-
     <button id="toggle_share">Share</button>
 
     <div id="share_panel">
@@ -265,31 +354,101 @@
         <button id="share-load-more" style="display: none;">Загрузить ещё</button>
     </div>
 
-    <div id="draw-settings">
-        <div class="line-preview">
-            <div class="line-preview-container" id="color-picker">
-                <div class="line-preview-outer" id="line-preview-outer"></div>
-                <div class="line-preview-inner" id="line-preview-inner"></div>
-                <input type="color" id="line-color" value="#000000">
-            </div>
-        </div>
-        <label>
-            Толщина линии:
-            <input type="range" id="line-width" min="1" max="20" value="5">
-            <span id="width-value">5</span>px
-        </label>
-    </div>
 
-    <div id="shape-settings">
-        <div>
-            <button id="shape-rect">Rectangle</button>
-            <button id="shape-circle">Circle</button>
-            <button id="shape-triangle">Triangle</button>
-        </div>
+    <button onclick="console.log(JSON.stringify(stage.toObject()))">Вывести JSON сцены</button>
+    <div id="loading-screen">
+        <p>Загрузка...</p>
     </div>
-
     <div id="container"></div>
+    <div id="overlay"></div>
 
+    <div id="add-board-container">
+    <button id="add-board-btn">Добавить доску Kanban</button>
+    </div>
+
+    <!-- Панель команд -->
+    <div id="commands-panel">
+    <h2>Команды для изменений</h2>
+    <textarea id="command-input" placeholder='Введите команду в формате JSON, например: {"type":"create","objectType":"board","data":{"title":"Новая доска"}}'></textarea>
+    <button id="apply-command">Применить команду</button>
+
+    <div class="command-group">
+      <div class="command-group-title">Примеры создания:</div>
+      <div class="command-examples">
+        <button class="command-example-btn" onclick="insertExample('create-board')">Создать доску</button>
+        <button class="command-example-btn" onclick="insertExample('create-column')">Создать колонку</button>
+        <button class="command-example-btn" onclick="insertExample('create-card')">Создать карточку</button>
+      </div>
+    </div>
+
+    <div class="command-group">
+      <div class="command-group-title">Примеры изменений:</div>
+      <div class="command-examples">
+        <button class="command-example-btn" onclick="insertExample('update-board')">Изменить доску</button>
+        <button class="command-example-btn" onclick="insertExample('update-column')">Изменить колонку</button>
+        <button class="command-example-btn" onclick="insertExample('update-card')">Изменить карточку</button>
+      </div>
+    </div>
+
+    <div class="command-group">
+      <div class="command-group-title">Примеры удаления:</div>
+      <div class="command-examples">
+        <button class="command-example-btn" onclick="insertExample('delete-board')">Удалить доску</button>
+        <button class="command-example-btn" onclick="insertExample('delete-column')">Удалить колонку</button>
+        <button class="command-example-btn" onclick="insertExample('delete-card')">Удалить карточку</button>
+      </div>
+    </div>
+    </div>
+
+    <!-- Модальное окно для карточки -->
+    <div id="card-modal" class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Редактирование карточки</div>
+      <div class="modal-actions">
+        <button class="close-btn" id="close-card-modal">Закрыть</button>
+        <button class="delete-btn" id="delete-card">Удалить</button>
+      </div>
+    </div>
+    <label for="card-title">Заголовок:</label>
+    <input type="text" id="card-title" autocomplete="off">
+    <label for="card-content">Содержание:</label>
+    <textarea id="card-content" autocomplete="off"></textarea>
+    </div>
+
+    <!-- Модальное окно для колонки -->
+    <div id="column-modal" class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Редактирование колонки</div>
+      <div class="modal-actions">
+        <button class="close-btn" id="close-column-modal">Закрыть</button>
+        <button class="delete-btn" id="delete-column">Удалить</button>
+      </div>
+    </div>
+    <label for="column-title">Название:</label>
+    <input type="text" id="column-title" autocomplete="off">
+    </div>
+
+    <!-- Модальное окно для доски -->
+    <div id="board-modal" class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Редактирование доски</div>
+      <div class="modal-actions">
+        <button class="close-btn" id="close-board-modal">Закрыть</button>
+        <button class="delete-btn" id="delete-board">Удалить</button>
+      </div>
+    </div>
+    <label for="board-title">Название:</label>
+    <input type="text" id="board-title" autocomplete="off">
+    </div>
+
+    <!-- Панель отладки -->
+    <button id="debug-toggle">Показать структуру</button>
+    <div id="debug-panel" style="display: none;">
+    <div id="debug-content"></div>
+    </div>
+
+    <script src="{% static 'boards/js/main.js' %}"></script>
     <script src="{% static 'boards/js/board_test.js' %}"></script>
+    <script src="{% static 'boards/js/synchronization.js' %}"></script>
 </body>
 </html>

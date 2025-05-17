@@ -1,36 +1,97 @@
-# import json
-# from channels.generic.websocket import AsyncWebsocketConsumer
-#
-#
-# class BoardConsumer(AsyncWebsocketConsumer):
-#     async def connect(self):
-#         self.group_name = 'board_group'
-#         await self.channel_layer.group_add(
-#             self.group_name,
-#             self.channel_name
-#         )
-#         await self.accept()
-#
-#     async def disconnect(self, close_code):
-#         await self.channel_layer.group_discard(
-#             self.group_name,
-#             self.channel_name
-#         )
-#
-#     async def receive(self, text_data):
-#         data = json.loads(text_data)
-#         board_state = data.get('board_state')
-#         if board_state:
-#             await self.channel_layer.group_send(
-#                 self.group_name,
-#                 {
-#                     'type': 'board_state_message',
-#                     'board_state': board_state
-#                 }
-#             )
-#
-#     async def board_state_message(self, event):
-#         board_state = event['board_state']
-#         await self.send(text_data=json.dumps({
-#             'board_state': board_state
-#         }))
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from django.contrib.auth.models import AnonymousUser
+from .models import Board
+import redis
+from django.conf import settings
+
+
+class BoardConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.redis = redis.Redis(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            password=settings.REDIS_PASSWORD
+        )
+        self.room_group_name = None
+        self.url_hash = None
+
+    async def connect(self):
+        self.url_hash = self.scope['url_route']['kwargs']['url_hash']
+        self.room_group_name = f'board_{self.url_hash}'
+
+        user = self.scope['user']
+
+        if isinstance(user, AnonymousUser):
+            await self.close()
+            return
+
+        if not await self.check_board_access(user):
+            await self.close()
+            return
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+        # Отправляем начальные команды из Redis
+        await self.send_initial_commands()
+
+    @database_sync_to_async
+    def check_board_access(self, user):
+        try:
+            board = Board.objects.get(url_hash=self.url_hash)
+            return user == board.user or user in board.access_users.all()
+        except Board.DoesNotExist:
+            return False
+
+    async def send_initial_commands(self):
+        commands = await database_sync_to_async(self.redis.lrange)(
+            f"board_commands:{self.url_hash}", 0, 99
+        )
+        for command in commands:
+            await self.send(text_data=command.decode('utf-8'))
+
+    async def disconnect(self, close_code):
+        if self.room_group_name:
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+
+    async def receive(self, text_data=None, bytes_data=None):
+        if text_data:
+            try:
+                # Сохраняем команду в Redis
+                await database_sync_to_async(self.redis.rpush)(
+                    f"board_commands:{self.url_hash}",
+                    text_data
+                )
+
+                # Отправляем команду в группу
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'board_command',
+                        'message': text_data
+                    }
+                )
+
+                # Проверяем, нужно ли запускать Celery task
+                command_count = await database_sync_to_async(self.redis.llen)(
+                    f"board_commands:{self.url_hash}"
+                )
+                if command_count >= 100:
+                    from .tasks import process_board_commands
+                    process_board_commands.delay(self.url_hash)
+
+            except Exception as e:
+                print(f"Error processing command: {e}")
+
+    async def board_command(self, event):
+        await self.send(text_data=event['message'])
