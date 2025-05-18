@@ -8,6 +8,7 @@ import redis
 import json
 from django.core.files.base import ContentFile
 from .models import Board
+from django.conf import settings
 
 
 CHUNK_SIZE = 100
@@ -34,7 +35,11 @@ def delete_old_trash():
 
 @shared_task
 def process_board_commands(url_hash):
-    r = redis.Redis()
+    r = redis.Redis(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            password=settings.REDIS_PASSWORD
+        )
     key = f"board_commands:{url_hash}"
 
     commands = r.lrange(key, 0, 99)
@@ -80,14 +85,14 @@ def process_command(data, command):
 
 def handle_create(data, command):
     obj_type = command['objectType']
-    obj_id = command.get('id')
+    obj_id = command['data']['id']
     obj_data = command['data']
 
     if obj_type not in data:
         data[obj_type] = {}
 
     if obj_id in data[obj_type]:
-        raise ValueError(f"{obj_type} with id {obj_id} already exists")
+        raise ValueError(f"{obj_type} с id {obj_id} уже существует")
 
     data[obj_type][obj_id] = obj_data
 
@@ -98,7 +103,7 @@ def handle_update(data, command):
     obj_data = command['data']
 
     if obj_type not in data or obj_id not in data[obj_type]:
-        raise ValueError(f"{obj_type} with id {obj_id} not found")
+        raise ValueError(f"{obj_type} с id {obj_id} не найден")
 
     data[obj_type][obj_id].update(obj_data)
 
@@ -107,5 +112,24 @@ def handle_delete(data, command):
     obj_type = command['objectType']
     obj_id = command['id']
 
-    if obj_type in data and obj_id in data[obj_type]:
-        del data[obj_type][obj_id]
+    if obj_type == 'board':
+        if obj_id in data.get('board', {}):
+            columns_to_delete = [col_id for col_id, col_data in data.get('column', {}).items()
+                                 if col_data['boardId'] == obj_id]
+            for col_id in columns_to_delete:
+                cards_to_delete = [card_id for card_id, card_data in data.get('card', {}).items()
+                                   if card_data['columnId'] == col_id]
+                for card_id in cards_to_delete:
+                    del data['card'][card_id]
+                del data['column'][col_id]
+            del data['board'][obj_id]
+    elif obj_type == 'column':
+        if obj_id in data.get('column', {}):
+            cards_to_delete = [card_id for card_id, card_data in data.get('card', {}).items()
+                               if card_data['columnId'] == obj_id]
+            for card_id in cards_to_delete:
+                del data['card'][card_id]
+            del data['column'][obj_id]
+    elif obj_type == 'card':
+        if obj_id in data.get('card', {}):
+            del data['card'][obj_id]

@@ -89,19 +89,55 @@ async function loadInitialData() {
   const response = await fetch(`/workspace/board_data/${urlHash}/`);
   if (!response.ok) {
     if (response.status === 404) {
-      // Нет данных
       return [];
     }
     throw new Error('Не удалось загрузить данные доски');
   }
   const data = await response.json();
+
   if (Array.isArray(data)) {
     return data;
   } else if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
     return [];
+  } else if (typeof data === 'object' && data !== null && ('board' in data || 'column' in data || 'card' in data)) {
+    return transformDataToBoards(data);
   } else {
-    throw new Error('Неверный формат данных: ожидался массив или пустой объект');
+    throw new Error('Неверный формат данных: ожидался массив, пустой объект или объект с ключами board, column, card');
   }
+}
+
+function transformDataToBoards(data) {
+  const boards = [];
+
+  if (data.board) {
+    Object.values(data.board).forEach(board => {
+      const boardData = {
+        ...board,
+        columns: []
+      };
+
+      if (data.column) {
+        const columns = Object.values(data.column).filter(col => col.boardId === board.id);
+        columns.forEach(col => {
+          const columnData = {
+            ...col,
+            cards: []
+          };
+
+          if (data.card) {
+            const cards = Object.values(data.card).filter(card => card.columnId === col.id);
+            columnData.cards = cards;
+          }
+
+          boardData.columns.push(columnData);
+        });
+      }
+
+      boards.push(boardData);
+    });
+  }
+
+  return boards;
 }
 
 function loadBoardFromJSON(data) {
@@ -114,7 +150,12 @@ function loadBoardFromJSON(data) {
       sortedCards.forEach((cardData, j) => {
         createCardFromData(cardData, column, j + 1);
       });
+      // Корректируем высоту колонки и позицию кнопки "Добавить карточку"
+      reorderCardsInColumn(column);
     });
+    // Корректируем позиции колонок и высоту доски
+    reorderColumnsInBoard(board);
+    recalcBoardHeight(board);
   });
 }
 
