@@ -9,37 +9,136 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .models import News, Comment
 from .forms import NewsForm, CommentForm
-
 from django.db.models import Count
-
-class NewsListView(ListView):
-    model = News
-    template_name = 'news/index.html'
-    context_object_name = 'news'
-
-    def get_queryset(self):
-        return News.objects.annotate(comment_count=Count('comments')).order_by('-created_at')
-
-    def render_to_response(self, context, **response_kwargs):
-        if self.request.headers.get('HX-Request'):
-            return render(self.request, 'news/partials/index.html', context)
-
-        return super().render_to_response(context, **response_kwargs)
+from asgiref.sync import sync_to_async
+from django.contrib.auth.mixins import AccessMixin
+from django.contrib.auth.views import redirect_to_login
+from django.views import View
+from channels.db import database_sync_to_async
 
 
-class NewsDetailView(DetailView):
-    model = News
-    template_name = 'news/detail.html'  # Полный шаблон
-    context_object_name = 'news'
+ALLOWED_GROUPS = ['администраторы', 'модераторы', 'редакторы']
 
-    def get_object(self):
-        slug = self.kwargs.get('slug')
-        return get_object_or_404(News, slug=slug)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = CommentForm()
-        context['comments'] = self.object.comments.all().order_by('-created_at')  # Получаем все комментарии для текущей новости от новых к старым
+@sync_to_async
+def render_sync(request, template, context):
+    return render(request, template, context)
+
+
+@sync_to_async
+def get_request_user(request):
+    user = request.user
+    _ = user.pk
+    return user
+
+
+async def async_get_object_or_404(model_or_queryset, *args, **kwargs):
+    """
+    Асинхронная версия функции get_object_or_404.
+    Пытается получить объект из переданного queryset или модели,
+    используя указанные параметры фильтрации.
+    Если объект не найден, выбрасывает Http404.
+
+    :param model_or_queryset: Модель или QuerySet, из которого нужно получить объект.
+    :param args: Позиционные аргументы для фильтрации.
+    :param kwargs: Именованные аргументы для фильтрации.
+    :return: Найденный объект.
+    """
+    # Если klass является QuerySet-ом, используем его, иначе получаем менеджер модели.
+    queryset = model_or_queryset if hasattr(model_or_queryset, 'filter') else model_or_queryset._default_manager.filter()
+    queryset = queryset.filter(*args, **kwargs)
+
+    try:
+        # Асинхронно получаем объект.
+        obj = await queryset.aget()
+    except queryset.model.DoesNotExist:
+        # return redirect('404')
+        raise Http404(f'No {queryset.model._meta.object_name} matches the given query.')
+
+    return obj
+
+
+async def async_get_or_create_object(model_or_queryset, *args, defaults=None, **kwargs):
+    """
+    Асинхронная версия get_object_or_create, которая при отсутствии объекта создаёт его.
+
+    :param model_or_queryset: Модель или QuerySet, в котором производится поиск.
+    :param args: Позиционные аргументы для фильтрации.
+    :param defaults: Словарь значений по умолчанию для создания объекта, если его нет.
+    :param kwargs: Именованные аргументы для фильтрации.
+    :return: Найденный или созданный объект.
+    :raises Http404: Если объект не найден и создать его не удалось.
+    """
+    # Если передан QuerySet, используем его, иначе получаем менеджер модели
+    queryset = model_or_queryset if hasattr(model_or_queryset, 'filter') else model_or_queryset._default_manager.filter()
+    queryset = queryset.filter(*args, **kwargs)
+
+    try:
+        # Пытаемся асинхронно получить объект
+        obj = await queryset.aget()
+        return obj
+    except queryset.model.DoesNotExist:
+        # Подготавливаем данные для создания объекта
+        create_data = {}
+        if defaults:
+            create_data.update(defaults)
+        create_data.update(kwargs)
+        # Создаём объект асинхронно
+        obj = await model_or_queryset._default_manager.acreate(**create_data)
+        return obj
+
+
+class AsyncLoginRequiredMixin(AccessMixin):
+    login_url = reverse_lazy('account_login')
+
+    async def dispatch(self, request, *args, **kwargs):
+        user = await request.auser()
+        if not user.is_authenticated:
+            return await self.handle_no_permission()
+        return await super().dispatch(request, *args, **kwargs)
+
+    async def handle_no_permission(self):
+        return redirect_to_login(
+            self.request.get_full_path(),
+            self.get_login_url(),
+            self.get_redirect_field_name()
+        )
+
+
+async def group_exists(user):
+    return await user.groups.filter(name__in=ALLOWED_GROUPS).aexists()
+
+
+async def group_has_permission(group, perm_codename):
+    return await group.permissions.filter(codename=perm_codename).aexists()
+
+
+async def user_has_group_permission(user, perm_codename):
+    if user.is_superuser:
+        return True
+
+    if not await group_exists(user):
+        return False
+
+    async for group in user.groups.filter(name__in=ALLOWED_GROUPS):
+        if await group_has_permission(group, perm_codename):
+            return True
+    return False
+
+
+class NewsListView(View):
+    async def get(self, request):
+        news_list = await sync_to_async(lambda: list(News.objects.annotate(comment_count=Count('comments')).order_by('-created_at')))()
+        context = {'news': news_list}
+
+        return await render_sync(request, 'news/index.html', context)
+
+
+class NewsDetailView(View):
+    async def get(self, request, slug):
+        news_item = await async_get_object_or_404(News, slug=slug)
+        comments = await sync_to_async(lambda: list(news_item.comments.all().order_by('-created_at')))()
+        form = CommentForm()
 
         no_comments_messages = [
             "Пока тишина, не стесняйтесь быть первым!",
@@ -53,31 +152,32 @@ class NewsDetailView(DetailView):
             "Здесь ещё нет комментариев — начинайте разговор!",
             "Все молчат… Может, это ваш шанс высказаться?"
         ]
-        
-        # Выбираем случайное сообщение
-        context['random_message'] = random.choice(no_comments_messages)
-        return context
+        random_message = random.choice(no_comments_messages)
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if request.POST.get('comment_id'):  # Проверяем, был ли отправлен ID комментария для удаления
-            return self.delete_comment(request)
+        context = {'news': news_item, 'form': form, 'comments': comments, 'random_message': random_message}
         
+        return await render_sync(request, 'news/detail.html', context)
+
+    async def post(self, request, slug):
+        user = await get_request_user(request)
+        news_obj = await async_get_object_or_404(News, slug=slug)
+
+        if request.POST.get('comment_id'):
+            return await self.delete_comment(request, news_obj)
+
         form = CommentForm(request.POST)
-
         if form.is_valid():
             comment = form.save(commit=False)
-            comment.news = self.object
-            comment.author = request.user
-            comment.save()
+            comment.news = news_obj
+            comment.author = user
+            await database_sync_to_async(comment.save)()
 
-            # Возвращаем JSON-ответ
-            comments = self.object.comments.all().order_by('-created_at')  # Обновляем список комментариев
+            comments = await sync_to_async(lambda: list(news_obj.comments.select_related("author").all().order_by('-created_at')))()
             return JsonResponse({
                 'success': True,
                 'comments': [
                     {
-                        'id': comment.id,  # Добавляем ID комментария для удаления
+                        'id': comment.id,
                         'content': comment.content,
                         'author': comment.author.username,
                         'created_at': comment.created_at.strftime('%d.%m.%Y, %H:%M'),
@@ -88,87 +188,109 @@ class NewsDetailView(DetailView):
 
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
-    def delete_comment(self, request):
+    async def delete_comment(self, request, news_obj):
+        user = await get_request_user(request)
         comment_id = request.POST.get('comment_id')
+
         try:
-            comment = self.object.comments.get(id=comment_id)
-            if comment.author != request.user:
-                return JsonResponse({'success': False, 'error': 'У вас нет прав для удаления этого комментария'}, status=403)
-            
-            comment.delete()
+            comment = await news_obj.comments.select_related("author").aget(id=comment_id)
+            if comment.author != user:
+
+                return JsonResponse({
+                    'success': False,
+                    'error': 'У вас нет прав для удаления этого комментария'
+                }, status=403)
+
+            await comment.adelete()
+
             return JsonResponse({'success': True})
-        
+
         except Comment.DoesNotExist:
+
             return JsonResponse({'success': False, 'error': 'Комментарий не найден'}, status=404)
 
-    def render_to_response(self, context, **response_kwargs):
-        if self.request.headers.get('HX-Request'):
-            return render(self.request, 'news/partials/detail.html', context)
 
-        return super().render_to_response(context, **response_kwargs)
+class NewsCreateView(AsyncLoginRequiredMixin, View):
+    async def get(self, request):
+        user = await get_request_user(request)
+        if not await user_has_group_permission(user, 'add_news'):
+            raise Http404(f'Access to news is denied!')
 
+        form = NewsForm()
+        context = {'form': form}
 
-class NewsCreateView(LoginRequiredMixin, CreateView):
-    model = News
-    form_class = NewsForm
-    template_name = 'news/news_form.html'
-    success_url = reverse_lazy('news_list')
+        return await render_sync(request, 'news/news_form.html', context)
 
-    def form_valid(self, form):
-        # Устанавливаем автора новости на текущего авторизованного пользователя
-        form.instance.author = self.request.user
-        response = super().form_valid(form)
+    async def post(self, request):
+        user = await get_request_user(request)
 
-        if self.request.headers.get('HX-Request'):
-            return render(self.request, 'news/partials/news_list.html', {'news_list': News.objects.all()})
+        data = getattr(request, 'data', None)
+        if data is None:
+            data = request.POST.copy()
+            data.update(request.FILES)
 
-        return response
+        form = NewsForm(data, request.FILES)
+        if form.is_valid():
+            news_obj = form.save(commit=False)
+            news_obj.author = user
+            await database_sync_to_async(news_obj.save)()
 
-    def render_to_response(self, context, **response_kwargs):
-        if self.request.headers.get('HX-Request'):
-            return render(self.request, 'news/partials/news_form.html', context)
+            return HttpResponseRedirect(reverse_lazy('news_list'))
+        else:
+            context = {'form': form}
 
-        return super().render_to_response(context, **response_kwargs)
-
-
-class NewsUpdateView(LoginRequiredMixin, UpdateView):
-    model = News
-    form_class = NewsForm
-    template_name = 'news/news_form.html'
-    success_url = reverse_lazy('news_list')
-
-    def get_object(self):
-        slug = self.kwargs.get('slug')
-        return get_object_or_404(News, slug=slug)
-
-    def render_to_response(self, context, **response_kwargs):
-        if self.request.headers.get('HX-Request'):
-            return render(self.request, 'news/partials/news_form.html', context)
-
-        return super().render_to_response(context, **response_kwargs)
+            return await render_sync(request, 'news/news_form.html', context)
 
 
-class NewsDeleteView(LoginRequiredMixin, DeleteView):
-    model = News
-    template_name = 'news/news_confirm_delete.html'
-    success_url = reverse_lazy('news_list')
+class NewsUpdateView(AsyncLoginRequiredMixin, View):
+    async def get(self, request, slug):
+        user = await get_request_user(request)
+        if not await user_has_group_permission(user, 'change_news'):
+            raise Http404(f'Access to news is denied!')
 
-    def get_object(self):
-        slug = self.kwargs.get('slug')
-        return get_object_or_404(News, slug=slug)
+        news_obj = await async_get_object_or_404(News, slug=slug)
+        form = NewsForm(instance=news_obj)
+        context = {'form': form, 'news': news_obj}
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.object.image.delete(save=False)
-        self.object.delete()
+        return await render_sync(request, 'news/news_form.html', context)
 
-        if request.headers.get('HX-Request'):
-            return HttpResponse('Success', status=204)  # 204 No Content
+    async def post(self, request, slug):
+        news_obj = await async_get_object_or_404(News, slug=slug)
 
-        return HttpResponseRedirect(self.success_url)
+        data = getattr(request, 'data', None)
+        if data is None:
+            data = request.POST.copy()
+            data.update(request.FILES)
 
-    def render_to_response(self, context, **response_kwargs):
-        if self.request.headers.get('HX-Request'):
-            return render(self.request, 'news/partials/news_confirm_delete.html', context)
+        form = NewsForm(data, request.FILES, instance=news_obj)
 
-        return super().render_to_response(context, **response_kwargs)
+        if form.is_valid():
+            news_obj = form.save(commit=False)
+            await database_sync_to_async(news_obj.save)()
+
+            return HttpResponseRedirect(reverse_lazy('news_list'))
+        else:
+            context = {'form': form, 'news': news_obj}
+
+            return await render_sync(request, 'news/news_form.html', context)
+
+
+class NewsDeleteView(AsyncLoginRequiredMixin, View):
+    async def get(self, request, slug):
+        user = await get_request_user(request)
+        if not await user_has_group_permission(user, 'delete_news'):
+            raise Http404(f'Access to news is denied!')
+
+        news_obj = await async_get_object_or_404(News, slug=slug)
+        context = {'news': news_obj}
+
+        return await render_sync(request, 'news/news_confirm_delete.html', context)
+
+    async def post(self, request, slug):
+        news_obj = await async_get_object_or_404(News, slug=slug)
+        if news_obj.image:
+            await database_sync_to_async(news_obj.image.delete)(save=False)
+
+        await database_sync_to_async(news_obj.delete)()
+
+        return HttpResponseRedirect(reverse_lazy('news_list'))

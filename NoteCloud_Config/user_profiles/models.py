@@ -10,6 +10,8 @@ from .storages import MinioStorage
 import re
 import uuid
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 User = get_user_model()
 
@@ -53,7 +55,7 @@ class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to=UploadToPath('media/'), blank=True, null=True, storage=MinioStorage(),
                                validators=[
-                                   FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg']),
+                                   FileExtensionValidator(allowed_extensions=['bmp', 'jpeg', 'png', 'jpg', 'heic']),
                                    file_size
                                ])
     about_me = models.CharField(max_length=500, blank=True, null=True)
@@ -80,20 +82,20 @@ class Subscription(models.Model):
     subscriptions = models.ManyToManyField(User, related_name='subscriptions', blank=True)
     subscribers = models.ManyToManyField(User, related_name='subscribers', blank=True)
 
-    def get_subscriptions_info(self):
+    async def get_subscriptions_info(self):
         subscriptions_data = []
-        users = self.subscriptions.all().prefetch_related('profile')
-        for user in users:
-            profile = user.profile.first()
+        qs = self.subscriptions.all().prefetch_related('profile')
+        async for user in qs.aiterator():
+            profile = await user.profile.afirst() if hasattr(user.profile, "afirst") else user.profile
             avatar_url = profile.avatar.url if profile and profile.avatar else None
             subscriptions_data.append({'username': user.username, 'avatar': avatar_url})
         return subscriptions_data
 
-    def get_subscribers_info(self):
+    async def get_subscribers_info(self):
         subscribers_data = []
-        users = self.subscribers.all().prefetch_related('profile')
-        for user in users:
-            profile = user.profile.first()
+        qs = self.subscribers.all().prefetch_related('profile')
+        async for user in qs.aiterator():
+            profile = await user.profile.afirst() if hasattr(user.profile, "afirst") else user.profile
             avatar_url = profile.avatar.url if profile and profile.avatar else None
             subscribers_data.append({'username': user.username, 'avatar': avatar_url})
         return subscribers_data
@@ -120,8 +122,7 @@ class SettingsPrivacy(models.Model):
 
 class SettingsNotifications(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_settings_notifications')
-    disable_notifications = models.BooleanField(default=False)
-    disabling_news_messages = models.BooleanField(default=False)
+    disabling_news_notifications = models.BooleanField(default=False)
 
 
 class PremiumSubscription(models.Model):
@@ -153,3 +154,53 @@ class PremiumSubscription(models.Model):
     def __str__(self):
         status = "Активна" if self.check_subscription else "Неактивна"
         return f'Статус подписки для  {self.user.username}: {status}'
+
+
+class Notification(models.Model):
+    LEVELS = (
+        ('info', 'Информация'),
+        ('warning', 'Предупреждение'),
+        ('error', 'Ошибка'),
+        ('critical', 'Критично'),
+    )
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True,)
+    object_id = models.PositiveIntegerField(null=True, blank=True,)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    message = models.TextField()
+    level = models.CharField(max_length=10, choices=LEVELS, default='info')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.level.upper()}] {self.message[:50]}"
+
+
+class EmailMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_message', null=True, blank=True)
+    subject = models.TextField()
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.subject}: {self.body}"
+
+
+class TelegramMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='telegram_message', null=True, blank=True)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"MessageTelegram: {self.text}"

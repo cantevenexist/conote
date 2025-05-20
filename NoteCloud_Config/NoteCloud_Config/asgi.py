@@ -8,18 +8,23 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
 import os
-from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
-from channels.auth import AuthMiddlewareStack
-from boards import routing
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NoteCloud_Config.settings')
+django_asgi_app = get_asgi_application()
+
+
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from boards.routing import websocket_urlpatterns as boards_websocket_urlpatterns
+from user_profiles.routing import websocket_urlpatterns as profiles_websocket_urlpatterns
+
+websocket_urlpatterns = boards_websocket_urlpatterns + profiles_websocket_urlpatterns
 
 application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
+    "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
-        URLRouter(
-            routing.websocket_urlpatterns
-        )
+        URLRouter(websocket_urlpatterns)
     ),
 })

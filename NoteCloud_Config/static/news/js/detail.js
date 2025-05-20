@@ -44,8 +44,8 @@ document.addEventListener('keydown', function(event) {
     }
 
     const appData = document.getElementById('page-data');
-    const user = appData.dataset.user; // Получаем пользователя
-    const requestPath = appData.dataset.requestPath; // Получаем текущий путь
+    const user = appData.dataset.user;
+    const requestPath = appData.dataset.requestPath;
     const csrftoken = getCookie('csrftoken');
     
     const commentInput = document.querySelector('.form_comment textarea');
@@ -169,7 +169,6 @@ $(document).ready(function() {
                     }
             },
             error: function(xhr) {
-                // Обработка ошибок
                 console.error(xhr.responseText);
             }
         });
@@ -187,10 +186,10 @@ $(document).ready(function() {
 
     $.ajax({
         type: 'POST',
-        url: requestPath, // Используйте текущий URL
+        url: requestPath,
         data: {
             'comment_id': commentId,
-            'csrfmiddlewaretoken': csrftoken // Передаём CSRF-токен
+            'csrfmiddlewaretoken': csrftoken
         },
         success: function(response) {
             if (response.success) {
@@ -204,7 +203,6 @@ $(document).ready(function() {
         },
         error: function(xhr) {
             try {
-                // Попытка разобрать JSON-ответ
                 const errorResponse = JSON.parse(xhr.responseText);
                 if (errorResponse.error) {
                     alert('Ошибка сервера: ' + errorResponse.error);
@@ -216,7 +214,6 @@ $(document).ready(function() {
                 alert('Не удалось получить ответ от сервера.');
             }
 
-            // Логирование подробностей ошибки
             console.error('AJAX Error:', xhr.status, xhr.statusText, xhr.responseText);
         }
     });

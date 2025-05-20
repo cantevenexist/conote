@@ -5,6 +5,7 @@
 /.env.providers
 /.env.s3
 /.env
+/.env.amqp
 *.pyc
 __pycache__/
 /.venv
@@ -13,3 +14,5 @@ migrations
 NoteCloud_Config/subscribers.db
 NoteCloud_Config/telegram_bot.log
 developments
+NoteCloud_Config/collectstatic
+NoteCloud_Config/celerybeat-schedule

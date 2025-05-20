@@ -1,3 +1,8 @@
+function getCookie(name) {
+    const value = $.cookie(name);
+    return value ? decodeURIComponent(value) : null;
+}
+
 
 // Проверка на мобильное устройство
 function isMobile() {
@@ -104,6 +109,20 @@ function toggleMenu() {
     toggle_button.classList.toggle('active');
 }
 
+function toggleMenuNotifications() {
+    var user_notifications_panel = document.getElementById("user_notifications_panel");
+    var toggle_button_notifications = document.getElementById("toggle_button_notifications");
+
+    // Проверяем, существуют ли необходимые элементы
+    if (!user_notifications_panel || !toggle_button_notifications) {
+        return; // Если хотя бы один элемент отсутствует, выходим из функции
+    }
+
+    // Если элементы существуют, выполняем логику
+    user_notifications_panel.classList.toggle("show");
+    toggle_button_notifications.classList.toggle('active');
+}
+
 window.addEventListener('click', function(event) {
     var user_settings_panel = document.getElementById("user_settings_panel");
     var toggle_button = document.getElementById("toggle_button");
@@ -120,6 +139,25 @@ window.addEventListener('click', function(event) {
     ) {
         user_settings_panel.classList.remove("show");
         toggle_button.classList.remove('active');
+    }
+});
+
+window.addEventListener('click', function(event) {
+    var user_notifications_panel = document.getElementById("user_notifications_panel");
+    var toggle_button_notifications = document.getElementById("toggle_button_notifications");
+
+    // Проверяем, существуют ли необходимые элементы
+    if (!user_notifications_panel || !toggle_button_notifications) {
+        return; // Если хотя бы один элемент отсутствует, выходим из обработчика
+    }
+
+    // Логика для скрытия панели при клике вне её или кнопки
+    if (
+        !user_notifications_panel.contains(event.target) &&
+        !toggle_button_notifications.contains(event.target)
+    ) {
+        user_notifications_panel.classList.remove("show");
+        toggle_button_notifications.classList.remove('active');
     }
 });
 
@@ -162,7 +200,6 @@ function goBack() {
 }
 
 
-
 // Autoexpand textarea
 function initializeAutoExpandTextarea() {
     const textareas = document.querySelectorAll('textarea');
@@ -180,6 +217,7 @@ function initializeAutoExpandTextarea() {
     });
 }
 
+
 // Вызываем инициализацию текстовых полей при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     initializeAutoExpandTextarea();
@@ -188,7 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Escape disable
 document.addEventListener('keydown', function(event) {if (event.key === 'Escape') {event.preventDefault();}});
-
 
 
 // Center page
@@ -238,84 +275,127 @@ function centerElementsVertically() {
 }
 
 
-
 // Zoom box for IMG
 document.addEventListener('DOMContentLoaded', function () {
-  const zoomBoxPanels = document.querySelectorAll('.zoom_box');
+    const zoomBoxPanels = document.querySelectorAll('.zoom_box');
 
-  zoomBoxPanels.forEach(function (zoom_box_divPanel) {
-    let zoom_box_scale = 1; // Текущий масштаб изображения
-    let isDragging = false; // Флаг для проверки перетаскивания
-    let offsetX = 0; // Смещение по оси X
-    let offsetY = 0; // Смещение по оси Y
-    let initialX = 0; // Начальная позиция курсора по X
-    let initialY = 0; // Начальная позиция курсора по Y
+    zoomBoxPanels.forEach(function (zoom_box_divPanel) {
+        let zoom_box_scale = 1; // Текущий масштаб изображения
+        let isDragging = false; // Флаг для проверки перетаскивания
+        let offsetX = 0; // Смещение по оси X
+        let offsetY = 0; // Смещение по оси Y
+        let initialX = 0; // Начальная позиция курсора по X
+        let initialY = 0; // Начальная позиция курсора по Y
 
-    // Обработчик прокрутки для изменения масштаба
-    zoom_box_divPanel.addEventListener('wheel', function (event) {
-      event.preventDefault();
+        // Обработчик прокрутки для изменения масштаба
+        zoom_box_divPanel.addEventListener('wheel', function (event) {
+            event.preventDefault();
 
-      if (event.deltaY < 0) {
-        zoom_box_scale = Math.min(zoom_box_scale + 0.04, 5);
-      } else {
-        zoom_box_scale = Math.max(zoom_box_scale - 0.04, 0.25);
-      }
+            if (event.deltaY < 0) {
+                zoom_box_scale = Math.min(zoom_box_scale + 0.04, 5);
+            } else {
+                zoom_box_scale = Math.max(zoom_box_scale - 0.04, 0.25);
+            }
 
-      applyTransform();
+            applyTransform();
+        });
+
+        // Начало перетаскивания
+        zoom_box_divPanel.addEventListener('mousedown', function (event) {
+            isDragging = true;
+            initialX = event.clientX - parseFloat(zoom_box_divPanel.style.left || '0');
+            initialY = event.clientY - parseFloat(zoom_box_divPanel.style.top || '0');
+            zoom_box_divPanel.style.cursor = 'grabbing';
+        });
+
+        // Движение мыши во время перетаскивания
+        document.addEventListener('mousemove', function (event) {
+            if (!isDragging) return;
+
+            offsetX = event.clientX - initialX;
+            offsetY = event.clientY - initialY;
+
+            zoom_box_divPanel.style.left = `${offsetX}px`;
+            zoom_box_divPanel.style.top = `${offsetY}px`;
+        });
+
+        // Окончание перетаскивания
+        document.addEventListener('mouseup', function () {
+            isDragging = false;
+            zoom_box_divPanel.style.cursor = 'grab';
+        });
+
+        // Применение трансформации (масштабирование + позиционирование)
+        function applyTransform() {
+            zoom_box_divPanel.style.transform = `scale(${zoom_box_scale})`;
+        }
+
+        // Сброс масштаба и позиции
+        function resetZoomAndPosition() {
+            zoom_box_scale = 1;
+            offsetX = 0;
+            offsetY = 0;
+            zoom_box_divPanel.style.transform = 'scale(1)';
+            zoom_box_divPanel.style.left = '0px';
+            zoom_box_divPanel.style.top = '0px';
+        }
+
+        // Сброс по кнопке
+        const resetButton = zoom_box_divPanel.querySelector('.reset-zoom-button');
+        if (resetButton) {
+            resetButton.addEventListener('click', resetZoomAndPosition);
+        }
+
+        // Сброс при клике вне объекта
+        document.addEventListener('click', function (event) {
+            // Проверяем, был ли клик внутри zoom_box_divPanel
+            if (!zoom_box_divPanel.contains(event.target)) {
+                resetZoomAndPosition();
+            }
+        });
+    });
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.smallPanel = document.getElementById('user_notifications_panel');
+    window.fullPanel = document.getElementById('user_all_notifications_panel');
+    window.notifContainer = document.getElementById('notifications_container');
+    window.loadMoreBtn = document.getElementById('load_more');
+    window.filters = {
+        isRead: document.getElementById('filter_is_read'),
+        level:  document.getElementById('filter_level'),
+    };
+    window.isFullOpen = false;
+
+    // Открытие полной панели
+    window.openFullPanel = () => {
+        fullPanel.style.display = 'block';
+        isFullOpen = true;
+        loadNotifications({ offset: 0, limit: 10, panel: fullPanel, useFilters: true, append: false });
+    };
+
+    // Скрытие по клику вне
+    document.addEventListener('click', e => {
+        if (isFullOpen && !fullPanel.contains(e.target) && e.target.id !== 'load_all') {
+            fullPanel.style.display = 'none';
+            isFullOpen = false;
+        }
     });
 
-    // Начало перетаскивания
-    zoom_box_divPanel.addEventListener('mousedown', function (event) {
-      isDragging = true;
-      initialX = event.clientX - parseFloat(zoom_box_divPanel.style.left || '0');
-      initialY = event.clientY - parseFloat(zoom_box_divPanel.style.top || '0');
-      zoom_box_divPanel.style.cursor = 'grabbing';
+    // "Загрузить еще" в полной панели
+    loadMoreBtn.addEventListener('click', () => {
+        const cnt = notifContainer.querySelectorAll('.notification').length;
+        loadNotifications({ offset: cnt, limit: 10, panel: fullPanel, useFilters: true, append: true });
     });
 
-    // Движение мыши во время перетаскивания
-    document.addEventListener('mousemove', function (event) {
-      if (!isDragging) return;
-
-      offsetX = event.clientX - initialX;
-      offsetY = event.clientY - initialY;
-
-      zoom_box_divPanel.style.left = `${offsetX}px`;
-      zoom_box_divPanel.style.top = `${offsetY}px`;
+    // Фильтры
+    [filters.isRead, filters.level].forEach(sel => {
+        if (sel) sel.addEventListener('change', () => {
+            loadNotifications({ offset: 0, limit: 10, panel: fullPanel, useFilters: true, append: false });
+        });
     });
 
-    // Окончание перетаскивания
-    document.addEventListener('mouseup', function () {
-      isDragging = false;
-      zoom_box_divPanel.style.cursor = 'grab';
-    });
-
-    // Применение трансформации (масштабирование + позиционирование)
-    function applyTransform() {
-      zoom_box_divPanel.style.transform = `scale(${zoom_box_scale})`;
-    }
-
-    // Сброс масштаба и позиции
-    function resetZoomAndPosition() {
-      zoom_box_scale = 1;
-      offsetX = 0;
-      offsetY = 0;
-      zoom_box_divPanel.style.transform = 'scale(1)';
-      zoom_box_divPanel.style.left = '0px';
-      zoom_box_divPanel.style.top = '0px';
-    }
-
-    // Сброс по кнопке
-    const resetButton = zoom_box_divPanel.querySelector('.reset-zoom-button');
-    if (resetButton) {
-      resetButton.addEventListener('click', resetZoomAndPosition);
-    }
-
-    // Сброс при клике вне объекта
-    document.addEventListener('click', function (event) {
-      // Проверяем, был ли клик внутри zoom_box_divPanel
-      if (!zoom_box_divPanel.contains(event.target)) {
-        resetZoomAndPosition();
-      }
-    });
-  });
+    // Стартовая загрузка
+    loadNotifications({ offset: 0, limit: 5, panel: smallPanel, useFilters: false, append: false });
 });

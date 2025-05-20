@@ -16,8 +16,6 @@ s3_client = boto3.client(
     aws_secret_access_key=MINIO_SECRET_KEY,
 )
 
-local_static_path = "static"
-
 
 def upload_to_s3(local_path, bucket, s3_path):
     try:
@@ -52,4 +50,5 @@ def upload_directory(local_directory, bucket):
 
 
 if __name__ == "__main__":
-    upload_directory(local_static_path, MINIO_BUCKET_NAME)
+    upload_directory("static", MINIO_BUCKET_NAME)
+    # upload_directory("collectstatic", MINIO_BUCKET_NAME)
