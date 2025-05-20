@@ -9,6 +9,7 @@ import json
 from django.core.files.base import ContentFile
 from .models import Board
 from django.conf import settings
+from asgiref.sync import sync_to_async
 
 
 CHUNK_SIZE = 100
@@ -33,8 +34,7 @@ def delete_old_trash():
     asyncio.run(async_delete_old_trash(30 * 24 * 60 * 60))
 
 
-@shared_task
-def process_board_commands(url_hash):
+async def async_process_board_commands(url_hash, full=False):
     r = redis.Redis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
@@ -42,18 +42,23 @@ def process_board_commands(url_hash):
         )
     key = f"board_commands:{url_hash}"
 
-    commands = r.lrange(key, 0, 99)
+    if full:
+        commands = r.lrange(key, 0, -1)
+    else:
+        commands = r.lrange(key, 0, 99)
     if not commands:
         return
 
     try:
-        board = Board.objects.get(url_hash=url_hash)
+        board = await Board.objects.aget(url_hash=url_hash)
     except Board.DoesNotExist:
+        await sync_to_async(r.delete, thread_sensitive=True)(key)
         return
 
     current_data = {}
     if board.board_value:
-        current_data = json.loads(board.board_value.read().decode('utf-8'))
+        raw = await sync_to_async(lambda f: f.read(), thread_sensitive=True)(board.board_value)
+        current_data = json.loads(raw.decode('utf-8'))
 
     for command_bytes in commands:
         try:
@@ -64,14 +69,17 @@ def process_board_commands(url_hash):
             continue
 
     json_content = json.dumps(current_data).encode('utf-8')
-    board.board_value.save(
+    await sync_to_async(board.board_value.save, thread_sensitive=True)(
         f"{url_hash}.json",
         ContentFile(json_content),
         save=False
     )
-    board.save()
+    await sync_to_async(board.save, thread_sensitive=True)()
 
-    r.ltrim(key, len(commands), -1)
+    if full:
+        await sync_to_async(r.delete, thread_sensitive=True)(key)
+    else:
+        await sync_to_async(r.ltrim, thread_sensitive=True)(key, len(commands), -1)
 
 
 def process_command(data, command):
@@ -133,3 +141,8 @@ def handle_delete(data, command):
     elif obj_type == 'card':
         if obj_id in data.get('card', {}):
             del data['card'][obj_id]
+
+
+@shared_task
+def process_board_commands(url_hash, full=False):
+    return asyncio.run(async_process_board_commands(url_hash, full))

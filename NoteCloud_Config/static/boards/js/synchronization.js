@@ -11,7 +11,7 @@ async function connectWebSocket() {
 
   socket.onmessage = function(event) {
     const command = JSON.parse(event.data);
-    applyCommand(command); // Assume applyCommand is globally accessible
+    applyCommand(command, true); // Assume applyCommand is globally accessible
   };
 
   socket.onclose = function() {
@@ -39,19 +39,6 @@ async function sendCommand(command) {
   }
 }
 
-async function receiveCommands() {
-  // This function is implicitly handled by the onmessage event
-  // Return a promise that resolves when initial commands are received
-  return new Promise(resolve => {
-    socket.onmessage = function(event) {
-      const command = JSON.parse(event.data);
-      applyCommand(command);
-      resolve(); // Resolve after first command, assuming initial batch is sent immediately
-    };
-  });
-}
-
 // Expose functions globally
 window.connectWebSocket = connectWebSocket;
 window.sendCommand = sendCommand;
-window.receiveCommands = receiveCommands;

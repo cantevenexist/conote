@@ -171,3 +171,127 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+
+
+function getCookie(name) {
+    const value = $.cookie(name);
+    return value ? decodeURIComponent(value) : null;
+}
+
+const loadingScreen = document.getElementById('loading-screen');
+
+// Async function to generate ID from server
+async function generateId(objectType) {
+  const csrftoken = getCookie('csrftoken');
+  const urlHash = window.location.pathname.split('/')[2];
+  const payload = {
+    url_hash: urlHash,
+    object_type: objectType
+  };
+  const response = await fetch('/workspace/generate_id/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  if (data.id) {
+    return data.id;
+  } else {
+    throw new Error('Failed to generate ID');
+  }
+}
+
+// Load initial JSON data
+async function loadInitialData() {
+  const urlHash = window.location.pathname.split('/')[2];
+  const response = await fetch(`/workspace/board_data/${urlHash}/`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      return [];
+    }
+    throw new Error('Не удалось загрузить данные доски');
+  }
+  const data = await response.json();
+
+  if (Array.isArray(data)) {
+    return data;
+  } else if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
+    return [];
+  } else if (typeof data === 'object' && data !== null && ('board' in data || 'column' in data || 'card' in data)) {
+    return transformDataToBoards(data);
+  } else {
+    throw new Error('Неверный формат данных: ожидался массив, пустой объект или объект с ключами board, column, card');
+  }
+}
+
+function transformDataToBoards(data) {
+  const boards = [];
+
+  if (data.board) {
+    Object.values(data.board).forEach(board => {
+      const boardData = {
+        ...board,
+        columns: []
+      };
+
+      if (data.column) {
+        const columns = Object.values(data.column).filter(col => col.boardId === board.id);
+        columns.forEach(col => {
+          const columnData = {
+            ...col,
+            cards: []
+          };
+
+          if (data.card) {
+            const cards = Object.values(data.card).filter(card => card.columnId === col.id);
+            columnData.cards = cards;
+          }
+
+          boardData.columns.push(columnData);
+        });
+      }
+
+      boards.push(boardData);
+    });
+  }
+
+  return boards;
+}
+
+function loadBoardFromJSON(data) {
+  data.forEach(boardData => {
+    const board = createBoardFromData(boardData);
+    const sortedColumns = boardData.columns.sort((a, b) => a.index - b.index);
+    sortedColumns.forEach((columnData, i) => {
+      const column = createColumnFromData(columnData, board, i + 1);
+      const sortedCards = columnData.cards.sort((a, b) => a.index - b.index);
+      sortedCards.forEach((cardData, j) => {
+        createCardFromData(cardData, column, j + 1);
+      });
+      // Корректируем высоту колонки и позицию кнопки "Добавить карточку"
+      reorderCardsInColumn(column);
+    });
+    // Корректируем позиции колонок и высоту доски
+    reorderColumnsInBoard(board);
+    recalcBoardHeight(board);
+  });
+}
+
+// Initialization
+async function initializeBoard() {
+  try {
+    const jsonData = await loadInitialData();
+    loadBoardFromJSON(jsonData);
+    connectWebSocket();
+    // Wait briefly for WebSocket commands to be applied
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    loadingScreen.style.display = 'none';
+  } catch (error) {
+    console.error('Error initializing board:', error);
+    loadingScreen.innerHTML = '<p>Ошибка загрузки доски</p>';
+  }
+}

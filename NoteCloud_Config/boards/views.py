@@ -587,20 +587,19 @@ class GenerateIdView(AsyncLoginRequiredMixin, View):
             return JsonResponse({'error': str(e)}, status=500)
 
 
-class BoardDataView(View):
-    def get(self, request, url_hash):
-        try:
-            board = Board.objects.get(url_hash=url_hash)
-            if not board.board_value:
-                return HttpResponseNotFound()
+class BoardDataView(AsyncLoginRequiredMixin, View):
+    async def get(self, request, url_hash):
+        board = await async_get_object_or_404(
+            Board.objects.select_related('user'),
+            url_hash=url_hash
+        )
 
-            # Check permissions
-            user = request.user
-            if user != board.user and user not in board.access_users.all():
+        user = await get_request_user(request)
+        if user != board.user:
+            has_access = await board.access_users.filter(pk=user.pk).aexists()
+            if not has_access:
                 return HttpResponse(status=403)
 
-            response = HttpResponse(board.board_value, content_type='application/json')
-            response['Content-Disposition'] = f'attachment; filename="{url_hash}.json"'
-            return response
-        except Board.DoesNotExist:
-            return HttpResponseNotFound()
+        response = HttpResponse(board.board_value, content_type='application/json')
+        response['Content-Disposition'] = f'attachment; filename="{url_hash}.json"'
+        return response
