@@ -314,7 +314,7 @@ class BoardView(AsyncLoginRequiredMixin, View):
                 'invite_url': invite_url,
             }
 
-            return await render_sync(request, 'boards/board_test.html', context)
+            return await render_sync(request, 'boards/board.html', context)
         else:
             raise Http404('При входе на доску возникла ошибка: "Нет доступа"')
 

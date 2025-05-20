@@ -5,10 +5,450 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Conot | Доска</title>
+    <title>Conote | Доска '{{ board.name }}'</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/konva/8.4.3/konva.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: #f0f0f0;
+          font-family: Arial, sans-serif;
+        }
+        #container {
+          width: 100vw;
+          height: 100vh;
+        }
+        .modal {
+          display: none;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: white;
+          padding: 20px;
+          border-radius: 5px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.3);
+          z-index: 1000;
+        }
+        #card-modal {
+          width: 400px;
+        }
+        #column-modal, #board-modal {
+          width: 300px;
+        }
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+        }
+        .modal-title {
+          font-size: 18px;
+          font-weight: bold;
+        }
+        .modal-actions {
+          display: flex;
+          gap: 5px;
+        }
+        .modal label {
+          display: block;
+          margin-bottom: 5px;
+          font-weight: bold;
+        }
+        .modal input, .modal textarea {
+          width: 100%;
+          padding: 8px;
+          margin-bottom: 15px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          box-sizing: border-box;
+        }
+        .modal textarea {
+          height: 100px;
+          resize: vertical;
+        }
+        .modal button {
+          padding: 5px 10px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+        }
+        .close-btn {
+          background: #B0BEC5;
+          color: white;
+        }
+        .close-btn:hover {
+          background: #90A4AE;
+        }
+        .delete-btn {
+          background: #EF5350;
+          color: white;
+        }
+        .delete-btn:hover {
+          background: #E53935;
+        }
+        #overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          z-index: 999;
+        }
+        #debug-panel {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 300px;
+          background: white;
+          border-top: 1px solid #ccc;
+          overflow: auto;
+          font-family: monospace;
+          font-size: 12px;
+          padding: 10px;
+          box-sizing: border-box;
+          z-index: 1001;
+        }
+        #debug-toggle {
+          position: fixed;
+          bottom: 300px;
+          left: 10px;
+          padding: 5px 10px;
+          background: #333;
+          color: white;
+          border: none;
+          border-radius: 3px 3px 0 0;
+          cursor: pointer;
+          z-index: 1002;
+        }
+        .debug-section {
+          margin-bottom: 10px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid #eee;
+        }
+        .debug-section h3 {
+          margin: 0 0 5px 0;
+          font-size: 14px;
+        }
+        .debug-property {
+          display: flex;
+          margin-bottom: 3px;
+        }
+        .debug-property-name {
+          font-weight: bold;
+          min-width: 150px;
+        }
+        .debug-property-value {
+          flex-grow: 1;
+          word-break: break-all;
+        }
+        .debug-object {
+          margin-left: 15px;
+        }
+        #add-board-container {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          z-index: 10;
+        }
+        #add-board-btn {
+          padding: 10px 15px;
+          background: blue;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 16px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #add-board-btn.creating {
+          background: crimson;
+        }
+        #commands-panel {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          width: 400px;
+          background: white;
+          border-radius: 5px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.3);
+          z-index: 1000;
+          padding: 15px;
+          box-sizing: border-box;
+        }
+        #commands-panel h2 {
+          margin-top: 0;
+          font-size: 16px;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 10px;
+        }
+        #command-input {
+          width: 100%;
+          height: 100px;
+          margin-bottom: 10px;
+          font-family: monospace;
+          padding: 8px;
+          box-sizing: border-box;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+        #apply-command {
+          padding: 8px 15px;
+          background: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-bottom: 15px;
+        }
+        #apply-command:hover {
+          background: #388E3C;
+        }
+        .command-examples {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 5px;
+          margin-bottom: 10px;
+        }
+        .command-example-btn {
+          padding: 5px;
+          background: #2196F3;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 12px;
+          text-align: left;
+        }
+        .command-example-btn:hover {
+          background: #1976D2;
+        }
+        .command-group {
+          margin-bottom: 15px;
+        }
+        .command-group-title {
+          font-weight: bold;
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        #loading-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: white;
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #toggle_share {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 200;
+        }
+        #toggle_share.active {
+            background: #0056b3;
+        }
+        #share_panel {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            width: 200px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 200;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        #share_panel.show {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #share_panel .share-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        #share_panel .share-item .avatar {
+          width: 24px;
+          height: 24px;
+          flex-shrink: 0;
+          overflow: hidden;
+          border-radius: 50%;
+        }
+        #share_panel .share-item .avatar img,
+        #share_panel .share-item .avatar svg {
+          width: 24px;
+          height: 24px;
+          display: block;
+        }
+        #share_panel .share-item .username {
+          margin-left: 8px;
+          font-size: 14px;
+          line-height: 1;
+        }
+        #share_panel .share-item .invite-btn {
+          margin-left: auto;
+          padding: 4px 8px;
+          font-size: 13px;
+          cursor: pointer;
+        }
+        .spinner {
+          width: 24px; height: 24px;
+          border: 3px solid #ccc;
+          border-top-color: #007bff;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+          margin: 10px auto;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .invite-btn.cooldown {
+          background-color: #ccc;
+          cursor: not-allowed;
+        }
+    </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
+    <button id="toggle_share">Share</button>
 
-<script src="{% static 'boards/js/board.js' %}"></script>
+    <div id="share_panel">
+        <p>Поделиться доской</p>
+
+        <label for="invite-link">Ссылка-приглашение:</label>
+        <input type="text" id="invite-link" readonly value="{{ invite_url }}" style="width: 100%; margin-bottom: 1em;"/>
+
+        <input type="text" id="share-search" placeholder="Поиск по нику…" />
+
+        <div id="share-tabs">
+            <button data-type="subscriptions" class="share-tab active">Подписки</button>
+            <button data-type="subscribers" class="share-tab">Подписчики</button>
+        </div>
+
+        <div id="share-list"></div>
+        <div id="share-spinner" style="display:none;">
+          <div class="spinner"></div>
+        </div>
+        <button id="share-load-more" style="display: none;">Загрузить ещё</button>
+    </div>
+
+
+    <button onclick="console.log(JSON.stringify(stage.toObject()))">Вывести JSON сцены</button>
+    <div id="loading-screen">
+        <p>Загрузка...</p>
+    </div>
+    <div id="container"></div>
+    <div id="overlay"></div>
+
+    <div id="add-board-container">
+    <button id="add-board-btn">Добавить доску Kanban</button>
+    </div>
+
+    <!-- Панель команд -->
+    <div id="commands-panel">
+    <h2>Команды для изменений</h2>
+    <textarea id="command-input" placeholder='Введите команду в формате JSON, например: {"type":"create","objectType":"board","data":{"title":"Новая доска"}}'></textarea>
+    <button id="apply-command">Применить команду</button>
+
+    <div class="command-group">
+      <div class="command-group-title">Примеры создания:</div>
+      <div class="command-examples">
+        <button class="command-example-btn" onclick="insertExample('create-board')">Создать доску</button>
+        <button class="command-example-btn" onclick="insertExample('create-column')">Создать колонку</button>
+        <button class="command-example-btn" onclick="insertExample('create-card')">Создать карточку</button>
+      </div>
+    </div>
+
+    <div class="command-group">
+      <div class="command-group-title">Примеры изменений:</div>
+      <div class="command-examples">
+        <button class="command-example-btn" onclick="insertExample('update-board')">Изменить доску</button>
+        <button class="command-example-btn" onclick="insertExample('update-column')">Изменить колонку</button>
+        <button class="command-example-btn" onclick="insertExample('update-card')">Изменить карточку</button>
+      </div>
+    </div>
+
+    <div class="command-group">
+      <div class="command-group-title">Примеры удаления:</div>
+      <div class="command-examples">
+        <button class="command-example-btn" onclick="insertExample('delete-board')">Удалить доску</button>
+        <button class="command-example-btn" onclick="insertExample('delete-column')">Удалить колонку</button>
+        <button class="command-example-btn" onclick="insertExample('delete-card')">Удалить карточку</button>
+      </div>
+    </div>
+    </div>
+
+    <!-- Модальное окно для карточки -->
+    <div id="card-modal" class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Редактирование карточки</div>
+      <div class="modal-actions">
+        <button class="close-btn" id="close-card-modal">Закрыть</button>
+        <button class="delete-btn" id="delete-card">Удалить</button>
+      </div>
+    </div>
+    <label for="card-title">Заголовок:</label>
+    <input type="text" id="card-title" autocomplete="off">
+    <label for="card-content">Содержание:</label>
+    <textarea id="card-content" autocomplete="off"></textarea>
+    </div>
+
+    <!-- Модальное окно для колонки -->
+    <div id="column-modal" class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Редактирование колонки</div>
+      <div class="modal-actions">
+        <button class="close-btn" id="close-column-modal">Закрыть</button>
+        <button class="delete-btn" id="delete-column">Удалить</button>
+      </div>
+    </div>
+    <label for="column-title">Название:</label>
+    <input type="text" id="column-title" autocomplete="off">
+    </div>
+
+    <!-- Модальное окно для доски -->
+    <div id="board-modal" class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Редактирование доски</div>
+      <div class="modal-actions">
+        <button class="close-btn" id="close-board-modal">Закрыть</button>
+        <button class="delete-btn" id="delete-board">Удалить</button>
+      </div>
+    </div>
+    <label for="board-title">Название:</label>
+    <input type="text" id="board-title" autocomplete="off">
+    </div>
+
+    <!-- Панель отладки -->
+    <button id="debug-toggle">Показать структуру</button>
+    <div id="debug-panel" style="display: none;">
+    <div id="debug-content"></div>
+    </div>
+
+    <script src="{% static 'boards/js/main.js' %}"></script>
+    <script src="{% static 'boards/js/board.js' %}"></script>
+    <script src="{% static 'boards/js/synchronization.js' %}"></script>
 </body>
 </html>
