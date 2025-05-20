@@ -2,7 +2,7 @@
 // Проверка на мобильное устройство
 function isMobile() {
     const userAgent = window.navigator.userAgent;
-    return /Android|iPhone|iPad|iPod/i.test(userAgent);
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 }
 
 
