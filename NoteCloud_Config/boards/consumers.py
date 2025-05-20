@@ -88,8 +88,6 @@ class BoardConsumer(AsyncWebsocketConsumer):
                     text_data
                 )
 
-                print(text_data)
-
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {

@@ -534,9 +534,27 @@ function createBoardFromData(data) {
     scheduleRedraw();
   })
   .on('dragmove', scheduleRedraw)
-  .on('dragend', () => {
+  .on('dragend', async () => {
     document.body.style.cursor = 'default';
     scheduleRedraw();
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await logChange('update', 'board', {
+          id: board.getAttr('id'),
+          new: {
+            x: board.x() / stage.width(),
+            y: board.y() / stage.height()
+          }
+        });
+        break;
+      } catch (error) {
+        if (attempt === maxRetries) {
+          alert('Ошибка отправки координат доски. Попробуйте снова.');
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
   });
 
   scheduleRedraw();
@@ -957,7 +975,7 @@ async function updateBoardFromCommand(id, data, commandFromServer = false) {
   return board;
 }
 
-function updateColumnFromCommand(id, data, commandFromServer = false) {
+async function updateColumnFromCommand(id, data, commandFromServer = false) {
   const column = findColumnById(id);
   if (!column) {
     throw new Error(`Колонка с ID ${id} не найдена`);
@@ -990,7 +1008,7 @@ function updateColumnFromCommand(id, data, commandFromServer = false) {
     recalcBoardHeight(oldBoard);
 
     if (!commandFromServer) {
-      logChange('update', 'column', {
+      await logChange('update', 'column', {
         id: id,
         old: {
           title: oldTitle,
@@ -1032,7 +1050,7 @@ function updateColumnFromCommand(id, data, commandFromServer = false) {
       recalcBoardHeight(oldBoard);
 
       if (!commandFromServer) {
-        logChange('update', 'column', {
+        await logChange('update', 'column', {
           id: id,
           old: {
             title: oldTitle,
@@ -1049,7 +1067,7 @@ function updateColumnFromCommand(id, data, commandFromServer = false) {
     }
   } else if (data.title !== undefined) {
     if (!commandFromServer) {
-      logChange('update', 'column', {
+      await logChange('update', 'column', {
         id: id,
         old: {
           title: oldTitle,
@@ -1085,7 +1103,7 @@ function reorderColumnsInBoard(board) {
   board.findOne('Text').width(boardBg.width() - 40);
 }
 
-function updateCardFromCommand(id, data, commandFromServer = false) {
+async function updateCardFromCommand(id, data, commandFromServer = false) {
   const card = findCardById(id);
   if (!card) {
     throw new Error(`Карточка с ID ${id} не найдена`);
@@ -1160,7 +1178,7 @@ function updateCardFromCommand(id, data, commandFromServer = false) {
   }
 
   if (!commandFromServer) {
-    logChange('update', 'card', {
+    await logChange('update', 'card', {
       id: id,
       old: {
         title: oldTitle,
@@ -2050,7 +2068,8 @@ async function handleCardDrop(card) {
     });
   });
   const startCol = card.startCol;
-  const startBoard = card.startBoard;
+  const startBoard = card.startCol.getParent();
+
   if (targetCol) {
     const targetColPos = targetCol.getAbsolutePosition();
     const localY = centerY - targetColPos.y - cardHeight / 2;
@@ -2058,25 +2077,44 @@ async function handleCardDrop(card) {
     card.x(CARD_MARGIN);
     card.y(localY);
 
+    // Сохраняем старый индекс до обновления
+    const oldIndex = card.getAttr('index');
+
+    // Пересчитываем индекс в целевой колонке
+    const cardsInTargetCol = targetCol.find('.card').sort((a, b) => a.y() - b.y());
+    let newIndex = 1; // Индексы начинаются с 1
+    for (let i = 0; i < cardsInTargetCol.length; i++) {
+      if (cardsInTargetCol[i] === card) continue;
+      const cardCenterY = cardsInTargetCol[i].y() + cardsInTargetCol[i].findOne('Rect').height() / 2;
+      if (localY < cardCenterY) {
+        break; // Найдена позиция вставки
+      }
+      newIndex++;
+    }
+
+    // Устанавливаем новый индекс
+    card.setAttr('index', newIndex);
+
+    // Отправляем команду в зависимости от ситуации
     if (targetCol !== startCol) {
       await logChange('move', 'card', {
         id: card.getAttr('id'),
-        toColumn: targetCol.getAttr('id')
+        toColumn: targetCol.getAttr('id'),
+        newIndex: newIndex
       });
-    } else {
-      const newIndex = targetCol.find('.card').sort((a, b) => a.y() - b.y()).indexOf(card) + 1;
-      if (newIndex !== card.getAttr('index')) {
-        await logChange('reorder', 'card', {
-          id: card.getAttr('id'),
-          newIndex: newIndex
-        });
-      }
+    } else if (newIndex !== oldIndex) {
+      await logChange('reorder', 'card', {
+        id: card.getAttr('id'),
+        newIndex: newIndex
+      });
     }
 
     reorderCardsInColumn(startCol);
     reorderCardsInColumn(targetCol);
     recalcBoardHeight(startBoard);
-    recalcBoardHeight(targetBoard);
+    if (targetBoard !== startBoard) {
+      recalcBoardHeight(targetBoard);
+    }
   } else {
     card.moveTo(startCol);
     card.x(card.startPos.x);
