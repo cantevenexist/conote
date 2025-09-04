@@ -106,13 +106,13 @@
         .profile-info-container {margin-left: 0;margin-top: calc(10px); background-color: transparent; width:100%;}
         .profile-avatar-container-no-pfp {max-width: 100% !important; aspect-ratio: 1; cursor:auto;}
         .profile-avatar-container {max-width: 100% !important; aspect-ratio: 1; cursor:auto;}
-        #profile-fullsize-avatar-panel.show {display: none;}
+        #profile-fullsize-avatar-panel.show {display: block;}
         }
-        @media (max-width:425px) or (max-height:425px){
+        @media (max-width:425px){
             .profile-container {padding: 10px;}
-            #profile-fullsize-avatar-panel {display: none !important;}
-            .profile-avatar-container-no-pfp {cursor: auto; border-radius: 30px;}
-            .profile-avatar-container {cursor: auto; border-radius: 30px;}
+            #profile-fullsize-avatar-panel {display: none;}
+            .profile-avatar-container-no-pfp { border-radius: 30px;}
+            .profile-avatar-container { border-radius: 30px;}
 
             @media (hover:hover) {
                 .profile-avatar-container:hover img {scale: 1;}

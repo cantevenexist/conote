@@ -373,7 +373,7 @@ function handleDeleteCommand(command, commandFromServer) {
   }
 }
 
-async function createBoardFromCommand(data, commandFromServer = false) {
+async function createBoardFromCommand(data, commandFromServer = false, commandTemplate = false) {
   // If command comes from server, use provided ID; otherwise, fetch new ID
   const boardId = commandFromServer ? data.id : await generateId('board');
   if (!boardId && boardId !== 0) {
@@ -476,90 +476,90 @@ async function createBoardFromCommand(data, commandFromServer = false) {
   return board;
 }
 
-function createBoardFromData(data) {
-  const x = data.x || 100;
-  const y = data.y || 100;
-  const title = data.title || "Новая доска";
-  const boardId = data.id;
+// function createBoardFromData(data) {
+//   const x = data.x || 100;
+//   const y = data.y || 100;
+//   const title = data.title || "Новая доска";
+//   const boardId = data.id;
 
-  const board = new Konva.Group({
-    x: x,
-    y: y,
-    draggable: true
-  });
-  board.setAttr('id', boardId);
+//   const board = new Konva.Group({
+//     x: x,
+//     y: y,
+//     draggable: true
+//   });
+//   board.setAttr('id', boardId);
 
-  const boardWidth = COLUMN_WIDTH + COLUMN_MARGIN * 2 + ADD_COLUMN_BUTTON_WIDTH;
-  const boardBg = new Konva.Rect({
-    width: boardWidth,
-    height: INITIAL_BOARD_HEIGHT,
-    fill: '#ECEFF1',
-    cornerRadius: 10,
-    stroke: '#B0BEC5',
-    strokeWidth: 2,
-    shadowColor: 'black',
-    shadowBlur: 10,
-    shadowOpacity: 0.2,
-    shadowOffset: { x: 5, y: 5 }
-  });
+//   const boardWidth = COLUMN_WIDTH + COLUMN_MARGIN * 2 + ADD_COLUMN_BUTTON_WIDTH;
+//   const boardBg = new Konva.Rect({
+//     width: boardWidth,
+//     height: INITIAL_BOARD_HEIGHT,
+//     fill: '#ECEFF1',
+//     cornerRadius: 10,
+//     stroke: '#B0BEC5',
+//     strokeWidth: 2,
+//     shadowColor: 'black',
+//     shadowBlur: 10,
+//     shadowOpacity: 0.2,
+//     shadowOffset: { x: 5, y: 5 }
+//   });
 
-  const header = new Konva.Text({
-    text: title,
-    fontSize: 18,
-    fontFamily: 'Arial',
-    fill: '#37474F',
-    width: boardBg.width() - 40,
-    padding: 20,
-    align: 'left',
-    fontStyle: 'bold',
-    ellipsis: true,
-    wrap: 'none'
-  });
+//   const header = new Konva.Text({
+//     text: title,
+//     fontSize: 18,
+//     fontFamily: 'Arial',
+//     fill: '#37474F',
+//     width: boardBg.width() - 40,
+//     padding: 20,
+//     align: 'left',
+//     fontStyle: 'bold',
+//     ellipsis: true,
+//     wrap: 'none'
+//   });
 
-  board.add(boardBg, header);
-  createAddColumnButton(board);
-  layer.add(board);
-  stage.kanbanBoards.push(board);
+//   board.add(boardBg, header);
+//   createAddColumnButton(board);
+//   layer.add(board);
+//   stage.kanbanBoards.push(board);
 
-  header.on('click tap', function(e) {
-    if (!e.evt.ctrlKey && !e.evt.metaKey && !e.evt.shiftKey) {
-      showModal('board', board, header.text());
-      e.cancelBubble = true;
-    }
-  });
+//   header.on('click tap', function(e) {
+//     if (!e.evt.ctrlKey && !e.evt.metaKey && !e.evt.shiftKey) {
+//       showModal('board', board, header.text());
+//       e.cancelBubble = true;
+//     }
+//   });
 
-  board.on('dragstart', () => {
-    document.body.style.cursor = 'grabbing';
-    board.moveToTop();
-    scheduleRedraw();
-  })
-  .on('dragmove', scheduleRedraw)
-  .on('dragend', async () => {
-    document.body.style.cursor = 'default';
-    scheduleRedraw();
-    const maxRetries = 3;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        await logChange('update', 'board', {
-          id: board.getAttr('id'),
-          new: {
-            x: board.x() / stage.width(),
-            y: board.y() / stage.height()
-          }
-        });
-        break;
-      } catch (error) {
-        if (attempt === maxRetries) {
-          alert('Ошибка отправки координат доски. Попробуйте снова.');
-        }
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-    }
-  });
+//   board.on('dragstart', () => {
+//     document.body.style.cursor = 'grabbing';
+//     board.moveToTop();
+//     scheduleRedraw();
+//   })
+//   .on('dragmove', scheduleRedraw)
+//   .on('dragend', async () => {
+//     document.body.style.cursor = 'default';
+//     scheduleRedraw();
+//     const maxRetries = 3;
+//     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+//       try {
+//         await logChange('update', 'board', {
+//           id: board.getAttr('id'),
+//           new: {
+//             x: board.x() / stage.width(),
+//             y: board.y() / stage.height()
+//           }
+//         });
+//         break;
+//       } catch (error) {
+//         if (attempt === maxRetries) {
+//           alert('Ошибка отправки координат доски. Попробуйте снова.');
+//         }
+//         await new Promise(resolve => setTimeout(resolve, 500));
+//       }
+//     }
+//   });
 
-  scheduleRedraw();
-  return board;
-}
+//   scheduleRedraw();
+//   return board;
+// }
 
 async function createColumnFromCommand(data, commandFromServer = false) {
   if (!data.boardId && data.boardId !== 0) {
@@ -1317,7 +1317,7 @@ debugToggle.addEventListener('click', () => {
   debugToggle.textContent = isVisible ? 'Показать структуру' : 'Скрыть структуру';
 });
 
-applyCommandBtn.addEventListener('click', applyCommand);
+applyCommandBtn.addEventListener('click', () => {applyCommand(JSON.parse(commandInput.value))});
 
 function showModal(type, element, title, content = '') {
   currentEditingElement = element;
@@ -2209,6 +2209,98 @@ function updateDebugInfo() {
     html += `</div>`;
   });
   debugContent.innerHTML = html;
+}
+
+//////////////////
+//  TEMPLATES  //
+/////////////////
+
+const boardTemplates = {
+  base: {
+    name: "Быстрое реагирование 🚀",
+    columns: ["Новые", "В работе", "На проверке", "Завершено"]
+  },
+  fishing: {
+    name: "Фишинг и социальная инженерия ✉️",
+    columns: ["Сообщения", "Анализ", "Блокировка", "Оповещение"]
+  },
+  ransomware: {
+    name: "Ransomware-атаки 💻",
+    columns: ["Обнаружение", "Изоляция", "Анализ", "Восстановление"]
+  },
+  dataleak: {
+    name: "Утечки данных 📂",
+    columns: ["Подозрение", "Расследование", "Локализация", "Отчётность"]
+  },
+  ddos: {
+    name: "DDoS-атаки ⚡️",
+    columns: ["Мониторинг", "Классификация", "Митигация", "Анализ"]
+  },
+  unauthaccess: {
+    name: "Несанкционированный доступ 👨‍💻",
+    columns: ["Аномалии", "Верификация", "Блокировка", "Аудит"]
+  },
+  insideleak: {
+    name: "Инсайдерские угрозы 🗣️",
+    columns: ["Подозрение", "Доказательства", "HR-разбор", "Санкции"]
+  },
+  vulnerabilitymng: {
+    name: "Управление уязвимостями 🛠️",
+    columns: ["Обнаружение", "Приоритезация", "Патчинг", "Проверка"]
+  },
+  physsec: {
+    name: "Физическая безопасность 🚪",
+    columns: ["Инцидент", "Расследование", "Исправление", "Профилактика"]
+  },
+  stud: {
+    name: "Учения и тренировки 📚",
+    columns: ["Сценарий", "Реакция", "Разбор", "Улучшения"]
+  },
+};
+
+// Вешаем обработчики на кнопки шаблонов
+document.querySelectorAll('.template-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const templateName = btn.dataset.template;
+    createBoardFromTemplate(templateName);
+  });
+});
+
+async function createBoardFromTemplate(templateName) {
+  try {
+    if (!boardTemplates[templateName]) {
+      throw new Error("Шаблон не найден");
+    }
+    
+    const template = boardTemplates[templateName];
+    const boardX = stage.width() / 2;
+    const boardY = stage.height() / 2;
+    
+    // Создаем доску
+    const board = await createBoardFromCommand({
+      title: template.name,
+      x: boardX,
+      y: boardY
+    });
+    
+    // Создаем колонки из шаблона
+    for (const columnTitle of template.columns) {
+      await createColumnFromCommand({
+        title: columnTitle,
+        boardId: board.getAttr('id')
+      });
+    }
+    
+    alert(`Доска "${template.name}" успешно создана!`);
+  } catch (error) {
+    alert(`Ошибка при создании доски: ${error.message}`);
+    console.error(error);
+  }
+}
+
+// Старую функцию можно удалить или оставить как частный случай
+async function createBoardWithColumns() {
+  return createBoardFromTemplate('basic');
 }
 
 initializeBoard();

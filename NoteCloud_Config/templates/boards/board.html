@@ -329,6 +329,33 @@
           background-color: #ccc;
           cursor: not-allowed;
         }
+        .templates-section {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 5px;
+}
+
+.templates-section h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.template-btn {
+  background-color: #7986CB;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  margin: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.template-btn:hover {
+  background-color: #5C6BC0;
+}
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -398,7 +425,20 @@
         <button class="command-example-btn" onclick="insertExample('delete-card')">Удалить карточку</button>
       </div>
     </div>
-    </div>
+    <div class="templates-section">
+  <h3>Шаблоны досок</h3>
+  <button class="template-btn" data-template="base">Быстрое реагирование</button>
+  <button class="template-btn" data-template="fishing">Фишинг и социальная инженерия</button>
+  <button class="template-btn" data-template="ransomware">Ransomware-атаки</button>
+  <button class="template-btn" data-template="dataleak">Утечки данных</button>
+  <button class="template-btn" data-template="ddos">DDoS-атаки</button>
+  <button class="template-btn" data-template="unauthaccess">Несанкционированный доступ</button>
+  <button class="template-btn" data-template="insideleak">Инсайдерские угрозы</button>
+  <button class="template-btn" data-template="vulnerabilitymng">Управление уязвимостями</button>
+  <button class="template-btn" data-template="physsec">Физическая безопасность</button>
+  <button class="template-btn" data-template="stud">Учения и тренировки</button>
+</div>
+  </div>
 
     <!-- Модальное окно для карточки -->
     <div id="card-modal" class="modal">

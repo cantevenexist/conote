@@ -60,7 +60,7 @@ document.getElementById('id_avatar').addEventListener('change', function(event) 
                 autoCropArea: 1,
                 responsive: true,
             });
-            profileCropActionContainer.style.display = 'block';
+            profileCropActionContainer.style.display = 'flex';
             if (deleteAvatarBtn) {
                 deleteAvatarBtn.style.display = 'none';
             }

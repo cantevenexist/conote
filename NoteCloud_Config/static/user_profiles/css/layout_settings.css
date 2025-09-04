@@ -1,11 +1,3 @@
-.account_settings_page {display: flex; flex-direction: row;}
-.layout_central_block .account_settings_panel {
-    background-color: aqua;
-}
-.layout_central_block .detailed_settings_layout {
-    background-color: aquamarine;
-}
-label[for='id_oldpassword'],label[for='id_password1'],label[for='id_password2']{display: none;}
 /* Form messages */
 ul {
     list-style-type: none;
@@ -27,7 +19,7 @@ ul {
     max-width: 450px;
     border-radius: 30px;
     margin: auto;
-    padding: 0 20px 20px 20px;
+    padding: 0 15px 15px 15px;
     overflow: hidden;
     background-color: white;
     border: 1px solid #e0e0e0;
@@ -35,4 +27,185 @@ ul {
     position: relative; 
     transition: transform 0.2s, box-shadow 0.2s;
 } */
-    .profile_setting_item_button {background-color:darkturquoise;}
+
+
+.account_settings_page {display: flex;flex-direction: row; max-width: 560px; margin: auto; 
+    border: 1px solid rgb(224, 224, 224, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    border-radius: 15px;}
+
+.account_settings_panel {
+    padding: 15px; border-right: 1px solid rgb(224, 224, 224,0.5);
+}
+.detailed_settings_layout {
+    padding: 15px;
+    width: 100%;
+}
+#profile-form {margin: auto;
+    width: 256px;}
+.account_settings_panel h1 {font-size: 20px; margin: 0 0 20px 0;}
+.detailed_settings_layout h1,h2 {font-size: 20px; margin: 0 0 20px 0;}
+label[for='id_oldpassword'],label[for='id_password1'],label[for='id_password2']{display: none;}
+
+.profile_setting_item_button {border: 1px solid #e0e0e0; display: flex; flex-direction: row; height: 28px;border-radius: 8px; white-space: nowrap;transition: border-color 0.3s ease;}
+.profile_setting_item_button .icon {width: 28px; height: 28px; margin: 0; padding: 5px;}
+.profile_setting_item_button .icon svg{margin-bottom: 10px; fill: gray;transition: fill 0.3s ease;}
+.profile_setting_item_button .icon svg.ignore_fill{margin-bottom: 10px; fill: none; stroke: gray;transition: stroke 0.3s ease;}
+.profile_setting_item_button .icon svg .mfa{margin-bottom: 10px; fill: none; stroke: gray;transition: stroke 0.3s ease;}
+.profile_setting_item_button p {margin: 0; margin-right: 10px; margin-top: 1px; color: gray;transition: color 0.3s ease;}
+
+.profile_setting_item_button.active {background-color: cornflowerblue !important; border: cornflowerblue !important; border-radius: 8px !important;transition: none;}
+.profile_setting_item_button.active .icon svg{fill: white;transition: none;}
+.profile_setting_item_button.active .icon svg.ignore_fill{fill: none; stroke: white;transition: none;}
+.profile_setting_item_button.active .icon svg .mfa{fill: none; stroke: white;transition: none;}
+.profile_setting_item_button.active p {color: white;transition: none; font-weight: normal}
+
+.slider_nav_button {display: none;}
+
+.account_settings_panel_ul li{margin-top: 10px;}
+
+/* transition: border-color 0.3s ease, color 0.3s ease; */
+@media (hover:hover) {
+.profile_setting_item_button:hover {border: 1px solid cornflowerblue; display: flex; flex-direction: row; height: 28px;border-radius: 8px; white-space: nowrap;}
+.profile_setting_item_button:hover .icon {width: 28px; height: 28px; margin: 0; padding: 5px;}
+.profile_setting_item_button:hover .icon svg{margin-bottom: 10px; fill: cornflowerblue;}
+.profile_setting_item_button:hover .icon svg.ignore_fill{margin-bottom: 10px; fill: none; stroke: cornflowerblue;}
+.profile_setting_item_button:hover .icon svg .mfa{margin-bottom: 10px; fill: none; stroke: cornflowerblue;}
+.profile_setting_item_button:hover p {margin: 0; margin-right: 10px; margin-top: 1px; color: cornflowerblue;}
+
+.profile_setting_item_button.active:hover {background-color: cornflowerblue !important; border: cornflowerblue !important; border-radius: 8px !important;}
+.profile_setting_item_button.active:hover .icon svg{fill: white;}
+.profile_setting_item_button.active:hover .icon svg.ignore_fill{fill: none; stroke: white;}
+.profile_setting_item_button.active:hover .icon svg .mfa{fill: none; stroke: white;}
+.profile_setting_item_button.active:hover p {color: white;}
+
+}
+
+/* Up scroll settings */
+@media (max-width:599.9px) {
+.account_settings_page {
+  display: flex;
+  flex-direction: column;
+}
+
+.account_settings_panel {
+  padding: 15px;
+  border-bottom: 1px solid rgb(224, 224, 224,0.5);
+  border-right: none;
+  position: relative;
+}
+
+.account_settings_slider_container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.account_settings_slider_wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.slider_content {
+  width: 100%;
+  overflow: hidden;
+}
+
+.account_settings_panel_ul {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  overflow: hidden;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.account_settings_panel_ul::-webkit-scrollbar {
+  display: none;
+}
+
+.slider_nav_button {
+  position: absolute;
+  top: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  transition: background 0.3s ease;
+}
+
+@media (hover:hover) {
+.slider_nav_button:hover {
+  background: rgba(0, 0, 0, 0.9);
+}}
+
+.prev_button {
+  left: 0;
+}
+
+.next_button {
+  right: 0;
+}
+
+.account_settings_panel_ul li {
+    margin: 0;
+  display: inline-block;
+}
+
+/* Стили для масок */
+.scroll_mask {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  z-index: 15;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.left_mask {
+  left: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,1) 25%, rgba(255,255,255,0) 100%);
+}
+
+.right_mask {
+  right: 0;
+  background: linear-gradient(270deg, rgba(255,255,255,1) 25%, rgba(255,255,255,0) 100%);
+}}
+/* Mobile */
+@media (max-width:425px) {
+    .account_settings_page{border: none;box-shadow: none;}
+}
+
+form button {background-color: white; width: 100%; height: 36px; border: 1px solid #e0e0e0; border-radius: 10px; transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;}
+#profileEditSaveChangesDownButton:disabled {color: black;display: none;}
+#profileEditSaveChangesDownButton {margin-top: 20px}
+@media (hover:hover) {
+    form button:hover {background-color: cornflowerblue; border: cornflowerblue; color: white;}
+    #profileEditSaveChangesDownButton:disabled:hover {color: black; border: 1px solid #e0e0e0;}
+}
+
+form input,textarea {padding: 5px;width: 100%;border-radius: 10px;border: 1px solid #e0e0e0;height: 36px;width: 100%;}
+form input:focus,textarea:focus {
+  outline: 2px solid cornflowerblue;
+  outline-offset: 0px;
+  border-radius: 10px;
+}

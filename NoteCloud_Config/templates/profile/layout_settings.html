@@ -12,17 +12,76 @@
 {% endblock %}
 
 {% block content %}
-<div class="account_settings_page">
+<div class="account_settings_page page_must_be_centered" >
     <div class="account_settings_panel" id="account_settings_panel">
-        <ul class="account_settings_panel_ul">
-            <a href="/account/settings/edit_profile"><li><div class="profile_setting_item_button"><p>Аккаунт</p></div></li></a>
-            <a href="/account/settings/email"><li><div class="profile_setting_item_button"><p>Почта</p></div></li></a>
-            <a href="/account/settings/password/change"><li><div class="profile_setting_item_button"><p>Изменение пароля</p></div></li></a>
-            <a href="/account/settings/2fa"><li><div class="profile_setting_item_button"><p>MFA</p></div></li></a>
-            <a href="/account/settings/privacy"><li><div class="profile_setting_item_button"><p>Приватность</p></div></li></a>
-            <a href="/account/settings/notifications"><li><div class="profile_setting_item_button"><p>Уведомления</p></div></li></a>
-            <a href="/account/settings/"><li><div class="profile_setting_item_button"><p>Деактивация</p></div></li></a>
-        </ul>
+        <h1>Настройки</h1>
+        <div class="account_settings_slider_container">
+  <div class="account_settings_slider_wrapper">
+    <div class="scroll_mask left_mask"></div>
+    <div class="scroll_mask right_mask"></div>
+    <button class="slider_nav_button prev_button">&lt;</button>
+    
+    <div class="slider_content">
+      <ul class="account_settings_panel_ul">
+        <a href="/account/settings/edit_profile"><li><div class="profile_setting_item_button">
+            <div class="icon"><svg viewBox="0 0 24 24" class="ignore_fill" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="User / User_03">
+<path id="Vector" d="M18 19C18 16.7909 15.3137 15 12 15C8.68629 15 6 16.7909 6 19M12 12C9.79086 12 8 10.2091 8 8C8 5.79086 9.79086 4 12 4C14.2091 4 16 5.79086 16 8C16 10.2091 14.2091 12 12 12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg></div>
+            <p>Аккаунт</p></div></li></a>
+        <a href="/account/settings/email"><li><div class="profile_setting_item_button">
+            <div class="icon"><svg viewBox="0 0 24 24" class="ignore_fill" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M17.4009 19.2C15.8965 20.3302 14.0265 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12V13.5C21 14.8807 19.8807 16 18.5 16C17.1193 16 16 14.8807 16 13.5V8M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+            <p>Почта</p></div></li></a>
+        <a href="/account/settings/password/change"><li><div class="profile_setting_item_button">
+            <div class="icon"><svg class="ignore_fill" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<title/><g id="Complete"><g id="lock"><g><rect fill="none" height="10" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="16" x="4" y="11"/>
+<path d="M16.5,11V8h0c0-2.8-.5-5-4.5-5S7.5,5.2,7.5,8h0v3" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></g></g></g></svg></div>
+            <p>Безопасность</p></div></li></a>
+        <a href="/account/settings/2fa"><li><div class="profile_setting_item_button">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="3" y="3" width="5" height="5" rx="1" class="mfa" fill="none" stroke-width="2"/>
+<rect x="3" y="16" width="5" height="5" rx="1" class="mfa" fill="none" stroke-width="2"/>
+<rect x="16" y="3" width="5" height="5" rx="1" class="mfa" fill="none" stroke-width="2" stroke-linejoin="round"/>
+<rect x="6" y="10" width="2" height="2" rx="0.5" />
+<path d="M12.5 2H13.5C13.7761 2 14 2.22386 14 2.5V5.5C14 5.77614 13.7761 6 13.5 6H12.5C12.2239 6 12 6.22386 12 6.5V7.5C12 7.77614 11.7761 8 11.5 8H10.5C10.2239 8 10 7.77614 10 7.5V4.5C10 4.22386 10.2239 4 10.5 4H11.5C11.7761 4 12 3.77614 12 3.5V2.5C12 2.22386 12.2239 2 12.5 2Z" />
+<rect x="8" y="12" width="4" height="2" rx="0.5" />
+<rect x="18" y="10" width="4" height="2" rx="0.5" />
+<rect x="12" y="18" width="4" height="2" rx="0.5" />
+<rect x="10" y="16" width="2" height="2" rx="0.5" />
+<path d="M12 11.5V10.5C12 10.2239 12.2239 10 12.5 10H15.5C15.7761 10 16 10.2239 16 10.5V14H17.5C17.7761 14 18 14.2239 18 14.5V15.5C18 15.7761 17.7761 16 17.5 16H16H14.5C14.2239 16 14 15.7761 14 15.5V12.5C14 12.2239 13.7761 12 13.5 12H12.5C12.2239 12 12 11.7761 12 11.5Z" />
+<path d="M16.5 20L17.5 20C17.7761 20 18 19.7761 18 19.5L18 18.5C18 18.2239 18.2239 18 18.5 18L19.5 18C19.7761 18 20 17.7761 20 17.5L20 14.5C20 14.2239 20.2239 14 20.5 14L21.5 14C21.7761 14 22 14.2239 22 14.5L22 16L22 18L22 19.5C22 19.7761 21.7761 20 21.5 20L20.5 20C20.2239 20 20 20.2239 20 20.5L20 21.5C20 21.7761 19.7761 22 19.5 22L16.5 22C16.2239 22 16 21.7761 16 21.5L16 20.5C16 20.2239 16.2239 20 16.5 20Z"/>
+<path d="M2 13.5V10.5C2 10.2239 2.22386 10 2.5 10H3.5C3.77614 10 4 10.2239 4 10.5V11.5C4 11.7761 4.22386 12 4.5 12H5.5C5.77614 12 6 12.2239 6 12.5V13.5C6 13.7761 5.77614 14 5.5 14H2.5C2.22386 14 2 13.7761 2 13.5Z" />
+<path d="M13.5 22H10.5C10.2239 22 10 21.7761 10 21.5V20.5C10 20.2239 10.2239 20 10.5 20H11.5C11.7761 20 12 19.7761 12 19.5V18.5C12 18.2239 12.2239 18 12.5 18H15.5C15.7761 18 16 18.2239 16 18.5V19.5C16 19.7761 15.7761 20 15.5 20H14.5C14.2239 20 14 20.2239 14 20.5V21.5C14 21.7761 13.7761 22 13.5 22Z"/>
+</svg></div>
+            <p>MFA</p></div></li></a>
+        <a href="/account/settings/privacy"><li><div class="profile_setting_item_button">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M11.9944 15.5C13.9274 15.5 15.4944 13.933 15.4944 12C15.4944 10.067 13.9274 8.5 11.9944 8.5C10.0614 8.5 8.49439 10.067 8.49439 12C8.49439 13.933 10.0614 15.5 11.9944 15.5ZM11.9944 13.4944C11.1691 13.4944 10.5 12.8253 10.5 12C10.5 11.1747 11.1691 10.5056 11.9944 10.5056C12.8197 10.5056 13.4888 11.1747 13.4888 12C13.4888 12.8253 12.8197 13.4944 11.9944 13.4944Z"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C7.18879 5 3.9167 7.60905 2.1893 9.47978C0.857392 10.9222 0.857393 13.0778 2.1893 14.5202C3.9167 16.391 7.18879 19 12 19C16.8112 19 20.0833 16.391 21.8107 14.5202C23.1426 13.0778 23.1426 10.9222 21.8107 9.47978C20.0833 7.60905 16.8112 5 12 5ZM3.65868 10.8366C5.18832 9.18002 7.9669 7 12 7C16.0331 7 18.8117 9.18002 20.3413 10.8366C20.9657 11.5128 20.9657 12.4872 20.3413 13.1634C18.8117 14.82 16.0331 17 12 17C7.9669 17 5.18832 14.82 3.65868 13.1634C3.03426 12.4872 3.03426 11.5128 3.65868 10.8366Z" />
+</svg></div>
+            <p>Приватность</p></div></li></a>
+        <a href="/account/settings/notifications"><li><div class="profile_setting_item_button">
+            <div class="icon"><svg viewBox="0 0 24 24" class="ignore_fill" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Communication / Bell">
+<path id="Vector" d="M15 17V18C15 19.6569 13.6569 21 12 21C10.3431 21 9 19.6569 9 18V17M15 17H9M15 17H18.5905C18.973 17 19.1652 17 19.3201 16.9478C19.616 16.848 19.8475 16.6156 19.9473 16.3198C19.9997 16.1643 19.9997 15.9715 19.9997 15.5859C19.9997 15.4172 19.9995 15.3329 19.9863 15.2524C19.9614 15.1004 19.9024 14.9563 19.8126 14.8312C19.7651 14.7651 19.7048 14.7048 19.5858 14.5858L19.1963 14.1963C19.0706 14.0706 19 13.9001 19 13.7224V10C19 6.134 15.866 2.99999 12 3C8.13401 3.00001 5 6.13401 5 10V13.7224C5 13.9002 4.92924 14.0706 4.80357 14.1963L4.41406 14.5858C4.29476 14.7051 4.23504 14.765 4.1875 14.8312C4.09766 14.9564 4.03815 15.1004 4.0132 15.2524C4 15.3329 4 15.4172 4 15.586C4 15.9715 4 16.1642 4.05245 16.3197C4.15225 16.6156 4.3848 16.848 4.68066 16.9478C4.83556 17 5.02701 17 5.40956 17H9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg></div>
+            <p>Уведомления</p></div></li></a>
+        <a href="#"><li><div class="profile_setting_item_button">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.0284 1.11813C9.69728 1.2952 9.53443 1.61638 9.49957 1.97965C9.48456 2.15538 9.46201 2.32986 9.43136 2.50363C9.3663 2.87248 9.24303 3.3937 9.01205 3.98313C8.5513 5.15891 7.67023 6.58926 5.96985 7.65195C3.57358 9.14956 2.68473 12.5146 3.06456 15.527C3.45234 18.6026 5.20871 21.7903 8.68375 22.9486C9.03 23.0641 9.41163 22.9817 9.67942 22.7337C10.0071 22.4303 10.0238 22.0282 9.94052 21.6223C9.87941 21.3244 9.74999 20.5785 9.74999 19.6875C9.74999 19.3992 9.76332 19.1034 9.79413 18.8068C10.3282 20.031 11.0522 20.9238 11.7758 21.5623C12.8522 22.5121 13.8694 22.8574 14.1722 22.9466C14.402 23.0143 14.6462 23.0185 14.8712 22.9284C17.5283 21.8656 19.2011 20.4232 20.1356 18.7742C21.068 17.1288 21.1993 15.3939 20.9907 13.8648C20.7833 12.3436 20.2354 10.9849 19.7537 10.0215C19.3894 9.29292 19.0534 8.77091 18.8992 8.54242C18.7101 8.26241 18.4637 8.04626 18.1128 8.00636C17.8332 7.97456 17.5531 8.06207 17.3413 8.24739L15.7763 9.61686C15.9107 7.44482 15.1466 5.61996 14.1982 4.24472C13.5095 3.24609 12.7237 2.47913 12.1151 1.96354C11.8094 1.70448 11.5443 1.50549 11.3525 1.36923C11.2564 1.30103 11.1784 1.24831 11.1224 1.21142C10.7908 0.99291 10.3931 0.923125 10.0284 1.11813ZM7.76396 20.256C7.75511 20.0744 7.74999 19.8842 7.74999 19.6875C7.75 18.6347 7.89677 17.3059 8.47802 16.0708C8.67271 15.6572 8.91614 15.254 9.21914 14.8753C9.47408 14.5566 9.89709 14.4248 10.2879 14.5423C10.6787 14.6598 10.959 15.003 10.9959 15.4094C11.2221 17.8977 12.2225 19.2892 13.099 20.0626C13.5469 20.4579 13.979 20.7056 14.292 20.8525C15.5 20.9999 17.8849 18.6892 18.3955 17.7882C19.0569 16.6211 19.1756 15.356 19.0091 14.1351C18.8146 12.7092 18.2304 11.3897 17.7656 10.5337L14.6585 13.2525C14.3033 13.5634 13.779 13.5835 13.401 13.3008C13.023 13.018 12.8942 12.5095 13.092 12.0809C14.4081 9.22933 13.655 6.97987 12.5518 5.38019C12.1138 4.74521 11.6209 4.21649 11.18 3.80695C11.0999 4.088 10.9997 4.39262 10.8742 4.71284C10.696 5.16755 10.4662 5.65531 10.1704 6.15187C9.50801 7.26379 8.51483 8.41987 7.02982 9.34797C5.57752 10.2556 4.71646 12.6406 5.04885 15.2768C5.29944 17.2643 6.20241 19.1244 7.76396 20.256Z"/>
+</svg></div>
+            <p>Деактивация</p></div></li></a>
+      </ul>
+    </div>
+    
+    <button class="slider_nav_button next_button">&gt;</button>
+  </div>
+</div>
+
     </div>
     <div class="detailed_settings_layout">
         {% block setting %}
