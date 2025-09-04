@@ -44,4 +44,18 @@ ___
 
 ___
 
-### Галерея страниц веб-приложения.
+## Галерея страниц веб-приложения.
+### Главная страница.
+![Рисунок 5](https://github.com/cantevenexist/conote/blob/dev/1.png)
+___
+### Авторизация.
+![Рисунок 6](https://github.com/cantevenexist/conote/blob/dev/2.png)
+___
+### Профиль пользователя.
+![Рисунок 7](https://github.com/cantevenexist/conote/blob/dev/3.png)
+___
+### Блок новостей.
+![Рисунок 8](https://github.com/cantevenexist/conote/blob/dev/4.png)
+___
+### Пример заполнения рабочего пространства (доски).
+![Рисунок 9](https://github.com/cantevenexist/conote/blob/dev/5.png)
