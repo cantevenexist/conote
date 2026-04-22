@@ -25,27 +25,43 @@ CHUNK_SIZE = 100
 
 @shared_task()
 def async_send_messages_with_smtp(email_messages):
-    conn = get_connection(backend=settings.EMAIL_BACKEND)
+    # Явно передаем параметры из settings
+    conn = get_connection(
+        backend=settings.EMAIL_BACKEND,
+        host=settings.EMAIL_HOST,
+        port=settings.EMAIL_PORT,
+        username=settings.EMAIL_HOST_USER,
+        password=settings.EMAIL_HOST_PASSWORD,
+        use_tls=settings.EMAIL_USE_TLS,
+        use_ssl=getattr(settings, 'EMAIL_USE_SSL', False)  # Ключевое изменение
+    )
 
     if not email_messages:
         return 0
 
     with conn._lock:
-        new_conn_created = conn.open()
-        if not conn.connection or new_conn_created is None:
-            return 0
+        try:
+            new_conn_created = conn.open()
+            if not conn.connection or new_conn_created is None:
+                return 0
 
-        num_sent = 0
-        for message in email_messages:
-            sent = conn._send(message)
-            if sent:
-                num_sent += 1
+            num_sent = 0
+            for message in email_messages:
+                try:
+                    sent = conn._send(message)
+                    if sent:
+                        num_sent += 1
+                except:
+                    continue
 
-        if new_conn_created:
-            conn.close()
-
-    return num_sent
-
+            return num_sent
+            
+        finally:
+            if new_conn_created and conn.connection:
+                try:
+                    conn.close()
+                except:
+                    pass
 
 async def async_send_push_notification(notification_ids):
     channel_layer = get_channel_layer()

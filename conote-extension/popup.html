@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ЭКРАН ВЫБОРА ДОСКИ -->
+  <div id="boards-screen" class="screen active">
+    <div class="header">
+      <h2>📋 Мои доски</h2>
+      <button id="create-board-btn" class="btn-icon">+</button>
+    </div>
+    
+    <div id="boards-list" class="boards-list">
+      <div class="empty-state">Нет досок. Нажмите + чтобы создать</div>
+    </div>
+  </div>
+
+  <!-- ЭКРАН СОЗДАНИЯ НОВОЙ ДОСКИ -->
+  <div id="create-board-screen" class="screen">
+    <div class="header">
+      <button id="back-to-boards" class="btn-icon">←</button>
+      <h2>Новая доска</h2>
+    </div>
+    
+    <div class="form-group">
+      <label>Название доски</label>
+      <input type="text" id="new-board-name" placeholder="Например: Рабочие задачи" autocomplete="off">
+    </div>
+    
+    <button id="confirm-create-board" class="btn-primary">Создать доску</button>
+  </div>
+
+  <!-- ЭКРАН КАНБАН-ДОСКИ -->
+  <div id="kanban-screen" class="screen">
+    <div class="kanban-header">
+      <button id="back-to-boards-list" class="btn-icon">←</button>
+      <h2 id="current-board-title">Доска</h2>
+      <button id="board-settings-btn" class="btn-icon">⚙️</button>
+    </div>
+    
+    <!-- Карусель досок -->
+    <div class="board-carousel" id="board-carousel" style="display: none;">
+      <button id="prev-board-carousel" class="carousel-arrow">◀</button>
+      <span id="carousel-board-name" class="carousel-name"></span>
+      <button id="next-board-carousel" class="carousel-arrow">▶</button>
+    </div>
+    
+    <!-- Кнопка добавления колонки -->
+    <div class="toolbar">
+      <button id="add-column-btn" class="btn-secondary">+ Добавить колонку</button>
+    </div>
+    
+    <!-- Контейнер с колонками -->
+    <div id="kanban-container">
+      <div class="columns-wrapper" id="columns-wrapper">
+        <div class="empty-state">Нет колонок. Нажмите "+ Добавить колонку"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ КОЛОНКИ -->
+  <div class="modal-overlay" id="modal-overlay"></div>
+  
+  <div class="modal" id="column-modal">
+    <h3 id="column-modal-title">Колонка</h3>
+    <input type="text" id="column-name-input" placeholder="Название колонки">
+    <div class="modal-buttons">
+      <button id="save-column-btn" class="btn-primary">Сохранить</button>
+      <button id="delete-column-btn" class="btn-danger" style="display: none;">Удалить</button>
+      <button id="close-column-modal" class="btn-secondary">Отмена</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ КАРТОЧКИ -->
+  <div class="modal" id="card-modal">
+    <h3 id="card-modal-title">Заметка</h3>
+    <input type="text" id="card-title-input" placeholder="Заголовок">
+    <textarea id="card-content-input" rows="4" placeholder="Текст заметки..."></textarea>
+    <div class="modal-buttons">
+      <button id="save-card-btn" class="btn-primary">Сохранить</button>
+      <button id="delete-card-btn" class="btn-danger" style="display: none;">Удалить</button>
+      <button id="close-card-modal" class="btn-secondary">Отмена</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ НАСТРОЕК ДОСКИ -->
+  <div class="modal" id="settings-modal">
+    <h3>Настройки доски</h3>
+    <div class="form-group">
+      <label>Название доски</label>
+      <input type="text" id="settings-board-name">
+    </div>
+    <div class="modal-buttons">
+      <button id="save-settings-btn" class="btn-primary">Сохранить</button>
+      <button id="delete-board-btn" class="btn-danger">Удалить доску</button>
+      <button id="close-settings-modal" class="btn-secondary">Отмена</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

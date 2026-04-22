@@ -218,6 +218,7 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = int(os.environ.get("EMAIL_USE_TLS", default=1))
+EMAIL_USE_SSL = int(os.environ.get("EMAIL_USE_SSL", default=0))
 
 
 # AWS settings

@@ -476,90 +476,99 @@ async function createBoardFromCommand(data, commandFromServer = false, commandTe
   return board;
 }
 
-// function createBoardFromData(data) {
-//   const x = data.x || 100;
-//   const y = data.y || 100;
-//   const title = data.title || "Новая доска";
-//   const boardId = data.id;
+function createBoardFromData(data) {
+   // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: преобразуем нормализованные координаты в пиксели
+  const x = data.x !== undefined ? data.x * stage.width() : 100;
+  const y = data.y !== undefined ? data.y * stage.height() : 100;
+  
+  const title = data.title || "Новая доска";
+  const boardId = data.id;
 
-//   const board = new Konva.Group({
-//     x: x,
-//     y: y,
-//     draggable: true
-//   });
-//   board.setAttr('id', boardId);
+  console.log(`Загрузка доски: нормализованные координаты (${data.x}, ${data.y}) -> пиксельные (${x}, ${y}) при размере экрана ${stage.width()}x${stage.height()}`);
 
-//   const boardWidth = COLUMN_WIDTH + COLUMN_MARGIN * 2 + ADD_COLUMN_BUTTON_WIDTH;
-//   const boardBg = new Konva.Rect({
-//     width: boardWidth,
-//     height: INITIAL_BOARD_HEIGHT,
-//     fill: '#ECEFF1',
-//     cornerRadius: 10,
-//     stroke: '#B0BEC5',
-//     strokeWidth: 2,
-//     shadowColor: 'black',
-//     shadowBlur: 10,
-//     shadowOpacity: 0.2,
-//     shadowOffset: { x: 5, y: 5 }
-//   });
+  const board = new Konva.Group({
+    x: x,
+    y: y,
+    draggable: true
+  });
+  
+  // Сохраняем нормализованные координаты как атрибуты для использования при resize
+  board.setAttr('normalizedX', data.x !== undefined ? data.x : x / stage.width());
+  board.setAttr('normalizedY', data.y !== undefined ? data.y : y / stage.height());
+  
+  board.setAttr('id', boardId);
 
-//   const header = new Konva.Text({
-//     text: title,
-//     fontSize: 18,
-//     fontFamily: 'Arial',
-//     fill: '#37474F',
-//     width: boardBg.width() - 40,
-//     padding: 20,
-//     align: 'left',
-//     fontStyle: 'bold',
-//     ellipsis: true,
-//     wrap: 'none'
-//   });
+  const boardWidth = COLUMN_WIDTH + COLUMN_MARGIN * 2 + ADD_COLUMN_BUTTON_WIDTH;
+  const boardBg = new Konva.Rect({
+    width: boardWidth,
+    height: INITIAL_BOARD_HEIGHT,
+    fill: '#ECEFF1',
+    cornerRadius: 10,
+    stroke: '#B0BEC5',
+    strokeWidth: 2,
+    shadowColor: 'black',
+    shadowBlur: 10,
+    shadowOpacity: 0.2,
+    shadowOffset: { x: 5, y: 5 }
+  });
 
-//   board.add(boardBg, header);
-//   createAddColumnButton(board);
-//   layer.add(board);
-//   stage.kanbanBoards.push(board);
+  const header = new Konva.Text({
+    text: title,
+    fontSize: 18,
+    fontFamily: 'Arial',
+    fill: '#37474F',
+    width: boardBg.width() - 40,
+    padding: 20,
+    align: 'left',
+    fontStyle: 'bold',
+    ellipsis: true,
+    wrap: 'none'
+  });
 
-//   header.on('click tap', function(e) {
-//     if (!e.evt.ctrlKey && !e.evt.metaKey && !e.evt.shiftKey) {
-//       showModal('board', board, header.text());
-//       e.cancelBubble = true;
-//     }
-//   });
+  board.add(boardBg, header);
+  createAddColumnButton(board);
+  layer.add(board);
+  stage.kanbanBoards.push(board);
 
-//   board.on('dragstart', () => {
-//     document.body.style.cursor = 'grabbing';
-//     board.moveToTop();
-//     scheduleRedraw();
-//   })
-//   .on('dragmove', scheduleRedraw)
-//   .on('dragend', async () => {
-//     document.body.style.cursor = 'default';
-//     scheduleRedraw();
-//     const maxRetries = 3;
-//     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-//       try {
-//         await logChange('update', 'board', {
-//           id: board.getAttr('id'),
-//           new: {
-//             x: board.x() / stage.width(),
-//             y: board.y() / stage.height()
-//           }
-//         });
-//         break;
-//       } catch (error) {
-//         if (attempt === maxRetries) {
-//           alert('Ошибка отправки координат доски. Попробуйте снова.');
-//         }
-//         await new Promise(resolve => setTimeout(resolve, 500));
-//       }
-//     }
-//   });
+  header.on('click tap', function(e) {
+    if (!e.evt.ctrlKey && !e.evt.metaKey && !e.evt.shiftKey) {
+      showModal('board', board, header.text());
+      e.cancelBubble = true;
+    }
+  });
 
-//   scheduleRedraw();
-//   return board;
-// }
+  board.on('dragstart', () => {
+    document.body.style.cursor = 'grabbing';
+    board.moveToTop();
+    scheduleRedraw();
+  })
+  .on('dragmove', scheduleRedraw)
+  .on('dragend', async () => {
+    document.body.style.cursor = 'default';
+    scheduleRedraw();
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await logChange('update', 'board', {
+          id: board.getAttr('id'),
+          new: {
+            x: board.x() / stage.width(),
+            y: board.y() / stage.height()
+          }
+        });
+        break;
+      } catch (error) {
+        if (attempt === maxRetries) {
+          alert('Ошибка отправки координат доски. Попробуйте снова.');
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+  });
+
+  scheduleRedraw();
+  return board;
+}
 
 async function createColumnFromCommand(data, commandFromServer = false) {
   if (!data.boardId && data.boardId !== 0) {
