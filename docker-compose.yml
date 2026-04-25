@@ -56,7 +56,7 @@ services:
       - "6379:6379"
     restart: unless-stopped
   rabbitmq:
-    image: rabbitmq:4-management-alpine
+    image: rabbitmq:3.13-management-alpine
     env_file:
       - ./.env.amqp
     ports:
