@@ -120,7 +120,7 @@
     <div class="kanban-header">
       <button id="back-to-workspace" class="btn-icon">←</button>
       <h2 id="current-kanban-board-title">Доска</h2>
-      <button id="workspace-settings-from-board" class="btn-icon" title="Настройки пространства">⚙️</button>
+      <button id="workspace-settings-from-board" class="btn-icon" title="Настройки доски">⚙️</button>
     </div>
     
     <!-- Карусель досок -->
@@ -151,17 +151,23 @@
       <label>Название доски</label>
       <input type="text" id="kanban-board-name-input" placeholder="Название">
     </div>
-    <div class="form-group">
-      <label>Позиция X (пиксели)</label>
-      <input type="number" id="kanban-board-x" value="100">
-    </div>
-    <div class="form-group">
-      <label>Позиция Y (пиксели)</label>
-      <input type="number" id="kanban-board-y" value="100">
-    </div>
     <div class="modal-buttons">
       <button id="confirm-create-kanban-board" class="btn-primary">Создать</button>
       <button id="close-kanban-board-modal" class="btn-secondary">Отмена</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ КАНБАН-ДОСКИ -->
+  <div class="modal" id="kanban-board-edit-modal">
+    <h3>Редактирование доски</h3>
+    <div class="form-group">
+      <label>Название доски</label>
+      <input type="text" id="kanban-board-edit-name-input" placeholder="Название">
+    </div>
+    <div class="modal-buttons">
+      <button id="save-kanban-board-edit-btn" class="btn-primary">Сохранить</button>
+      <button id="delete-kanban-board-edit-btn" class="btn-danger">Удалить доску</button>
+      <button id="close-kanban-board-edit-modal" class="btn-secondary">Отмена</button>
     </div>
   </div>
 

@@ -350,6 +350,81 @@ async function generateIdOnServer(workspaceHash, objectType) {
   }
 }
 
+// ==================== НАСТРОЙКИ ДОСКИ (МОДАЛЬНОЕ ОКНО) ====================
+function showBoardEditModal() {
+  if (!currentKanbanBoard) return;
+  
+  const nameInput = document.getElementById('kanban-board-edit-name-input');
+  if (nameInput) nameInput.value = currentKanbanBoard.title;
+  
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('kanban-board-edit-modal');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
+}
+
+function closeBoardEditModalFunc() {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('kanban-board-edit-modal');
+  if (overlay) overlay.classList.remove('show');
+  if (modal) modal.classList.remove('show');
+}
+
+async function saveBoardEdit() {
+  if (!currentKanbanBoard) return;
+  
+  const newTitle = document.getElementById('kanban-board-edit-name-input')?.value?.trim() || '';
+  if (!newTitle) {
+    alert('Введите название доски');
+    return;
+  }
+  
+  try {
+    const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+    let boardData = rawData.board_data || {};
+    
+    if (!boardData.board) boardData.board = {};
+    
+    if (boardData.board[currentKanbanBoard.id]) {
+      boardData.board[currentKanbanBoard.id].title = newTitle;
+    }
+    
+    const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+    
+    if (saveResponse.success) {
+      currentKanbanBoard.title = newTitle;
+      await renderKanban();
+      updateKanbanCarouselInfo();
+      
+      if (currentWorkspace.kanban_boards) {
+        const boardIndex = currentWorkspace.kanban_boards.findIndex(b => b.id === currentKanbanBoard.id);
+        if (boardIndex !== -1) {
+          currentWorkspace.kanban_boards[boardIndex].title = newTitle;
+        }
+      }
+      
+      closeBoardEditModalFunc();
+    } else {
+      alert('Ошибка при обновлении названия');
+    }
+  } catch (error) {
+    console.error('Update board title error:', error);
+    alert('Ошибка при обновлении названия: ' + error.message);
+  }
+}
+
+async function deleteBoardFromModal() {
+  if (!currentKanbanBoard) return;
+  
+  if (confirm(`Удалить доску "${currentKanbanBoard.title}"? Все колонки и карточки будут удалены.`)) {
+    await deleteKanbanBoardOnServer(currentWorkspace.url_hash, currentKanbanBoard.id);
+    await loadKanbanBoardsIntoWorkspace();
+    renderKanbanBoardsList();
+    closeBoardEditModalFunc();
+    showScreen('workspace-screen');
+  }
+}
+
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
 function setupEventListeners() {
   // Авторизация
@@ -401,15 +476,25 @@ function setupEventListeners() {
   const closeKanbanBoardModal = document.getElementById('close-kanban-board-modal');
   if (closeKanbanBoardModal) closeKanbanBoardModal.addEventListener('click', closeKanbanBoardModalFunc);
   
+  // Редактирование доски (модальное окно)
+  const workspaceSettingsFromBoard = document.getElementById('workspace-settings-from-board');
+  if (workspaceSettingsFromBoard) workspaceSettingsFromBoard.addEventListener('click', showBoardEditModal);
+  
+  const closeBoardEditModal = document.getElementById('close-kanban-board-edit-modal');
+  if (closeBoardEditModal) closeBoardEditModal.addEventListener('click', closeBoardEditModalFunc);
+  
+  const saveBoardEditBtn = document.getElementById('save-kanban-board-edit-btn');
+  if (saveBoardEditBtn) saveBoardEditBtn.addEventListener('click', saveBoardEdit);
+  
+  const deleteBoardEditBtn = document.getElementById('delete-kanban-board-edit-btn');
+  if (deleteBoardEditBtn) deleteBoardEditBtn.addEventListener('click', deleteBoardFromModal);
+  
   // Канбан элементы
   const addColumnBtn = document.getElementById('add-column-btn');
   if (addColumnBtn) addColumnBtn.addEventListener('click', showCreateColumnModal);
   
   const workspaceSettingsBtn = document.getElementById('workspace-settings-btn');
   if (workspaceSettingsBtn) workspaceSettingsBtn.addEventListener('click', showWorkspaceSettings);
-  
-  const workspaceSettingsFromBoard = document.getElementById('workspace-settings-from-board');
-  if (workspaceSettingsFromBoard) workspaceSettingsFromBoard.addEventListener('click', showWorkspaceSettings);
   
   const syncBoardBtn = document.getElementById('sync-board-btn');
   if (syncBoardBtn) syncBoardBtn.addEventListener('click', syncCurrentKanbanBoard);
@@ -473,6 +558,7 @@ function setupEventListeners() {
     closeWorkspaceSettingsModalFunc();
     closeProfileModalFunc();
     closeKanbanBoardModalFunc();
+    closeBoardEditModalFunc();
   });
 }
 
@@ -686,12 +772,7 @@ function renderKanbanBoardsList() {
 
 function showCreateKanbanBoardModal() {
   const nameInput = document.getElementById('kanban-board-name-input');
-  const xInput = document.getElementById('kanban-board-x');
-  const yInput = document.getElementById('kanban-board-y');
-  
   if (nameInput) nameInput.value = '';
-  if (xInput) xInput.value = 100;
-  if (yInput) yInput.value = 100;
   
   const overlay = document.getElementById('modal-overlay');
   const modal = document.getElementById('kanban-board-modal');
@@ -701,10 +782,6 @@ function showCreateKanbanBoardModal() {
 
 async function createNewKanbanBoard() {
   const title = document.getElementById('kanban-board-name-input')?.value?.trim() || '';
-  const xInput = document.getElementById('kanban-board-x');
-  const yInput = document.getElementById('kanban-board-y');
-  const x = xInput ? parseInt(xInput.value) || 100 : 100;
-  const y = yInput ? parseInt(yInput.value) || 100 : 100;
   
   if (!title) {
     alert('Введите название доски');
@@ -714,8 +791,8 @@ async function createNewKanbanBoard() {
   try {
     const result = await createKanbanBoardOnServer(currentWorkspace.url_hash, {
       title: title,
-      x: x,
-      y: y
+      x: 0,
+      y: 0
     });
     
     if (result) {
@@ -1068,6 +1145,17 @@ async function deleteColumn() {
       const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
       
       if (saveResponse.success) {
+        const remainingColumns = Object.values(boardData.column || {}).filter(col => col.boardId === currentKanbanBoard.id);
+        
+        if (remainingColumns.length === 0) {
+          await deleteKanbanBoardOnServer(currentWorkspace.url_hash, currentKanbanBoard.id);
+          await loadKanbanBoardsIntoWorkspace();
+          renderKanbanBoardsList();
+          showScreen('workspace-screen');
+          closeColumnModalFunc();
+          return;
+        }
+        
         await renderKanban();
         closeColumnModalFunc();
       } else {

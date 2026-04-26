@@ -311,8 +311,8 @@ class ExtensionKanbanBoardsView(View):
                 kanban_boards.append({
                     'id': board_id,
                     'title': board_info.get('title', 'Без названия'),
-                    'x': board_info.get('x', 100),
-                    'y': board_info.get('y', 100),
+                    'x': board_info.get('x', 0),
+                    'y': board_info.get('y', 0),
                     'columns': columns
                 })
             
@@ -341,14 +341,9 @@ class ExtensionKanbanBoardsView(View):
             data = json.loads(request.body.decode('utf-8'))
             title = data.get('title', 'Новая доска')
             
-            try:
-                x = int(data.get('x', 100))
-            except (ValueError, TypeError):
-                x = 100
-            try:
-                y = int(data.get('y', 100))
-            except (ValueError, TypeError):
-                y = 100
+            # Координаты 0, 0
+            x = 0
+            y = 0
             
             board_data = {}
             if workspace.board_value:
@@ -359,15 +354,34 @@ class ExtensionKanbanBoardsView(View):
             if 'board' not in board_data:
                 board_data['board'] = {}
             
+            if 'column' not in board_data:
+                board_data['column'] = {}
+            
+            if 'card' not in board_data:
+                board_data['card'] = {}
+            
+            # Генерируем ID для доски
             board_id = hashlib.sha256(
                 f"{workspace_hash}{title}{time.time()}{user.id}".encode('utf-8')
             ).hexdigest()
             
+            # Создаем доску
             board_data['board'][board_id] = {
                 'id': board_id,
                 'title': title,
                 'x': x,
                 'y': y
+            }
+            
+            # Создаем колонку по умолчанию
+            column_id = hashlib.sha256(
+                f"{workspace_hash}{board_id}default_column{time.time()}{user.id}".encode('utf-8')
+            ).hexdigest()[:16]
+            
+            board_data['column'][column_id] = {
+                'id': column_id,
+                'title': 'Новые задачи',
+                'boardId': board_id
             }
             
             json_content = json.dumps(board_data).encode('utf-8')
@@ -389,7 +403,12 @@ class ExtensionKanbanBoardsView(View):
                     'title': title,
                     'x': x,
                     'y': y,
-                    'columns': []
+                    'columns': [{
+                        'id': column_id,
+                        'title': 'Новые задачи',
+                        'boardId': board_id,
+                        'cards': []
+                    }]
                 }
             })
         except Board.DoesNotExist:
@@ -452,7 +471,6 @@ class ExtensionKanbanBoardsView(View):
             return JsonResponse({'error': 'Workspace not found'}, status=404)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ExtensionGenerateIdView(View):
