@@ -1,297 +1,841 @@
 // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
-let boards = [];
-let currentBoard = null;
+let workspaces = [];
+let currentWorkspace = null;
+let currentKanbanBoard = null;
 let currentEditColumn = null;
 let currentEditCard = null;
-
-// Для drag-and-drop
-let draggedColumnId = null;
-let draggedCardId = null;
-let sourceColumnId = null;
-let isDraggingCard = false;
-let isDraggingColumn = false;
-
-// Для визуального отображения
-let dragOverColumnId = null;
-let placeholderElement = null;
-// ==================== РЕСАЙЗ ОКНА ====================
-let isResizing = false;
-let startX, startY, startWidth, startHeight;
-
-function initResize() {
-  const resizeHandle = document.getElementById('resize-handle');
-  if (!resizeHandle) return;
-  
-  resizeHandle.addEventListener('mousedown', startResize);
-  document.addEventListener('mousemove', doResize);
-  document.addEventListener('mouseup', stopResize);
-}
-
-function startResize(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  isResizing = true;
-  
-  startX = e.clientX;
-  startY = e.clientY;
-  startWidth = document.body.clientWidth;
-  startHeight = document.body.clientHeight;
-  
-  document.body.style.userSelect = 'none';
-  document.body.style.cursor = 'se-resize';
-}
-
-function doResize(e) {
-  if (!isResizing) return;
-  
-  const newWidth = startWidth + (e.clientX - startX);
-  const newHeight = startHeight + (e.clientY - startY);
-  
-  // Минимальные размеры
-  const minWidth = 550;
-  const minHeight = 450;
-  
-  // Максимальные размеры (опционально)
-  const maxWidth = 1200;
-  const maxHeight = 800;
-  
-  const finalWidth = Math.min(maxWidth, Math.max(minWidth, newWidth));
-  const finalHeight = Math.min(maxHeight, Math.max(minHeight, newHeight));
-  
-  document.body.style.width = finalWidth + 'px';
-  document.body.style.height = finalHeight + 'px';
-}
-
-function stopResize() {
-  isResizing = false;
-  document.body.style.userSelect = '';
-  document.body.style.cursor = '';
-  
-  // Сохраняем размер для следующего открытия
-  chrome.storage.local.set({
-    windowWidth: document.body.clientWidth,
-    windowHeight: document.body.clientHeight
-  });
-}
+let isAuthenticated = false;
+let currentUser = null;
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadData();
-  renderBoardsList();
-  showScreen('boards-screen');
+  console.log('Popup opened - checking auth...');
+  
   setupEventListeners();
+  
+  try {
+    const authResult = await checkAuthStatus();
+    console.log('Auth result:', authResult);
+    
+    if (isAuthenticated && currentUser) {
+      console.log('User authenticated:', currentUser.username);
+      await loadWorkspacesFromServer();
+      renderWorkspacesList();
+      updateUserInfo();
+      showScreen('profile-screen');
+    } else {
+      console.log('User not authenticated');
+      showScreen('login-screen');
+    }
+  } catch (error) {
+    console.error('Initialization error:', error);
+    showScreen('login-screen');
+  }
 });
 
-// ==================== РАБОТА С ХРАНИЛИЩЕМ ====================
-async function loadData() {
-  const result = await chrome.storage.local.get(['boards']);
-  boards = result.boards || [];
+// ==================== АВТОРИЗАЦИЯ ====================
+async function checkAuthStatus() {
+  try {
+    const storage = await chrome.storage.local.get(['user', 'auth_token']);
+    
+    if (storage.auth_token && storage.user) {
+      console.log('Found token in storage, verifying with server...');
+      const response = await chrome.runtime.sendMessage({ type: 'CHECK_AUTH' });
+      console.log('CHECK_AUTH response:', response);
+      
+      if (response && response.authenticated === true && response.user) {
+        isAuthenticated = true;
+        currentUser = response.user;
+        return true;
+      }
+    }
+    
+    isAuthenticated = false;
+    currentUser = null;
+    await chrome.storage.local.remove(['user', 'workspaces', 'currentWorkspace', 'auth_token']);
+    return false;
+  } catch (error) {
+    console.error('Check auth status error:', error);
+    isAuthenticated = false;
+    currentUser = null;
+    return false;
+  }
 }
 
-async function saveData() {
-  await chrome.storage.local.set({ boards: boards });
+async function handleLogin() {
+  const username = document.getElementById('login-username')?.value || '';
+  const password = document.getElementById('login-password')?.value || '';
+  
+  if (!username || !password) {
+    alert('Введите username и пароль');
+    return;
+  }
+  
+  const loginBtn = document.getElementById('login-btn');
+  const originalText = loginBtn?.textContent || 'Войти';
+  if (loginBtn) {
+    loginBtn.textContent = '⏳ Вход...';
+    loginBtn.disabled = true;
+  }
+  
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'LOGIN',
+      credentials: { 
+        username: username,
+        password: password 
+      }
+    });
+    
+    console.log('Login response:', response);
+    
+    if (response && response.success) {
+      isAuthenticated = true;
+      currentUser = response.user;
+      await loadWorkspacesFromServer();
+      renderWorkspacesList();
+      updateUserInfo();
+      showScreen('profile-screen');
+    } else {
+      alert('Ошибка входа: ' + (response?.error || 'Неверные данные'));
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('Ошибка соединения: ' + error.message);
+  } finally {
+    if (loginBtn) {
+      loginBtn.textContent = originalText;
+      loginBtn.disabled = false;
+    }
+  }
 }
 
-async function getCurrentBoardId() {
-  const result = await chrome.storage.local.get(['currentBoardId']);
-  return result.currentBoardId;
+async function handleSignup() {
+  const username = document.getElementById('signup-username')?.value || '';
+  const email = document.getElementById('signup-email')?.value || '';
+  const password = document.getElementById('signup-password')?.value || '';
+  const password2 = document.getElementById('signup-password2')?.value || '';
+  
+  if (!username || !email || !password || !password2) {
+    alert('Заполните все поля');
+    return;
+  }
+  
+  if (password !== password2) {
+    alert('Пароли не совпадают');
+    return;
+  }
+  
+  const signupBtn = document.getElementById('signup-btn');
+  const originalText = signupBtn?.textContent || 'Зарегистрироваться';
+  if (signupBtn) {
+    signupBtn.textContent = '⏳ Регистрация...';
+    signupBtn.disabled = true;
+  }
+  
+  try {
+    const response = await fetch('http://localhost:8000/account/signup/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        username: username,
+        email: email,
+        password1: password,
+        password2: password2
+      })
+    });
+    
+    if (response.ok || response.status === 302) {
+      alert('Регистрация успешна! Теперь войдите.');
+      showScreen('login-screen');
+      const loginUsername = document.getElementById('login-username');
+      if (loginUsername) loginUsername.value = username;
+      const loginPassword = document.getElementById('login-password');
+      if (loginPassword) loginPassword.value = '';
+    } else {
+      let errorText = 'Ошибка регистрации. Попробуйте другой username или email.';
+      try {
+        const text = await response.text();
+        if (text.includes('already exists')) errorText = 'Пользователь с таким именем уже существует';
+        if (text.includes('email')) errorText = 'Пользователь с таким email уже существует';
+      } catch(e) {}
+      alert(errorText);
+    }
+  } catch (error) {
+    console.error('Signup error:', error);
+    alert('Ошибка соединения с сервером');
+  } finally {
+    if (signupBtn) {
+      signupBtn.textContent = originalText;
+      signupBtn.disabled = false;
+    }
+  }
 }
 
-async function setCurrentBoardId(boardId) {
-  await chrome.storage.local.set({ currentBoardId: boardId });
+async function handleLogout() {
+  if (confirm('Вы уверены, что хотите выйти?')) {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'LOGOUT' });
+      console.log('Logout response:', response);
+      
+      if (response && response.success) {
+        isAuthenticated = false;
+        currentUser = null;
+        workspaces = [];
+        currentWorkspace = null;
+        currentKanbanBoard = null;
+        showScreen('login-screen');
+        
+        const loginUsername = document.getElementById('login-username');
+        const loginPassword = document.getElementById('login-password');
+        if (loginUsername) loginUsername.value = '';
+        if (loginPassword) loginPassword.value = '';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  }
 }
 
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+function updateUserInfo() {
+  if (!currentUser) return;
+  
+  const userName = document.getElementById('user-name');
+  const userEmail = document.getElementById('user-email');
+  const premiumBadge = document.getElementById('premium-badge');
+  const userInfo = document.getElementById('user-info');
+  const profileUsername = document.getElementById('profile-username');
+  const profileEmail = document.getElementById('profile-email');
+  const profilePremium = document.getElementById('profile-premium');
+  
+  if (userName) userName.textContent = currentUser.username || '';
+  if (userEmail) userEmail.textContent = currentUser.email || '';
+  if (premiumBadge && currentUser.is_premium) premiumBadge.style.display = 'inline-block';
+  if (userInfo) userInfo.style.display = 'flex';
+  if (profileUsername) profileUsername.textContent = currentUser.username || '';
+  if (profileEmail) profileEmail.textContent = currentUser.email || '';
+  if (profilePremium) profilePremium.textContent = currentUser.is_premium ? 'Premium' : 'Обычный';
+}
+
+// ==================== РАБОТА С РАБОЧИМИ ПРОСТРАНСТВАМИ ====================
+async function loadWorkspacesFromServer() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'GET_WORKSPACES' });
+    workspaces = (response && response.workspaces) ? response.workspaces : [];
+    await saveWorkspacesToLocal();
+    return workspaces;
+  } catch (error) {
+    console.error('Load workspaces error:', error);
+    workspaces = [];
+    return [];
+  }
+}
+
+async function saveWorkspacesToLocal() {
+  try {
+    await chrome.storage.local.set({ workspaces: workspaces });
+  } catch (error) {
+    console.error('Save workspaces error:', error);
+  }
+}
+
+async function createWorkspaceOnServer(name) {
+  const response = await chrome.runtime.sendMessage({
+    type: 'CREATE_WORKSPACE',
+    data: { name: name }
+  });
+  
+  if (response && response.success) {
+    await loadWorkspacesFromServer();
+    return response.workspace;
+  }
+  throw new Error(response?.error || 'Не удалось создать рабочее пространство');
+}
+
+async function updateWorkspaceOnServer(workspaceId, workspaceData) {
+  return await chrome.runtime.sendMessage({
+    type: 'UPDATE_WORKSPACE',
+    workspaceId: workspaceId,
+    data: workspaceData
+  });
+}
+
+async function deleteWorkspaceOnServer(workspaceId) {
+  return await chrome.runtime.sendMessage({
+    type: 'DELETE_WORKSPACE',
+    workspaceId: workspaceId
+  });
+}
+
+// ==================== РАБОТА С RAW ДАННЫМИ ====================
+async function getRawWorkspaceData(workspaceHash) {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'GET_RAW_WORKSPACE_DATA',
+      workspaceHash: workspaceHash
+    });
+    return response || { board_data: {} };
+  } catch (error) {
+    console.error('Get raw workspace data error:', error);
+    return { board_data: {} };
+  }
+}
+
+async function saveRawWorkspaceData(workspaceHash, boardData) {
+  const response = await chrome.runtime.sendMessage({
+    type: 'SAVE_RAW_WORKSPACE_DATA',
+    workspaceHash: workspaceHash,
+    data: boardData
+  });
+  return response || { success: false, error: 'No response' };
+}
+
+// ==================== РАБОТА С КАНБАН-ДОСКАМИ ====================
+async function loadKanbanBoardsFromServer(workspaceHash) {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'GET_KANBAN_BOARDS',
+      workspaceHash: workspaceHash
+    });
+    return response || { kanban_boards: [] };
+  } catch (error) {
+    console.error('Load kanban boards error:', error);
+    return { kanban_boards: [] };
+  }
+}
+
+async function createKanbanBoardOnServer(workspaceHash, boardData) {
+  const response = await chrome.runtime.sendMessage({
+    type: 'CREATE_KANBAN_BOARD',
+    workspaceHash: workspaceHash,
+    data: boardData
+  });
+  
+  if (response && response.success) {
+    return response.board;
+  }
+  throw new Error(response?.error || 'Не удалось создать доску');
+}
+
+async function updateKanbanBoardOnServer(workspaceHash, boardId, boardData) {
+  return await chrome.runtime.sendMessage({
+    type: 'UPDATE_KANBAN_BOARD',
+    workspaceHash: workspaceHash,
+    boardId: boardId,
+    data: boardData
+  });
+}
+
+async function deleteKanbanBoardOnServer(workspaceHash, boardId) {
+  return await chrome.runtime.sendMessage({
+    type: 'DELETE_KANBAN_BOARD',
+    workspaceHash: workspaceHash,
+    boardId: boardId
+  });
+}
+
+async function generateIdOnServer(workspaceHash, objectType) {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'GENERATE_ID',
+      workspaceHash: workspaceHash,
+      objectType: objectType
+    });
+    return response?.id || Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+  } catch (error) {
+    console.error('Generate ID error:', error);
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+  }
 }
 
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
 function setupEventListeners() {
-  document.getElementById('create-board-btn')?.addEventListener('click', () => showScreen('create-board-screen'));
-  document.getElementById('back-to-boards')?.addEventListener('click', () => showScreen('boards-screen'));
-  document.getElementById('back-to-boards-list')?.addEventListener('click', () => {
-    showScreen('boards-screen');
-    renderBoardsList();
+  // Авторизация
+  const loginBtn = document.getElementById('login-btn');
+  if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+  
+  const showSignup = document.getElementById('show-signup');
+  if (showSignup) showSignup.addEventListener('click', () => showScreen('signup-screen'));
+  
+  const backToLogin = document.getElementById('back-to-login');
+  if (backToLogin) backToLogin.addEventListener('click', () => showScreen('login-screen'));
+  
+  const signupBtn = document.getElementById('signup-btn');
+  if (signupBtn) signupBtn.addEventListener('click', handleSignup);
+  
+  const logoutFromProfile = document.getElementById('logout-from-profile');
+  if (logoutFromProfile) logoutFromProfile.addEventListener('click', handleLogout);
+  
+  const logoutFromModal = document.getElementById('logout-from-modal');
+  if (logoutFromModal) logoutFromModal.addEventListener('click', () => {
+    const closeBtn = document.getElementById('close-profile-modal');
+    if (closeBtn) closeBtn.click();
+    handleLogout();
   });
   
-  document.getElementById('confirm-create-board')?.addEventListener('click', createNewBoard);
-  document.getElementById('add-column-btn')?.addEventListener('click', showCreateColumnModal);
+  // Рабочие пространства
+  const createWorkspaceBtn = document.getElementById('create-workspace-btn');
+  if (createWorkspaceBtn) createWorkspaceBtn.addEventListener('click', () => showScreen('create-workspace-screen'));
   
-  document.getElementById('board-settings-btn')?.addEventListener('click', showBoardSettings);
-  document.getElementById('save-settings-btn')?.addEventListener('click', saveBoardSettings);
-  document.getElementById('delete-board-btn')?.addEventListener('click', deleteCurrentBoard);
-  document.getElementById('close-settings-modal')?.addEventListener('click', closeSettingsModal);
+  const backToWorkspaces = document.getElementById('back-to-workspaces');
+  if (backToWorkspaces) backToWorkspaces.addEventListener('click', () => showScreen('profile-screen'));
   
-  document.getElementById('prev-board-carousel')?.addEventListener('click', prevBoard);
-  document.getElementById('next-board-carousel')?.addEventListener('click', nextBoard);
-    
-  document.getElementById('close-column-modal')?.addEventListener('click', closeColumnModal);
-  document.getElementById('save-column-btn')?.addEventListener('click', saveColumn);
-  document.getElementById('delete-column-btn')?.addEventListener('click', deleteColumn);
+  const confirmCreateWorkspace = document.getElementById('confirm-create-workspace');
+  if (confirmCreateWorkspace) confirmCreateWorkspace.addEventListener('click', createNewWorkspace);
   
-  document.getElementById('close-card-modal')?.addEventListener('click', closeCardModal);
-  document.getElementById('save-card-btn')?.addEventListener('click', saveCard);
-  document.getElementById('delete-card-btn')?.addEventListener('click', deleteCard);
+  const backToWorkspacesList = document.getElementById('back-to-workspaces-list');
+  if (backToWorkspacesList) backToWorkspacesList.addEventListener('click', () => {
+    showScreen('profile-screen');
+    renderWorkspacesList();
+  });
   
-  document.getElementById('modal-overlay')?.addEventListener('click', () => {
-    closeColumnModal();
-    closeCardModal();
-    closeSettingsModal();
+  // Канбан-доски
+  const createKanbanBoardBtn = document.getElementById('create-kanban-board-btn');
+  if (createKanbanBoardBtn) createKanbanBoardBtn.addEventListener('click', showCreateKanbanBoardModal);
+  
+  const confirmCreateKanbanBoard = document.getElementById('confirm-create-kanban-board');
+  if (confirmCreateKanbanBoard) confirmCreateKanbanBoard.addEventListener('click', createNewKanbanBoard);
+  
+  const closeKanbanBoardModal = document.getElementById('close-kanban-board-modal');
+  if (closeKanbanBoardModal) closeKanbanBoardModal.addEventListener('click', closeKanbanBoardModalFunc);
+  
+  // Канбан элементы
+  const addColumnBtn = document.getElementById('add-column-btn');
+  if (addColumnBtn) addColumnBtn.addEventListener('click', showCreateColumnModal);
+  
+  const workspaceSettingsBtn = document.getElementById('workspace-settings-btn');
+  if (workspaceSettingsBtn) workspaceSettingsBtn.addEventListener('click', showWorkspaceSettings);
+  
+  const workspaceSettingsFromBoard = document.getElementById('workspace-settings-from-board');
+  if (workspaceSettingsFromBoard) workspaceSettingsFromBoard.addEventListener('click', showWorkspaceSettings);
+  
+  const syncBoardBtn = document.getElementById('sync-board-btn');
+  if (syncBoardBtn) syncBoardBtn.addEventListener('click', syncCurrentKanbanBoard);
+  
+  // Настройки рабочего пространства
+  const saveWorkspaceSettingsBtn = document.getElementById('save-workspace-settings-btn');
+  if (saveWorkspaceSettingsBtn) saveWorkspaceSettingsBtn.addEventListener('click', saveWorkspaceSettings);
+  
+  const deleteWorkspaceBtn = document.getElementById('delete-workspace-btn');
+  if (deleteWorkspaceBtn) deleteWorkspaceBtn.addEventListener('click', deleteCurrentWorkspace);
+  
+  const closeWorkspaceSettingsModal = document.getElementById('close-workspace-settings-modal');
+  if (closeWorkspaceSettingsModal) closeWorkspaceSettingsModal.addEventListener('click', closeWorkspaceSettingsModalFunc);
+  
+  // Карусель досок
+  const prevKanbanBoard = document.getElementById('prev-kanban-board');
+  if (prevKanbanBoard) prevKanbanBoard.addEventListener('click', prevKanbanBoardFunc);
+  
+  const nextKanbanBoard = document.getElementById('next-kanban-board');
+  if (nextKanbanBoard) nextKanbanBoard.addEventListener('click', nextKanbanBoardFunc);
+  
+  // Кнопка назад из канбан-доски
+  const backToWorkspace = document.getElementById('back-to-workspace');
+  if (backToWorkspace) backToWorkspace.addEventListener('click', () => {
+    showScreen('workspace-screen');
+    renderKanbanBoardsList();
+  });
+  
+  // Модальные окна колонок
+  const closeColumnModal = document.getElementById('close-column-modal');
+  if (closeColumnModal) closeColumnModal.addEventListener('click', closeColumnModalFunc);
+  
+  const saveColumnBtn = document.getElementById('save-column-btn');
+  if (saveColumnBtn) saveColumnBtn.addEventListener('click', saveColumnFunc);
+  
+  const deleteColumnBtn = document.getElementById('delete-column-btn');
+  if (deleteColumnBtn) deleteColumnBtn.addEventListener('click', deleteColumnFunc);
+  
+  // Модальные окна карточек
+  const closeCardModal = document.getElementById('close-card-modal');
+  if (closeCardModal) closeCardModal.addEventListener('click', closeCardModalFunc);
+  
+  const saveCardBtn = document.getElementById('save-card-btn');
+  if (saveCardBtn) saveCardBtn.addEventListener('click', saveCardFunc);
+  
+  const deleteCardBtn = document.getElementById('delete-card-btn');
+  if (deleteCardBtn) deleteCardBtn.addEventListener('click', deleteCardFunc);
+  
+  // Профиль
+  const closeProfileModal = document.getElementById('close-profile-modal');
+  if (closeProfileModal) closeProfileModal.addEventListener('click', closeProfileModalFunc);
+  
+  const userMenuBtn = document.getElementById('user-menu-btn');
+  if (userMenuBtn) userMenuBtn.addEventListener('click', showProfileModalFunc);
+  
+  // Оверлей
+  const modalOverlay = document.getElementById('modal-overlay');
+  if (modalOverlay) modalOverlay.addEventListener('click', () => {
+    closeColumnModalFunc();
+    closeCardModalFunc();
+    closeWorkspaceSettingsModalFunc();
+    closeProfileModalFunc();
+    closeKanbanBoardModalFunc();
   });
 }
 
 // ==================== ЭКРАНЫ ====================
 function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(screen => {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(screen => {
     screen.classList.remove('active');
   });
-  document.getElementById(screenId).classList.add('active');
+  const screen = document.getElementById(screenId);
+  if (screen) {
+    screen.classList.add('active');
+  }
 }
 
-// ==================== СПИСОК ДОСОК ====================
-function renderBoardsList() {
-  const container = document.getElementById('boards-list');
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ СОБЫТИЙ ====================
+function closeKanbanBoardModalFunc() {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('kanban-board-modal');
+  if (overlay) overlay.classList.remove('show');
+  if (modal) modal.classList.remove('show');
+}
+
+function closeColumnModalFunc() {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('column-modal');
+  if (overlay) overlay.classList.remove('show');
+  if (modal) modal.classList.remove('show');
+  currentEditColumn = null;
+}
+
+function closeCardModalFunc() {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('card-modal');
+  if (overlay) overlay.classList.remove('show');
+  if (modal) modal.classList.remove('show');
+  currentEditCard = null;
+}
+
+function closeWorkspaceSettingsModalFunc() {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('workspace-settings-modal');
+  if (overlay) overlay.classList.remove('show');
+  if (modal) modal.classList.remove('show');
+}
+
+function closeProfileModalFunc() {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('profile-modal');
+  if (overlay) overlay.classList.remove('show');
+  if (modal) modal.classList.remove('show');
+}
+
+function showProfileModalFunc() {
+  updateUserInfo();
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('profile-modal');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
+}
+
+function saveColumnFunc() {
+  saveColumn();
+}
+
+function deleteColumnFunc() {
+  deleteColumn();
+}
+
+function saveCardFunc() {
+  saveCard();
+}
+
+function deleteCardFunc() {
+  deleteCard();
+}
+
+function prevKanbanBoardFunc() {
+  prevKanbanBoard();
+}
+
+function nextKanbanBoardFunc() {
+  nextKanbanBoard();
+}
+
+// ==================== СПИСОК РАБОЧИХ ПРОСТРАНСТВ ====================
+function renderWorkspacesList() {
+  const container = document.getElementById('workspaces-list');
+  if (!container) return;
   
-  if (boards.length === 0) {
-    container.innerHTML = '<div class="empty-state">Нет досок. Нажмите + чтобы создать</div>';
+  if (!workspaces || workspaces.length === 0) {
+    container.innerHTML = '<div class="empty-state">Нет рабочих пространств. Нажмите + чтобы создать</div>';
     return;
   }
   
-  container.innerHTML = boards.map(board => `
-    <div class="board-card" data-board-id="${board.id}">
-      <div class="board-card-title">${escapeHtml(board.title)}</div>
-      <div class="board-card-info">${board.columns?.length || 0} колонок</div>
+  container.innerHTML = workspaces.map(workspace => `
+    <div class="workspace-card" data-workspace-id="${workspace.id}" data-workspace-hash="${workspace.url_hash}">
+      <div class="workspace-card-title">📁 ${escapeHtml(workspace.name)}</div>
+      <div class="workspace-card-info">
+        ${workspace.is_owner ? '👑 Владелец' : `👤 Доступ от ${escapeHtml(workspace.owner)}`}
+        ${workspace.access_users?.length ? ` | 👥 ${workspace.access_users.length}` : ''}
+      </div>
+      <div class="workspace-card-date">${new Date(workspace.updated_at).toLocaleDateString()}</div>
     </div>
   `).join('');
   
-  document.querySelectorAll('.board-card').forEach(card => {
+  document.querySelectorAll('.workspace-card').forEach(card => {
     card.addEventListener('click', async () => {
-      const boardId = card.dataset.boardId;
-      currentBoard = boards.find(b => b.id === boardId);
-      await setCurrentBoardId(boardId);
-      renderKanban();
-      showScreen('kanban-screen');
+      const workspaceId = parseInt(card.dataset.workspaceId);
+      currentWorkspace = workspaces.find(w => w.id === workspaceId);
+      if (currentWorkspace) {
+        await loadKanbanBoardsIntoWorkspace();
+        renderKanbanBoardsList();
+        showScreen('workspace-screen');
+      }
     });
   });
 }
 
-// ==================== СОЗДАНИЕ ДОСКИ ====================
-async function createNewBoard() {
-  const nameInput = document.getElementById('new-board-name');
-  const title = nameInput.value.trim();
+// ==================== СОЗДАНИЕ РАБОЧЕГО ПРОСТРАНСТВА ====================
+async function createNewWorkspace() {
+  const nameInput = document.getElementById('new-workspace-name');
+  const title = nameInput?.value?.trim() || '';
+  
+  if (!title) {
+    alert('Введите название рабочего пространства');
+    return;
+  }
+  
+  try {
+    const result = await createWorkspaceOnServer(title);
+    
+    if (result) {
+      if (nameInput) nameInput.value = '';
+      await loadWorkspacesFromServer();
+      renderWorkspacesList();
+      showScreen('profile-screen');
+    }
+  } catch (error) {
+    alert('Ошибка создания: ' + error.message);
+  }
+}
+
+// ==================== КАНБАН-ДОСКИ ВНУТРИ ПРОСТРАНСТВА ====================
+async function loadKanbanBoardsIntoWorkspace() {
+  if (!currentWorkspace) return;
+  
+  try {
+    const data = await loadKanbanBoardsFromServer(currentWorkspace.url_hash);
+    currentWorkspace.kanban_boards = (data && data.kanban_boards) ? data.kanban_boards : [];
+    await chrome.storage.local.set({ currentWorkspace: currentWorkspace });
+  } catch (error) {
+    console.error('Load kanban boards error:', error);
+    currentWorkspace.kanban_boards = [];
+  }
+}
+
+function renderKanbanBoardsList() {
+  const container = document.getElementById('kanban-boards-list');
+  const titleElement = document.getElementById('current-workspace-title');
+  
+  if (titleElement && currentWorkspace) {
+    titleElement.textContent = currentWorkspace.name;
+  }
+  
+  if (!container) return;
+  
+  const boards = (currentWorkspace && currentWorkspace.kanban_boards) ? currentWorkspace.kanban_boards : [];
+  
+  if (boards.length === 0) {
+    container.innerHTML = '<div class="empty-state">Нет канбан-досок. Нажмите "+ Создать доску"</div>';
+    return;
+  }
+  
+  container.innerHTML = boards.map(board => `
+    <div class="kanban-board-card" data-board-id="${board.id}">
+      <div class="kanban-board-card-title">📋 ${escapeHtml(board.title)}</div>
+      <div class="kanban-board-card-info">
+        Колонок: ${(board.columns && board.columns.length) || 0}
+      </div>
+      <button class="delete-kanban-board-btn" data-board-id="${board.id}" title="Удалить доску">🗑️</button>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('.kanban-board-card').forEach(card => {
+    card.addEventListener('click', async (e) => {
+      if (e.target.classList.contains('delete-kanban-board-btn')) return;
+      
+      const boardId = card.dataset.boardId;
+      currentKanbanBoard = boards.find(b => b.id === boardId);
+      if (currentKanbanBoard) {
+        await renderKanban();
+        updateKanbanCarouselInfo();
+        showScreen('kanban-screen');
+      }
+    });
+  });
+  
+  document.querySelectorAll('.delete-kanban-board-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const boardId = btn.dataset.boardId;
+      if (confirm('Удалить эту канбан-доску? Все данные будут потеряны.')) {
+        await deleteKanbanBoardOnServer(currentWorkspace.url_hash, boardId);
+        await loadKanbanBoardsIntoWorkspace();
+        renderKanbanBoardsList();
+      }
+    });
+  });
+}
+
+function showCreateKanbanBoardModal() {
+  const nameInput = document.getElementById('kanban-board-name-input');
+  const xInput = document.getElementById('kanban-board-x');
+  const yInput = document.getElementById('kanban-board-y');
+  
+  if (nameInput) nameInput.value = '';
+  if (xInput) xInput.value = 100;
+  if (yInput) yInput.value = 100;
+  
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('kanban-board-modal');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
+}
+
+async function createNewKanbanBoard() {
+  const title = document.getElementById('kanban-board-name-input')?.value?.trim() || '';
+  const xInput = document.getElementById('kanban-board-x');
+  const yInput = document.getElementById('kanban-board-y');
+  const x = xInput ? parseInt(xInput.value) || 100 : 100;
+  const y = yInput ? parseInt(yInput.value) || 100 : 100;
   
   if (!title) {
     alert('Введите название доски');
     return;
   }
   
-  // Создаем колонку "Колонка 1" автоматически
-  const defaultColumn = {
-    id: generateId(),
-    title: 'Колонка 1',
-    index: 0,
-    cards: []
-  };
-  
-  const newBoard = {
-    id: generateId(),
-    title: title,
-    createdAt: Date.now(),
-    columns: [defaultColumn]  // Добавляем колонку по умолчанию
-  };
-  
-  boards.push(newBoard);
-  await saveData();
-  
-  nameInput.value = '';
-  
-  currentBoard = newBoard;
-  await setCurrentBoardId(newBoard.id);
-  renderBoardsList();
-  renderKanban();
-  showScreen('kanban-screen');
+  try {
+    const result = await createKanbanBoardOnServer(currentWorkspace.url_hash, {
+      title: title,
+      x: x,
+      y: y
+    });
+    
+    if (result) {
+      await loadKanbanBoardsIntoWorkspace();
+      renderKanbanBoardsList();
+      closeKanbanBoardModalFunc();
+    }
+  } catch (error) {
+    alert('Ошибка создания: ' + error.message);
+  }
 }
 
-// ==================== КАНБАН-ДОСКА ====================
-function renderKanban() {
-  if (!currentBoard) return;
+// ==================== КАНБАН-ДОСКА (ВИЗУАЛИЗАЦИЯ) ====================
+async function renderKanban() {
+  if (!currentKanbanBoard) return;
   
-  // Проверяем, не пустая ли доска
-  if (currentBoard.columns.length === 0) {
-    checkAndDeleteEmptyBoard();
-    return;
+  const titleElement = document.getElementById('current-kanban-board-title');
+  if (titleElement) titleElement.textContent = currentKanbanBoard.title || 'Доска';
+  
+  try {
+    const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+    const boardData = rawData.board_data || {};
+    
+    const boardsData = boardData.board || {};
+    const columnsData = boardData.column || {};
+    const cardsData = boardData.card || {};
+    
+    const filteredColumns = Object.values(columnsData).filter(col => col.boardId === currentKanbanBoard.id);
+    
+    const columns = filteredColumns.map(col => ({
+      id: col.id,
+      title: col.title,
+      boardId: col.boardId,
+      cards: Object.values(cardsData)
+        .filter(card => card.columnId === col.id)
+        .map(card => ({
+          id: card.id,
+          title: card.title,
+          content: card.content || '',
+          columnId: card.columnId,
+          index: card.index || 0
+        }))
+        .sort((a, b) => (a.index || 0) - (b.index || 0))
+    }));
+    
+    currentKanbanBoard.columns = columns;
+    
+    if (currentWorkspace.kanban_boards) {
+      const boardIndex = currentWorkspace.kanban_boards.findIndex(b => b.id === currentKanbanBoard.id);
+      if (boardIndex !== -1) {
+        currentWorkspace.kanban_boards[boardIndex].columns = columns;
+      }
+    }
+    
+  } catch (error) {
+    console.error('Load board data error:', error);
   }
   
-  document.getElementById('current-board-title').textContent = currentBoard.title;
-  
-  const carousel = document.getElementById('board-carousel');
-  if (boards.length > 1) {
-    carousel.style.display = 'flex';
-    updateCarouselInfo();
-  } else {
-    carousel.style.display = 'none';
-  }
-  
+  const columns = currentKanbanBoard.columns || [];
   const wrapper = document.getElementById('columns-wrapper');
   
-  if (!currentBoard.columns || currentBoard.columns.length === 0) {
+  if (!wrapper) return;
+  
+  if (columns.length === 0) {
     wrapper.innerHTML = '<div class="empty-state">Нет колонок. Нажмите "+ Добавить колонку"</div>';
     return;
   }
   
-  const sortedColumns = [...currentBoard.columns].sort((a, b) => a.index - b.index);
-  
-  wrapper.innerHTML = sortedColumns.map(column => `
-    <div class="column" data-column-id="${column.id}" data-column-index="${column.index}">
-      <div class="column-header" draggable="true" data-column-id="${column.id}">
+  wrapper.innerHTML = columns.map(column => `
+    <div class="column" data-column-id="${column.id}">
+      <div class="column-header" data-column-id="${column.id}">
         <span class="column-title">${escapeHtml(column.title)}</span>
         <button class="column-menu-btn" data-column-id="${column.id}">⋮</button>
       </div>
       <div class="column-cards" data-column-id="${column.id}">
-        ${renderCards(column.cards, column.id)}
+        ${renderCards(column.cards || [], column.id)}
       </div>
       <button class="add-card-btn" data-column-id="${column.id}">+ Добавить карточку</button>
     </div>
   `).join('');
   
-  // Обработчики для колонок
-  document.querySelectorAll('.column-header').forEach(header => {
-    header.addEventListener('dragstart', handleColumnDragStart);
-    header.addEventListener('dragend', handleColumnDragEnd);
-    header.addEventListener('dragover', handleColumnDragOver);
-    header.addEventListener('dragenter', handleColumnDragEnter);
-    header.addEventListener('dragleave', handleColumnDragLeave);
-  });
-  
   document.querySelectorAll('.column-menu-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const columnId = btn.dataset.columnId;
-      const column = currentBoard.columns.find(c => c.id === columnId);
-      if (column) showColumnModal(column);
-    });
+    btn.removeEventListener('click', handleColumnMenuClick);
+    btn.addEventListener('click', handleColumnMenuClick);
   });
   
   document.querySelectorAll('.add-card-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const columnId = btn.dataset.columnId;
-      showCreateNoteModal(columnId);
-    });
+    btn.removeEventListener('click', handleAddCardClick);
+    btn.addEventListener('click', handleAddCardClick);
   });
   
   document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const cardId = card.dataset.cardId;
-      const columnId = card.dataset.columnId;
-      const column = currentBoard.columns.find(c => c.id === columnId);
-      const cardData = column?.cards.find(c => c.id === cardId);
-      if (cardData) showCardModal(cardData, columnId);
-    });
+    card.removeEventListener('click', handleCardClick);
+    card.addEventListener('click', handleCardClick);
   });
-  
-  setupCardDragAndDrop();
+}
+
+function handleColumnMenuClick(e) {
+  e.stopPropagation();
+  const columnId = e.currentTarget.dataset.columnId;
+  const columns = currentKanbanBoard.columns || [];
+  const column = columns.find(c => c.id === columnId);
+  if (column) showColumnModal(column);
+}
+
+function handleAddCardClick(e) {
+  e.stopPropagation();
+  const columnId = e.currentTarget.dataset.columnId;
+  showCreateNoteModal(columnId);
+}
+
+function handleCardClick(e) {
+  e.stopPropagation();
+  const card = e.currentTarget;
+  const cardId = card.dataset.cardId;
+  const columnId = card.dataset.columnId;
+  const columns = currentKanbanBoard.columns || [];
+  const column = columns.find(c => c.id === columnId);
+  const cardData = column?.cards?.find(c => c.id === cardId);
+  if (cardData) showCardModal(cardData, columnId);
 }
 
 function renderCards(cards, columnId) {
@@ -299,460 +843,368 @@ function renderCards(cards, columnId) {
     return '<div class="empty-cards">Нет карточек</div>';
   }
   
-  const sortedCards = [...cards].sort((a, b) => a.index - b.index);
+  const sortedCards = [...cards].sort((a, b) => (a.index || 0) - (b.index || 0));
   
   return sortedCards.map(card => `
-    <div class="card" draggable="true" data-card-id="${card.id}" data-column-id="${columnId}" data-card-index="${card.index}">
+    <div class="card" draggable="true" data-card-id="${card.id}" data-column-id="${columnId}">
       <div class="card-title">${escapeHtml(card.title || 'Без названия')}</div>
-      <div class="card-content">${escapeHtml(card.content?.substring(0, 80) || '')}${card.content?.length > 80 ? '...' : ''}</div>
-      <div class="card-date">${new Date(card.updatedAt || card.createdAt).toLocaleDateString()}</div>
+      <div class="card-content">${escapeHtml((card.content || '').substring(0, 80))}${(card.content || '').length > 80 ? '...' : ''}</div>
     </div>
   `).join('');
 }
 
-// ==================== DRAG-AND-DROP ДЛЯ КОЛОНОК ====================
-function handleColumnDragStart(e) {
-  const header = e.target.closest('.column-header');
-  if (!header) {
-    e.preventDefault();
-    return false;
+function updateKanbanCarouselInfo() {
+  if (!currentWorkspace || !currentKanbanBoard) return;
+  
+  const boards = currentWorkspace.kanban_boards || [];
+  const currentIndex = boards.findIndex(b => b.id === currentKanbanBoard.id);
+  const carouselName = document.getElementById('kanban-carousel-name');
+  
+  if (carouselName && boards.length > 0) {
+    carouselName.textContent = `${currentIndex + 1} / ${boards.length} • ${currentKanbanBoard.title}`;
   }
-  
-  const column = header.closest('.column');
-  if (!column) {
-    e.preventDefault();
-    return false;
-  }
-  
-  draggedColumnId = column.dataset.columnId;
-  isDraggingColumn = true;
-  isDraggingCard = false;
-  
-  e.dataTransfer.setData('text/plain', `column:${draggedColumnId}`);
-  e.dataTransfer.effectAllowed = 'move';
-  
-  // Визуальный эффект - только прозрачность, без подсветки
-  column.style.opacity = '0.4';
 }
 
-function handleColumnDragEnd(e) {
-  const column = document.querySelector(`.column[data-column-id="${draggedColumnId}"]`);
-  if (column) {
-    column.style.opacity = '';
-  }
+function prevKanbanBoard() {
+  if (!currentWorkspace || !currentKanbanBoard) return;
   
-  draggedColumnId = null;
-  isDraggingColumn = false;
-  dragOverColumnId = null;
-}
-
-function handleColumnDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-}
-
-function handleColumnDragEnter(e) {
-  e.preventDefault();
-  // Ничего не делаем, убираем подсветку
-}
-
-function handleColumnDragLeave(e) {
-  // Ничего не делаем
-}
-
-// ==================== ОБРАБОТЧИК DROP ДЛЯ КОЛОНОК ====================
-function setupColumnDropHandler() {
-  const columnsWrapper = document.getElementById('columns-wrapper');
+  const boards = currentWorkspace.kanban_boards || [];
+  const currentIndex = boards.findIndex(b => b.id === currentKanbanBoard.id);
   
-  columnsWrapper.removeEventListener('drop', handleColumnsWrapperDrop);
-  columnsWrapper.addEventListener('drop', handleColumnsWrapperDrop);
-}
-
-function handleColumnsWrapperDrop(e) {
-  e.preventDefault();
-  
-  if (!isDraggingColumn || !draggedColumnId) return;
-  
-  // Находим целевую колонку под курсором
-  const targetColumn = e.target.closest('.column');
-  if (!targetColumn) return;
-  
-  const targetColumnId = targetColumn.dataset.columnId;
-  if (draggedColumnId === targetColumnId) return;
-  
-  // Находим индексы
-  const draggedIndex = currentBoard.columns.findIndex(c => c.id === draggedColumnId);
-  const targetIndex = currentBoard.columns.findIndex(c => c.id === targetColumnId);
-  
-  if (draggedIndex === -1 || targetIndex === -1) return;
-  
-  // Перемещаем колонку
-  const [draggedColumn] = currentBoard.columns.splice(draggedIndex, 1);
-  currentBoard.columns.splice(targetIndex, 0, draggedColumn);
-  
-  // Обновляем индексы
-  currentBoard.columns.forEach((col, idx) => col.index = idx);
-  
-  saveData();
-  renderKanban();
-}
-
-// ==================== DRAG-AND-DROP ДЛЯ КАРТОЧЕК ====================
-function setupCardDragAndDrop() {
-  const cards = document.querySelectorAll('.card');
-  const columnsContainers = document.querySelectorAll('.column-cards');
-  
-  cards.forEach(card => {
-    card.removeEventListener('dragstart', handleCardDragStart);
-    card.removeEventListener('dragend', handleCardDragEnd);
-    card.addEventListener('dragstart', handleCardDragStart);
-    card.addEventListener('dragend', handleCardDragEnd);
-  });
-  
-  columnsContainers.forEach(container => {
-    container.removeEventListener('dragover', handleCardDragOver);
-    container.removeEventListener('drop', handleCardDrop);
-    container.addEventListener('dragover', handleCardDragOver);
-    container.addEventListener('drop', handleCardDrop);
-  });
-}
-
-function handleCardDragStart(e) {
-  const card = e.target.closest('.card');
-  if (!card) {
-    e.preventDefault();
-    return false;
-  }
-  
-  draggedCardId = card.dataset.cardId;
-  sourceColumnId = card.dataset.columnId;
-  isDraggingCard = true;
-  isDraggingColumn = false;
-  
-  e.dataTransfer.setData('text/plain', `card:${draggedCardId}`);
-  e.dataTransfer.effectAllowed = 'move';
-  card.style.opacity = '0.4';
-}
-
-function handleCardDragEnd(e) {
-  const card = document.querySelector(`.card[data-card-id="${draggedCardId}"]`);
-  if (card) card.style.opacity = '';
-  draggedCardId = null;
-  sourceColumnId = null;
-  isDraggingCard = false;
-}
-
-function handleCardDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-}
-
-function handleCardDrop(e) {
-  e.preventDefault();
-  
-  if (!isDraggingCard || !draggedCardId || !sourceColumnId) return;
-  
-  const targetCardsContainer = e.target.closest('.column-cards');
-  if (!targetCardsContainer) return;
-  
-  const targetColumnId = targetCardsContainer.dataset.columnId;
-  
-  const sourceColumn = currentBoard.columns.find(c => c.id === sourceColumnId);
-  const targetColumn = currentBoard.columns.find(c => c.id === targetColumnId);
-  
-  if (!sourceColumn || !targetColumn) return;
-  
-  const cardIndex = sourceColumn.cards.findIndex(c => c.id === draggedCardId);
-  if (cardIndex === -1) return;
-  
-  const [draggedCard] = sourceColumn.cards.splice(cardIndex, 1);
-  
-  // Определяем позицию вставки
-  const rect = targetCardsContainer.getBoundingClientRect();
-  const mouseY = e.clientY;
-  const relativeY = mouseY - rect.top;
-  
-  const targetCards = targetColumn.cards;
-  let insertIndex = targetCards.length;
-  
-  const cardElements = targetCardsContainer.querySelectorAll('.card');
-  for (let i = 0; i < cardElements.length; i++) {
-    const cardRect = cardElements[i].getBoundingClientRect();
-    const cardMiddle = cardRect.top + cardRect.height / 2;
-    if (mouseY < cardMiddle) {
-      insertIndex = i;
-      break;
-    }
-  }
-  
-  targetColumn.cards.splice(insertIndex, 0, draggedCard);
-  
-  sourceColumn.cards.forEach((card, idx) => card.index = idx);
-  targetColumn.cards.forEach((card, idx) => card.index = idx);
-  
-  saveData();
-  renderKanban();
-}
-
-// ==================== КАРУСЕЛЬ ДОСОК ====================
-function updateCarouselInfo() {
-  const currentIndex = boards.findIndex(b => b.id === currentBoard.id);
-  const carouselName = document.getElementById('carousel-board-name');
-  carouselName.textContent = `${currentIndex + 1} / ${boards.length} • ${currentBoard.title}`;
-}
-
-function prevBoard() {
-  const currentIndex = boards.findIndex(b => b.id === currentBoard.id);
   if (currentIndex > 0) {
-    currentBoard = boards[currentIndex - 1];
-    setCurrentBoardId(currentBoard.id);
+    currentKanbanBoard = boards[currentIndex - 1];
     renderKanban();
-    updateCarouselInfo();
+    updateKanbanCarouselInfo();
   }
 }
 
-function nextBoard() {
-  const currentIndex = boards.findIndex(b => b.id === currentBoard.id);
+function nextKanbanBoard() {
+  if (!currentWorkspace || !currentKanbanBoard) return;
+  
+  const boards = currentWorkspace.kanban_boards || [];
+  const currentIndex = boards.findIndex(b => b.id === currentKanbanBoard.id);
+  
   if (currentIndex < boards.length - 1) {
-    currentBoard = boards[currentIndex + 1];
-    setCurrentBoardId(currentBoard.id);
+    currentKanbanBoard = boards[currentIndex + 1];
     renderKanban();
-    updateCarouselInfo();
+    updateKanbanCarouselInfo();
+  }
+}
+
+async function syncCurrentKanbanBoard() {
+  if (!currentWorkspace || !currentKanbanBoard) return;
+  
+  const syncBtn = document.getElementById('sync-board-btn');
+  if (!syncBtn) return;
+  
+  const originalText = syncBtn.textContent;
+  syncBtn.textContent = '⏳ Синхронизация...';
+  syncBtn.disabled = true;
+  
+  try {
+    await loadKanbanBoardsIntoWorkspace();
+    const updatedBoard = currentWorkspace.kanban_boards.find(b => b.id === currentKanbanBoard.id);
+    if (updatedBoard) {
+      currentKanbanBoard = updatedBoard;
+      renderKanban();
+      alert('Доска синхронизирована');
+    }
+  } catch (error) {
+    alert('Ошибка синхронизации');
+  } finally {
+    syncBtn.textContent = originalText;
+    syncBtn.disabled = false;
+  }
+}
+
+// ==================== НАСТРОЙКИ РАБОЧЕГО ПРОСТРАНСТВА ====================
+function showWorkspaceSettings() {
+  const nameInput = document.getElementById('workspace-settings-name');
+  if (nameInput && currentWorkspace) nameInput.value = currentWorkspace.name;
+  
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('workspace-settings-modal');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
+}
+
+async function saveWorkspaceSettings() {
+  const newName = document.getElementById('workspace-settings-name')?.value?.trim() || '';
+  if (newName) {
+    await updateWorkspaceOnServer(currentWorkspace.id, { name: newName });
+    await loadWorkspacesFromServer();
+    currentWorkspace = workspaces.find(w => w.id === currentWorkspace.id);
+    const titleElement = document.getElementById('current-workspace-title');
+    if (titleElement) titleElement.textContent = currentWorkspace.name;
+    renderKanbanBoardsList();
+    closeWorkspaceSettingsModalFunc();
+  }
+}
+
+async function deleteCurrentWorkspace() {
+  if (confirm(`Удалить рабочее пространство "${currentWorkspace.name}"? Все доски внутри будут удалены.`)) {
+    await deleteWorkspaceOnServer(currentWorkspace.id);
+    await loadWorkspacesFromServer();
+    
+    if (workspaces.length > 0) {
+      currentWorkspace = workspaces[0];
+      await loadKanbanBoardsIntoWorkspace();
+      renderKanbanBoardsList();
+    } else {
+      showScreen('profile-screen');
+      renderWorkspacesList();
+      currentWorkspace = null;
+    }
+    closeWorkspaceSettingsModalFunc();
   }
 }
 
 // ==================== КОЛОНКИ ====================
 function showCreateColumnModal() {
   currentEditColumn = null;
-  document.getElementById('column-modal-title').textContent = 'Новая колонка';
-  document.getElementById('column-name-input').value = '';
-  document.getElementById('delete-column-btn').style.display = 'none';
-  document.getElementById('modal-overlay').classList.add('show');
-  document.getElementById('column-modal').classList.add('show');
+  const titleElem = document.getElementById('column-modal-title');
+  const nameInput = document.getElementById('column-name-input');
+  const deleteBtn = document.getElementById('delete-column-btn');
+  
+  if (titleElem) titleElem.textContent = 'Новая колонка';
+  if (nameInput) nameInput.value = '';
+  if (deleteBtn) deleteBtn.style.display = 'none';
+  
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('column-modal');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
 }
 
 function showColumnModal(column) {
   currentEditColumn = column;
-  document.getElementById('column-modal-title').textContent = 'Редактирование колонки';
-  document.getElementById('column-name-input').value = column.title;
-  document.getElementById('delete-column-btn').style.display = 'block';
-  document.getElementById('modal-overlay').classList.add('show');
-  document.getElementById('column-modal').classList.add('show');
+  const titleElem = document.getElementById('column-modal-title');
+  const nameInput = document.getElementById('column-name-input');
+  const deleteBtn = document.getElementById('delete-column-btn');
+  
+  if (titleElem) titleElem.textContent = 'Редактирование колонки';
+  if (nameInput) nameInput.value = column.title;
+  if (deleteBtn) deleteBtn.style.display = 'block';
+  
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('column-modal');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
 }
 
-function saveColumn() {
-  const name = document.getElementById('column-name-input').value.trim();
+async function saveColumn() {
+  const name = document.getElementById('column-name-input')?.value?.trim() || '';
   if (!name) {
     alert('Введите название колонки');
     return;
   }
   
-  if (currentEditColumn) {
-    currentEditColumn.title = name;
-  } else {
-    const newColumn = {
-      id: generateId(),
-      title: name,
-      index: currentBoard.columns.length,
-      cards: []
-    };
-    currentBoard.columns.push(newColumn);
+  if (!currentWorkspace || !currentKanbanBoard) {
+    alert('Ошибка: не выбрано рабочее пространство или доска');
+    return;
   }
   
-  saveData();
-  renderKanban();
-  closeColumnModal();
+  try {
+    const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+    let boardData = rawData.board_data || {};
+    
+    if (!boardData.board) boardData.board = {};
+    if (!boardData.column) boardData.column = {};
+    if (!boardData.card) boardData.card = {};
+    
+    if (currentEditColumn) {
+      if (boardData.column[currentEditColumn.id]) {
+        boardData.column[currentEditColumn.id].title = name;
+      }
+    } else {
+      const columnId = await generateIdOnServer(currentWorkspace.url_hash, 'column');
+      
+      boardData.column[columnId] = {
+        id: columnId,
+        title: name,
+        boardId: currentKanbanBoard.id
+      };
+    }
+    
+    const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+    
+    if (saveResponse.success) {
+      await renderKanban();
+      closeColumnModalFunc();
+    } else {
+      alert('Ошибка при сохранении колонки: ' + (saveResponse.error || 'Неизвестная ошибка'));
+    }
+  } catch (error) {
+    console.error('Save column error:', error);
+    alert('Ошибка при сохранении колонки: ' + error.message);
+  }
 }
 
-function deleteColumn() {
+async function deleteColumn() {
   if (!currentEditColumn) return;
   
   if (confirm(`Удалить колонку "${currentEditColumn.title}"? Все карточки в ней будут удалены.`)) {
-    currentBoard.columns = currentBoard.columns.filter(c => c.id !== currentEditColumn.id);
-    currentBoard.columns.forEach((col, idx) => col.index = idx);
-    
-    // Проверяем: если колонок не осталось, удаляем доску
-    if (currentBoard.columns.length === 0) {
-      const boardIndex = boards.findIndex(b => b.id === currentBoard.id);
-      if (boardIndex !== -1) {
-        boards.splice(boardIndex, 1);
-        
-        if (boards.length > 0) {
-          currentBoard = boards[0];
-          setCurrentBoardId(currentBoard.id);
-          renderKanban();
-        } else {
-          showScreen('boards-screen');
-          renderBoardsList();
-          currentBoard = null;
-        }
-        
-        saveData();
-        closeColumnModal();
-        return;
-      }
+    if (!currentWorkspace || !currentKanbanBoard) {
+      alert('Ошибка: не выбрано рабочее пространство или доска');
+      return;
     }
     
-    saveData();
-    renderKanban();
-    closeColumnModal();
-  }
-}
-
-function closeColumnModal() {
-  document.getElementById('modal-overlay').classList.remove('show');
-  document.getElementById('column-modal').classList.remove('show');
-  currentEditColumn = null;
-}
-
-// ==================== ПРОВЕРКА И УДАЛЕНИЕ ПУСТОЙ ДОСКИ ====================
-function checkAndDeleteEmptyBoard() {
-  if (currentBoard && currentBoard.columns.length === 0) {
-    const boardIndex = boards.findIndex(b => b.id === currentBoard.id);
-    if (boardIndex !== -1) {
-      boards.splice(boardIndex, 1);
+    try {
+      const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+      let boardData = rawData.board_data || {};
       
-      if (boards.length > 0) {
-        currentBoard = boards[0];
-        setCurrentBoardId(currentBoard.id);
-        renderKanban();
-      } else {
-        showScreen('boards-screen');
-        renderBoardsList();
-        currentBoard = null;
+      if (!boardData.column) boardData.column = {};
+      if (!boardData.card) boardData.card = {};
+      
+      const cardsToDelete = Object.keys(boardData.card).filter(cardId => 
+        boardData.card[cardId] && boardData.card[cardId].columnId === currentEditColumn.id
+      );
+      for (const cardId of cardsToDelete) {
+        delete boardData.card[cardId];
       }
       
-      saveData();
+      delete boardData.column[currentEditColumn.id];
+      
+      const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+      
+      if (saveResponse.success) {
+        await renderKanban();
+        closeColumnModalFunc();
+      } else {
+        alert('Ошибка при удалении колонки: ' + (saveResponse.error || 'Неизвестная ошибка'));
+      }
+    } catch (error) {
+      console.error('Delete column error:', error);
+      alert('Ошибка при удалении колонки: ' + error.message);
     }
   }
 }
 
 // ==================== КАРТОЧКИ ====================
-function showCreateNoteModal(columnId = null) {
+function showCreateNoteModal(columnId) {
   currentEditCard = null;
-  document.getElementById('card-modal-title').textContent = 'Новая заметка';
-  document.getElementById('card-title-input').value = '';
-  document.getElementById('card-content-input').value = '';
-  document.getElementById('delete-card-btn').style.display = 'none';
+  const titleElem = document.getElementById('card-modal-title');
+  const titleInput = document.getElementById('card-title-input');
+  const contentInput = document.getElementById('card-content-input');
+  const deleteBtn = document.getElementById('delete-card-btn');
   
-  let targetColumnId = columnId;
-  if (!targetColumnId && currentBoard.columns.length > 0) {
-    targetColumnId = currentBoard.columns[0].id;
-  }
+  if (titleElem) titleElem.textContent = 'Новая заметка';
+  if (titleInput) titleInput.value = '';
+  if (contentInput) contentInput.value = '';
+  if (deleteBtn) deleteBtn.style.display = 'none';
   
-  if (!targetColumnId) {
-    alert('Сначала создайте колонку');
-    return;
-  }
+  const modal = document.getElementById('card-modal');
+  if (modal) modal.dataset.targetColumnId = columnId;
   
-  document.getElementById('card-modal').dataset.targetColumnId = targetColumnId;
-  document.getElementById('modal-overlay').classList.add('show');
-  document.getElementById('card-modal').classList.add('show');
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
 }
 
 function showCardModal(card, columnId) {
   currentEditCard = card;
-  document.getElementById('card-modal-title').textContent = 'Редактирование';
-  document.getElementById('card-title-input').value = card.title || '';
-  document.getElementById('card-content-input').value = card.content || '';
-  document.getElementById('delete-card-btn').style.display = 'block';
-  document.getElementById('card-modal').dataset.targetColumnId = columnId;
-  document.getElementById('modal-overlay').classList.add('show');
-  document.getElementById('card-modal').classList.add('show');
+  const titleElem = document.getElementById('card-modal-title');
+  const titleInput = document.getElementById('card-title-input');
+  const contentInput = document.getElementById('card-content-input');
+  const deleteBtn = document.getElementById('delete-card-btn');
+  
+  if (titleElem) titleElem.textContent = 'Редактирование';
+  if (titleInput) titleInput.value = card.title || '';
+  if (contentInput) contentInput.value = card.content || '';
+  if (deleteBtn) deleteBtn.style.display = 'block';
+  
+  const modal = document.getElementById('card-modal');
+  if (modal) modal.dataset.targetColumnId = columnId;
+  
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
 }
 
-function saveCard() {
-  const title = document.getElementById('card-title-input').value.trim();
-  const content = document.getElementById('card-content-input').value;
-  const targetColumnId = document.getElementById('card-modal').dataset.targetColumnId;
-  const column = currentBoard.columns.find(c => c.id === targetColumnId);
+async function saveCard() {
+  const title = document.getElementById('card-title-input')?.value?.trim() || '';
+  const content = document.getElementById('card-content-input')?.value || '';
+  const targetColumnId = document.getElementById('card-modal')?.dataset.targetColumnId;
   
-  if (!column) {
-    alert('Колонка не найдена');
+  if (!targetColumnId) {
+    alert('Ошибка: колонка не найдена');
     return;
   }
   
-  if (currentEditCard) {
-    currentEditCard.title = title || 'Без названия';
-    currentEditCard.content = content;
-    currentEditCard.updatedAt = Date.now();
-  } else {
-    const newCard = {
-      id: generateId(),
-      title: title || 'Новая заметка',
-      content: content,
-      index: column.cards.length,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
-    column.cards.push(newCard);
+  if (!currentWorkspace || !currentKanbanBoard) {
+    alert('Ошибка: не выбрано рабочее пространство или доска');
+    return;
   }
   
-  saveData();
-  renderKanban();
-  closeCardModal();
-}
-
-function deleteCard() {
-  if (!currentEditCard) return;
-  
-  const targetColumnId = document.getElementById('card-modal').dataset.targetColumnId;
-  const column = currentBoard.columns.find(c => c.id === targetColumnId);
-  
-  if (column && confirm('Удалить заметку?')) {
-    column.cards = column.cards.filter(c => c.id !== currentEditCard.id);
-    column.cards.forEach((card, idx) => card.index = idx);
-    saveData();
-    renderKanban();
-    closeCardModal();
-  }
-}
-
-function closeCardModal() {
-  document.getElementById('modal-overlay').classList.remove('show');
-  document.getElementById('card-modal').classList.remove('show');
-  currentEditCard = null;
-}
-
-// ==================== НАСТРОЙКИ ДОСКИ ====================
-function showBoardSettings() {
-  document.getElementById('settings-board-name').value = currentBoard.title;
-  document.getElementById('modal-overlay').classList.add('show');
-  document.getElementById('settings-modal').classList.add('show');
-}
-
-function saveBoardSettings() {
-  const newName = document.getElementById('settings-board-name').value.trim();
-  if (newName) {
-    currentBoard.title = newName;
-    saveData();
-    renderKanban();
-    closeSettingsModal();
-  }
-}
-
-function deleteCurrentBoard() {
-  if (confirm(`Удалить доску "${currentBoard.title}"? Все данные будут потеряны.`)) {
-    const index = boards.findIndex(b => b.id === currentBoard.id);
-    boards.splice(index, 1);
+  try {
+    const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+    let boardData = rawData.board_data || {};
     
-    if (boards.length > 0) {
-      currentBoard = boards[0];
-      setCurrentBoardId(currentBoard.id);
-      renderKanban();
+    if (!boardData.card) boardData.card = {};
+    
+    if (currentEditCard) {
+      if (boardData.card[currentEditCard.id]) {
+        boardData.card[currentEditCard.id].title = title || 'Без названия';
+        boardData.card[currentEditCard.id].content = content;
+      }
     } else {
-      showScreen('boards-screen');
-      renderBoardsList();
+      const cardId = await generateIdOnServer(currentWorkspace.url_hash, 'card');
+      
+      const existingCards = Object.values(boardData.card).filter(c => c.columnId === targetColumnId);
+      
+      boardData.card[cardId] = {
+        id: cardId,
+        title: title || 'Новая заметка',
+        content: content,
+        columnId: targetColumnId,
+        index: existingCards.length
+      };
     }
     
-    saveData();
-    closeSettingsModal();
+    const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+    
+    if (saveResponse.success) {
+      await renderKanban();
+      closeCardModalFunc();
+    } else {
+      alert('Ошибка при сохранении карточки: ' + (saveResponse.error || 'Неизвестная ошибка'));
+    }
+  } catch (error) {
+    console.error('Save card error:', error);
+    alert('Ошибка при сохранении карточки: ' + error.message);
   }
 }
 
-function closeSettingsModal() {
-  document.getElementById('modal-overlay').classList.remove('show');
-  document.getElementById('settings-modal').classList.remove('show');
+async function deleteCard() {
+  if (!currentEditCard) return;
+  
+  if (confirm('Удалить заметку?')) {
+    if (!currentWorkspace || !currentKanbanBoard) {
+      alert('Ошибка: не выбрано рабочее пространство или доска');
+      return;
+    }
+    
+    try {
+      const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+      let boardData = rawData.board_data || {};
+      
+      if (!boardData.card) boardData.card = {};
+      
+      delete boardData.card[currentEditCard.id];
+      
+      const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+      
+      if (saveResponse.success) {
+        await renderKanban();
+        closeCardModalFunc();
+      } else {
+        alert('Ошибка при удалении карточки: ' + (saveResponse.error || 'Неизвестная ошибка'));
+      }
+    } catch (error) {
+      console.error('Delete card error:', error);
+      alert('Ошибка при удалении карточки: ' + error.message);
+    }
+  }
 }
 
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
@@ -762,8 +1214,3 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
-
-// Инициализируем обработчик drop для колонок после загрузки
-setTimeout(() => {
-  setupColumnDropHandler();
-}, 100);

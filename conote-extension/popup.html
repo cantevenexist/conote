@@ -5,51 +5,135 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- ЭКРАН ВЫБОРА ДОСКИ -->
-  <div id="boards-screen" class="screen active">
+  <!-- ЭКРАН ВХОДА -->
+  <div id="login-screen" class="screen">
     <div class="header">
-      <h2>📋 Мои доски</h2>
-      <button id="create-board-btn" class="btn-icon">+</button>
-    </div>
-    
-    <div id="boards-list" class="boards-list">
-      <div class="empty-state">Нет досок. Нажмите + чтобы создать</div>
-    </div>
-  </div>
-
-  <!-- ЭКРАН СОЗДАНИЯ НОВОЙ ДОСКИ -->
-  <div id="create-board-screen" class="screen">
-    <div class="header">
-      <button id="back-to-boards" class="btn-icon">←</button>
-      <h2>Новая доска</h2>
+      <h2>🔐 Вход в Conote</h2>
     </div>
     
     <div class="form-group">
-      <label>Название доски</label>
-      <input type="text" id="new-board-name" placeholder="Например: Рабочие задачи" autocomplete="off">
+      <label>Username или Email</label>
+      <input type="text" id="login-username" placeholder="username@example.com или username" autocomplete="off">
     </div>
     
-    <button id="confirm-create-board" class="btn-primary">Создать доску</button>
+    <div class="form-group">
+      <label>Пароль</label>
+      <input type="password" id="login-password" placeholder="Пароль">
+    </div>
+    
+    <button id="login-btn" class="btn-primary">Войти</button>
+    
+    <div class="form-group" style="text-align: center; margin-top: 16px;">
+      <a href="#" id="show-signup" style="color: #4CAF50; text-decoration: none;">Нет аккаунта? Зарегистрироваться</a>
+    </div>
+  </div>
+
+  <!-- ЭКРАН РЕГИСТРАЦИИ -->
+  <div id="signup-screen" class="screen">
+    <div class="header">
+      <button id="back-to-login" class="btn-icon">←</button>
+      <h2>📝 Регистрация</h2>
+    </div>
+    
+    <div class="form-group">
+      <label>Имя пользователя</label>
+      <input type="text" id="signup-username" placeholder="username">
+    </div>
+    
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="signup-email" placeholder="your@email.com">
+    </div>
+    
+    <div class="form-group">
+      <label>Пароль</label>
+      <input type="password" id="signup-password" placeholder="Пароль">
+    </div>
+    
+    <div class="form-group">
+      <label>Подтверждение пароля</label>
+      <input type="password" id="signup-password2" placeholder="Повторите пароль">
+    </div>
+    
+    <button id="signup-btn" class="btn-primary">Зарегистрироваться</button>
+  </div>
+
+  <!-- ЭКРАН РАБОЧИХ ПРОСТРАНСТВ -->
+  <div id="profile-screen" class="screen">
+    <div class="header">
+      <h2>📁 Рабочие пространства</h2>
+      <div>
+        <button id="user-menu-btn" class="btn-icon" title="Профиль">👤</button>
+        <button id="create-workspace-btn" class="btn-icon" title="Создать пространство">+</button>
+      </div>
+    </div>
+    
+    <div class="user-info" id="user-info" style="display: none;">
+      <div class="user-avatar" id="user-avatar">👤</div>
+      <div class="user-details">
+        <div class="user-name" id="user-name"></div>
+        <div class="user-email" id="user-email"></div>
+        <div class="premium-badge" id="premium-badge" style="display: none;">⭐ Premium</div>
+      </div>
+      <button id="logout-from-profile" class="logout-btn" title="Выйти">🚪</button>
+    </div>
+    
+    <div id="workspaces-list" class="workspaces-list">
+      <div class="empty-state">Нет рабочих пространств. Нажмите + чтобы создать</div>
+    </div>
+  </div>
+
+  <!-- ЭКРАН СОЗДАНИЯ РАБОЧЕГО ПРОСТРАНСТВА -->
+  <div id="create-workspace-screen" class="screen">
+    <div class="header">
+      <button id="back-to-workspaces" class="btn-icon">←</button>
+      <h2>Новое пространство</h2>
+    </div>
+    
+    <div class="form-group">
+      <label>Название пространства</label>
+      <input type="text" id="new-workspace-name" placeholder="Например: Работа, Личное, Проекты" autocomplete="off">
+    </div>
+    
+    <button id="confirm-create-workspace" class="btn-primary">Создать пространство</button>
+  </div>
+
+  <!-- ЭКРАН СПИСКА КАНБАН-ДОСОК ВНУТРИ ПРОСТРАНСТВА -->
+  <div id="workspace-screen" class="screen">
+    <div class="kanban-header">
+      <button id="back-to-workspaces-list" class="btn-icon">←</button>
+      <h2 id="current-workspace-title">Пространство</h2>
+      <button id="workspace-settings-btn" class="btn-icon" title="Настройки">⚙️</button>
+    </div>
+    
+    <div class="toolbar">
+      <button id="create-kanban-board-btn" class="btn-primary" style="margin: 0;">+ Создать доску</button>
+    </div>
+    
+    <div id="kanban-boards-list" class="kanban-boards-list">
+      <div class="empty-state">Нет досок. Нажмите "+ Создать доску"</div>
+    </div>
   </div>
 
   <!-- ЭКРАН КАНБАН-ДОСКИ -->
   <div id="kanban-screen" class="screen">
     <div class="kanban-header">
-      <button id="back-to-boards-list" class="btn-icon">←</button>
-      <h2 id="current-board-title">Доска</h2>
-      <button id="board-settings-btn" class="btn-icon">⚙️</button>
+      <button id="back-to-workspace" class="btn-icon">←</button>
+      <h2 id="current-kanban-board-title">Доска</h2>
+      <button id="workspace-settings-from-board" class="btn-icon" title="Настройки пространства">⚙️</button>
     </div>
     
     <!-- Карусель досок -->
-    <div class="board-carousel" id="board-carousel" style="display: none;">
-      <button id="prev-board-carousel" class="carousel-arrow">◀</button>
-      <span id="carousel-board-name" class="carousel-name"></span>
-      <button id="next-board-carousel" class="carousel-arrow">▶</button>
+    <div class="board-carousel" id="kanban-carousel">
+      <button id="prev-kanban-board" class="carousel-arrow">◀</button>
+      <span id="kanban-carousel-name" class="carousel-name"></span>
+      <button id="next-kanban-board" class="carousel-arrow">▶</button>
     </div>
     
     <!-- Кнопка добавления колонки -->
     <div class="toolbar">
       <button id="add-column-btn" class="btn-secondary">+ Добавить колонку</button>
+      <button id="sync-board-btn" class="btn-secondary" style="margin-left: 8px;">🔄 Синхронизировать</button>
     </div>
     
     <!-- Контейнер с колонками -->
@@ -57,6 +141,27 @@
       <div class="columns-wrapper" id="columns-wrapper">
         <div class="empty-state">Нет колонок. Нажмите "+ Добавить колонку"</div>
       </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ СОЗДАНИЯ КАНБАН-ДОСКИ -->
+  <div class="modal" id="kanban-board-modal">
+    <h3>Новая канбан-доска</h3>
+    <div class="form-group">
+      <label>Название доски</label>
+      <input type="text" id="kanban-board-name-input" placeholder="Название">
+    </div>
+    <div class="form-group">
+      <label>Позиция X (пиксели)</label>
+      <input type="number" id="kanban-board-x" value="100">
+    </div>
+    <div class="form-group">
+      <label>Позиция Y (пиксели)</label>
+      <input type="number" id="kanban-board-y" value="100">
+    </div>
+    <div class="modal-buttons">
+      <button id="confirm-create-kanban-board" class="btn-primary">Создать</button>
+      <button id="close-kanban-board-modal" class="btn-secondary">Отмена</button>
     </div>
   </div>
 
@@ -85,17 +190,34 @@
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ НАСТРОЕК ДОСКИ -->
-  <div class="modal" id="settings-modal">
-    <h3>Настройки доски</h3>
+  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ НАСТРОЕК РАБОЧЕГО ПРОСТРАНСТВА -->
+  <div class="modal" id="workspace-settings-modal">
+    <h3>Настройки пространства</h3>
     <div class="form-group">
-      <label>Название доски</label>
-      <input type="text" id="settings-board-name">
+      <label>Название пространства</label>
+      <input type="text" id="workspace-settings-name">
     </div>
     <div class="modal-buttons">
-      <button id="save-settings-btn" class="btn-primary">Сохранить</button>
-      <button id="delete-board-btn" class="btn-danger">Удалить доску</button>
-      <button id="close-settings-modal" class="btn-secondary">Отмена</button>
+      <button id="save-workspace-settings-btn" class="btn-primary">Сохранить</button>
+      <button id="delete-workspace-btn" class="btn-danger">Удалить пространство</button>
+      <button id="close-workspace-settings-modal" class="btn-secondary">Отмена</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ПРОФИЛЯ -->
+  <div class="modal" id="profile-modal">
+    <h3>Профиль</h3>
+    <div class="profile-info">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-details">
+        <p><strong>Имя:</strong> <span id="profile-username"></span></p>
+        <p><strong>Email:</strong> <span id="profile-email"></span></p>
+        <p><strong>Статус:</strong> <span id="profile-premium">Обычный</span></p>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button id="logout-from-modal" class="btn-danger">Выйти</button>
+      <button id="close-profile-modal" class="btn-secondary">Закрыть</button>
     </div>
   </div>
 

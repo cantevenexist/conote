@@ -52,10 +52,19 @@ INSTALLED_APPS = [
     'news',
     'warns',
     'user_profiles',
+    'rest_framework',
+    'corsheaders',
+    'rest_framework.authtoken',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -267,3 +276,27 @@ CELERY_RESULT_BACKEND = 'rpc://'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+# CORS settings for browser extension
+CORS_ALLOWED_ORIGINS = [
+    "chrome-extension://pffckmgfkcommhcgjgkmbhkmlmgcpmjo",
+    "moz-extension://*",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Для разработки можно разрешить все
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+
+# Дополнительные настройки для безопасности
+CSRF_TRUSTED_ORIGINS = [
+    "chrome-extension://pffckmgfkcommhcgjgkmbhkmlmgcpmjo",
+    "moz-extension://*",
+]
+
+# Настройки сессии для расширения
+SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = None
+CSRF_COOKIE_SECURE = False

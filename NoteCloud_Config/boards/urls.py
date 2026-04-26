@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 from . import views
+from . import api_views
 
 urlpatterns = [
     path('', views.BoardsView.as_view(), name='boards_view'),
@@ -19,4 +20,21 @@ urlpatterns = [
     path('<str:url_hash>/delete/', views.BoardsView.as_view(), name='delete_board'),
     path('<str:url_hash>/favorite/', views.BoardsView.as_view(), name='favorite_board'),
     path('<str:url_hash>/rename/', views.BoardsView.as_view(), name='rename_board'),
+    
+    # API для расширения
+    path('api/extension/auth/', api_views.ExtensionAuthView.as_view(), name='extension_auth'),
+    path('api/extension/logout/', api_views.ExtensionLogoutView.as_view(), name='extension_logout'),
+    path('api/extension/user/', api_views.ExtensionUserStatusView.as_view(), name='extension_user'),
+    path('api/extension/workspaces/<str:workspace_hash>/raw/', api_views.ExtensionRawWorkspaceDataView.as_view(), name='extension_raw_workspace_data'),
+    
+    # Рабочие пространства (Workspaces) - ОБЯЗАТЕЛЬНО ДОБАВИТЬ
+    path('api/extension/workspaces/', api_views.ExtensionWorkspacesView.as_view(), name='extension_workspaces'),
+    path('api/extension/workspaces/<int:workspace_id>/', api_views.ExtensionWorkspacesView.as_view(), name='extension_workspace_detail'),
+    
+    # Канбан-доски внутри рабочего пространства
+    path('api/extension/workspaces/<str:workspace_hash>/boards/', api_views.ExtensionKanbanBoardsView.as_view(), name='extension_kanban_boards'),
+    path('api/extension/workspaces/<str:workspace_hash>/boards/<str:board_id>/', api_views.ExtensionKanbanBoardsView.as_view(), name='extension_kanban_board_detail'),
+    
+    # Вспомогательные
+    path('api/extension/generate_id/', api_views.ExtensionGenerateIdView.as_view(), name='extension_generate_id'),
 ]

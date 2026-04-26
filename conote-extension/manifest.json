@@ -2,22 +2,21 @@
   "manifest_version": 3,
   "name": "Conote",
   "version": "1.0",
-  "description": "Conote extension",
+  "description": "Conote extension - управление рабочими пространствами и канбан-досками",
   "permissions": [
-    "activeTab",
     "storage",
-    "cookies"
+    "cookies",
+    "activeTab"
   ],
-  
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "https://your-domain.com/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Conote"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["popup.js"],
-      "css": ["styles.css"]
-    }
-  ]
+  "background": {
+    "service_worker": "background.js"
+  }
 }
