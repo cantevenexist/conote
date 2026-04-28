@@ -206,21 +206,21 @@ async function handleLogout() {
 function updateUserInfo() {
   if (!currentUser) return;
   
-  const userName = document.getElementById('user-name');
-  const userEmail = document.getElementById('user-email');
-  const premiumBadge = document.getElementById('premium-badge');
-  const userInfo = document.getElementById('user-info');
+  const headerUsername = document.getElementById('header-username');
   const profileUsername = document.getElementById('profile-username');
   const profileEmail = document.getElementById('profile-email');
-  const profilePremium = document.getElementById('profile-premium');
   
-  if (userName) userName.textContent = currentUser.username || '';
-  if (userEmail) userEmail.textContent = currentUser.email || '';
-  if (premiumBadge && currentUser.is_premium) premiumBadge.style.display = 'inline-block';
-  if (userInfo) userInfo.style.display = 'flex';
+  if (headerUsername) headerUsername.textContent = currentUser.username || '';
   if (profileUsername) profileUsername.textContent = currentUser.username || '';
   if (profileEmail) profileEmail.textContent = currentUser.email || '';
-  if (profilePremium) profilePremium.textContent = currentUser.is_premium ? 'Premium' : 'Обычный';
+}
+
+function showProfileModalFunc() {
+  updateUserInfo(); // обновит данные в модалке
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('profile-modal');
+  if (overlay) overlay.classList.add('show');
+  if (modal) modal.classList.add('show');
 }
 
 // ==================== РАБОТА С РАБОЧИМИ ПРОСТРАНСТВАМИ ====================
@@ -930,18 +930,18 @@ function renderWorkspacesList() {
   if (!container) return;
   
   if (!workspaces || workspaces.length === 0) {
-    container.innerHTML = '<div class="empty-state">Нет рабочих пространств. Нажмите + чтобы создать</div>';
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i> Нет рабочих пространств. Нажмите «Создать»</div>';
     return;
   }
   
   container.innerHTML = workspaces.map(workspace => `
     <div class="workspace-card" data-workspace-id="${workspace.id}" data-workspace-hash="${workspace.url_hash}">
-      <div class="workspace-card-title">📁 ${escapeHtml(workspace.name)}</div>
+      <div class="workspace-card-title"><i class="fas fa-folder-open"></i> ${escapeHtml(workspace.name)}</div>
       <div class="workspace-card-info">
-        ${workspace.is_owner ? '👑 Владелец' : `👤 Доступ от ${escapeHtml(workspace.owner)}`}
-        ${workspace.access_users?.length ? ` | 👥 ${workspace.access_users.length}` : ''}
+        ${workspace.is_owner ? '<i class="fas fa-crown"></i> Владелец' : `<i class="fas fa-user-friends"></i> Доступ от ${escapeHtml(workspace.owner)}`}
+        ${workspace.access_users?.length ? ` | <i class="fas fa-users"></i> ${workspace.access_users.length}` : ''}
       </div>
-      <div class="workspace-card-date">${new Date(workspace.updated_at).toLocaleDateString()}</div>
+      <div class="workspace-card-date"><i class="fas fa-calendar-alt"></i> ${new Date(workspace.updated_at).toLocaleDateString()}</div>
     </div>
   `).join('');
   
@@ -1009,23 +1009,23 @@ function renderKanbanBoardsList() {
   const boards = (currentWorkspace && currentWorkspace.kanban_boards) ? currentWorkspace.kanban_boards : [];
   
   if (boards.length === 0) {
-    container.innerHTML = '<div class="empty-state">Нет канбан-досок. Нажмите "+ Создать доску"</div>';
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-chalkboard"></i> Нет досок. Нажмите «Создать доску»</div>';
     return;
   }
   
   container.innerHTML = boards.map(board => `
     <div class="kanban-board-card" data-board-id="${board.id}">
-      <div class="kanban-board-card-title">📋 ${escapeHtml(board.title)}</div>
+      <div class="kanban-board-card-title"><i class="fas fa-chalkboard"></i> ${escapeHtml(board.title)}</div>
       <div class="kanban-board-card-info">
-        Колонок: ${(board.columns && board.columns.length) || 0}
+        <i class="fas fa-columns"></i> Колонок: ${(board.columns && board.columns.length) || 0}
       </div>
-      <button class="delete-kanban-board-btn" data-board-id="${board.id}" title="Удалить доску">🗑️</button>
+      <button class="delete-kanban-board-btn" data-board-id="${board.id}" title="Удалить доску"><i class="fas fa-trash-alt"></i></button>
     </div>
   `).join('');
   
   document.querySelectorAll('.kanban-board-card').forEach(card => {
     card.addEventListener('click', async (e) => {
-      if (e.target.classList.contains('delete-kanban-board-btn')) return;
+      if (e.target.closest('.delete-kanban-board-btn')) return;
       
       const boardId = card.dataset.boardId;
       currentKanbanBoard = boards.find(b => b.id === boardId);
@@ -1040,7 +1040,7 @@ function renderKanbanBoardsList() {
   document.querySelectorAll('.delete-kanban-board-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const boardId = btn.dataset.boardId;
+      const boardId = btn.closest('.kanban-board-card').dataset.boardId;
       if (confirm('Удалить эту канбан-доску? Все данные будут потеряны.')) {
         await deleteKanbanBoardOnServer(currentWorkspace.url_hash, boardId);
         await loadKanbanBoardsIntoWorkspace();
@@ -1139,7 +1139,7 @@ async function renderKanban() {
   if (!wrapper) return;
   
   if (columns.length === 0) {
-    wrapper.innerHTML = '<div class="empty-state">Нет колонок. Нажмите "+ Добавить колонку"</div>';
+    wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-columns"></i> Нет колонок. Нажмите «Добавить колонку»</div>';
     return;
   }
   
@@ -1147,12 +1147,12 @@ async function renderKanban() {
     <div class="column" data-column-id="${column.id}">
       <div class="column-header" draggable="true" data-column-id="${column.id}">
         <span class="column-title">${escapeHtml(column.title)}</span>
-        <button class="column-menu-btn" data-column-id="${column.id}">⋮</button>
+        <button class="column-menu-btn" data-column-id="${column.id}" title="Меню колонки"><i class="fas fa-ellipsis-v"></i></button>
       </div>
       <div class="column-cards" data-column-id="${column.id}">
         ${renderCards(column.cards || [], column.id)}
       </div>
-      <button class="add-card-btn" data-column-id="${column.id}">+ Добавить карточку</button>
+      <button class="add-card-btn" data-column-id="${column.id}"><i class="fas fa-plus"></i> Добавить карточку</button>
     </div>
   `).join('');
   
@@ -1178,7 +1178,7 @@ async function renderKanban() {
 
 function handleColumnMenuClick(e) {
   e.stopPropagation();
-  const columnId = e.currentTarget.dataset.columnId;
+  const columnId = e.currentTarget.closest('.column-menu-btn').dataset.columnId;
   const columns = currentKanbanBoard.columns || [];
   const column = columns.find(c => c.id === columnId);
   if (column) showColumnModal(column);
@@ -1211,7 +1211,7 @@ function handleCardClick(e) {
 
 function renderCards(cards, columnId) {
   if (!cards || cards.length === 0) {
-    return '<div class="empty-cards">Нет карточек</div>';
+    return '<div class="empty-cards"><i class="fas fa-sticky-note"></i> Нет карточек</div>';
   }
   
   const sortedCards = [...cards].sort((a, b) => (a.index || 0) - (b.index || 0));
@@ -1232,7 +1232,7 @@ function updateKanbanCarouselInfo() {
   const carouselName = document.getElementById('kanban-carousel-name');
   
   if (carouselName && boards.length > 0) {
-    carouselName.textContent = `${currentIndex + 1} / ${boards.length} • ${currentKanbanBoard.title}`;
+    carouselName.textContent = `${currentKanbanBoard.title} • ${currentIndex + 1} / ${boards.length}`;
   }
 }
 
@@ -1268,8 +1268,8 @@ async function syncCurrentKanbanBoard() {
   const syncBtn = document.getElementById('sync-board-btn');
   if (!syncBtn) return;
   
-  const originalText = syncBtn.textContent;
-  syncBtn.textContent = '⏳ Синхронизация...';
+  const originalText = syncBtn.innerHTML;
+  syncBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Синхронизация...';
   syncBtn.disabled = true;
   
   try {
@@ -1283,7 +1283,7 @@ async function syncCurrentKanbanBoard() {
   } catch (error) {
     alert('Ошибка синхронизации');
   } finally {
-    syncBtn.textContent = originalText;
+    syncBtn.innerHTML = originalText;
     syncBtn.disabled = false;
   }
 }
@@ -1481,13 +1481,14 @@ function showCreateNoteModal(columnId) {
   const contentInput = document.getElementById('card-content-input');
   const deleteBtn = document.getElementById('delete-card-btn');
   
-  if (titleElem) titleElem.textContent = 'Новая заметка';
+  if (titleElem) titleElem.innerHTML = '<i class="fas fa-sticky-note"></i> Новая заметка';
   if (titleInput) titleInput.value = '';
   if (contentInput) contentInput.value = '';
   if (deleteBtn) deleteBtn.style.display = 'none';
   
   const modal = document.getElementById('card-modal');
   if (modal) modal.dataset.targetColumnId = columnId;
+  delete modal.dataset.cardId;
   
   const overlay = document.getElementById('modal-overlay');
   if (overlay) overlay.classList.add('show');
@@ -1501,7 +1502,7 @@ function showCardModal(card, columnId) {
   const contentInput = document.getElementById('card-content-input');
   const deleteBtn = document.getElementById('delete-card-btn');
   
-  if (titleElem) titleElem.textContent = 'Редактирование заметки';
+  if (titleElem) titleElem.innerHTML = '<i class="fas fa-edit"></i> Редактирование заметки';
   if (titleInput) titleInput.value = card.title || '';
   if (contentInput) contentInput.value = card.content || '';
   if (deleteBtn) deleteBtn.style.display = 'block';
@@ -1527,7 +1528,7 @@ async function saveCard() {
   }
   
   if (!currentWorkspace || !currentKanbanBoard) {
-    alert('Ошибка: не выбрано рабочее пространство или доска');
+    alert('Ошибка: не выбрано рабоче пространство или доска');
     return;
   }
   

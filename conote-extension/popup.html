@@ -3,227 +3,215 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="styles.css">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
   <!-- ЭКРАН ВХОДА -->
   <div id="login-screen" class="screen">
     <div class="header">
-      <h2>🔐 Вход в Conote</h2>
+      <h2><i class="fas fa-lock"></i> Вход в Conote</h2>
     </div>
     
     <div class="form-group">
-      <label>Username или Email</label>
+      <label><i class="fas fa-user"></i> Username или Email</label>
       <input type="text" id="login-username" placeholder="username@example.com или username" autocomplete="off">
     </div>
     
     <div class="form-group">
-      <label>Пароль</label>
+      <label><i class="fas fa-key"></i> Пароль</label>
       <input type="password" id="login-password" placeholder="Пароль">
     </div>
     
-    <button id="login-btn" class="btn-primary">Войти</button>
+    <button id="login-btn" class="btn-primary"><i class="fas fa-sign-in-alt"></i> Войти</button>
     
     <div class="form-group" style="text-align: center; margin-top: 16px;">
-      <a href="#" id="show-signup" style="color: #4CAF50; text-decoration: none;">Нет аккаунта? Зарегистрироваться</a>
+      <i class="fas fa-user-plus"></i> Нет аккаунта? <a href="#" id="show-signup">Зарегистрироваться</a>
     </div>
   </div>
 
   <!-- ЭКРАН РЕГИСТРАЦИИ -->
   <div id="signup-screen" class="screen">
     <div class="header">
-      <button id="back-to-login" class="btn-icon">←</button>
-      <h2>📝 Регистрация</h2>
+      <button id="back-to-login" class="btn-icon"><i class="fas fa-arrow-left"></i></button>
+      <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
     </div>
     
     <div class="form-group">
-      <label>Имя пользователя</label>
+      <label><i class="fas fa-user-circle"></i> Имя пользователя</label>
       <input type="text" id="signup-username" placeholder="username">
     </div>
     
     <div class="form-group">
-      <label>Email</label>
+      <label><i class="fas fa-envelope"></i> Email</label>
       <input type="email" id="signup-email" placeholder="your@email.com">
     </div>
     
     <div class="form-group">
-      <label>Пароль</label>
+      <label><i class="fas fa-key"></i> Пароль</label>
       <input type="password" id="signup-password" placeholder="Пароль">
     </div>
     
     <div class="form-group">
-      <label>Подтверждение пароля</label>
+      <label><i class="fas fa-key"></i> Подтверждение пароля</label>
       <input type="password" id="signup-password2" placeholder="Повторите пароль">
     </div>
     
-    <button id="signup-btn" class="btn-primary">Зарегистрироваться</button>
+    <button id="signup-btn" class="btn-primary"><i class="fas fa-check-circle"></i> Зарегистрироваться</button>
   </div>
 
   <!-- ЭКРАН РАБОЧИХ ПРОСТРАНСТВ -->
   <div id="profile-screen" class="screen">
     <div class="header">
-      <h2>📁 Рабочие пространства</h2>
-      <div>
-        <button id="user-menu-btn" class="btn-icon" title="Профиль">👤</button>
-        <button id="create-workspace-btn" class="btn-icon" title="Создать пространство">+</button>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <h2 style="margin: 0;">Рабочие пространства</h2>
+        <button id="create-workspace-btn" class="btn-primary" style="padding: 4px 12px; margin-left: 8px;">
+          <i class="fas fa-plus"></i> Создать
+        </button>
       </div>
-    </div>
-    
-    <div class="user-info" id="user-info" style="display: none;">
-      <div class="user-avatar" id="user-avatar">👤</div>
-      <div class="user-details">
-        <div class="user-name" id="user-name"></div>
-        <div class="user-email" id="user-email"></div>
-        <div class="premium-badge" id="premium-badge" style="display: none;">⭐ Premium</div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span id="header-username" style="font-size: 13px; font-weight: 500; color: #202124;"></span>
+        <button id="user-menu-btn" class="btn-icon" title="Профиль"><i class="fas fa-user-circle"></i></button>
       </div>
-      <button id="logout-from-profile" class="logout-btn" title="Выйти">🚪</button>
     </div>
     
     <div id="workspaces-list" class="workspaces-list">
-      <div class="empty-state">Нет рабочих пространств. Нажмите + чтобы создать</div>
+      <div class="empty-state"><i class="fas fa-folder-open"></i> Нет рабочих пространств. Нажмите «Создать»</div>
     </div>
   </div>
 
   <!-- ЭКРАН СОЗДАНИЯ РАБОЧЕГО ПРОСТРАНСТВА -->
   <div id="create-workspace-screen" class="screen">
     <div class="header">
-      <button id="back-to-workspaces" class="btn-icon">←</button>
-      <h2>Новое пространство</h2>
+      <button id="back-to-workspaces" class="btn-icon"><i class="fas fa-arrow-left"></i></button>
+      <h2><i class="fas fa-plus-circle"></i> Новое пространство</h2>
     </div>
     
     <div class="form-group">
-      <label>Название пространства</label>
+      <label><i class="fas fa-tag"></i> Название пространства</label>
       <input type="text" id="new-workspace-name" placeholder="Например: Работа, Личное, Проекты" autocomplete="off">
     </div>
     
-    <button id="confirm-create-workspace" class="btn-primary">Создать пространство</button>
+    <button id="confirm-create-workspace" class="btn-primary"><i class="fas fa-save"></i> Создать пространство</button>
   </div>
 
-  <!-- ЭКРАН СПИСКА КАНБАН-ДОСОК ВНУТРИ ПРОСТРАНСТВА -->
+  <!-- ЭКРАН СПИСКА КАНБАН-ДОСОК -->
   <div id="workspace-screen" class="screen">
     <div class="kanban-header">
-      <button id="back-to-workspaces-list" class="btn-icon">←</button>
+      <button id="back-to-workspaces-list" class="btn-icon"><i class="fas fa-arrow-left"></i></button>
       <h2 id="current-workspace-title">Пространство</h2>
-      <button id="workspace-settings-btn" class="btn-icon" title="Настройки">⚙️</button>
+      <button id="workspace-settings-btn" class="btn-icon" title="Настройки"><i class="fas fa-cog"></i></button>
     </div>
     
     <div class="toolbar">
-      <button id="create-kanban-board-btn" class="btn-primary" style="margin: 0;">+ Создать доску</button>
+      <button id="create-kanban-board-btn" class="btn-primary"><i class="fas fa-plus"></i> Создать доску</button>
     </div>
     
     <div id="kanban-boards-list" class="kanban-boards-list">
-      <div class="empty-state">Нет досок. Нажмите "+ Создать доску"</div>
+      <div class="empty-state"><i class="fas fa-chalkboard"></i> Нет досок. Нажмите «Создать доску»</div>
     </div>
   </div>
 
   <!-- ЭКРАН КАНБАН-ДОСКИ -->
   <div id="kanban-screen" class="screen">
     <div class="kanban-header">
-      <button id="back-to-workspace" class="btn-icon">←</button>
+      <button id="back-to-workspace" class="btn-icon"><i class="fas fa-arrow-left"></i></button>
       <h2 id="current-kanban-board-title">Доска</h2>
-      <button id="workspace-settings-from-board" class="btn-icon" title="Настройки доски">⚙️</button>
+      <button id="workspace-settings-from-board" class="btn-icon" title="Настройки доски"><i class="fas fa-edit"></i></button>
     </div>
     
-    <!-- Карусель досок -->
     <div class="board-carousel" id="kanban-carousel">
-      <button id="prev-kanban-board" class="carousel-arrow">◀</button>
+      <button id="prev-kanban-board" class="carousel-arrow"><i class="fas fa-chevron-left"></i></button>
       <span id="kanban-carousel-name" class="carousel-name"></span>
-      <button id="next-kanban-board" class="carousel-arrow">▶</button>
+      <button id="next-kanban-board" class="carousel-arrow"><i class="fas fa-chevron-right"></i></button>
     </div>
     
-    <!-- Кнопка добавления колонки -->
     <div class="toolbar">
-      <button id="add-column-btn" class="btn-secondary">+ Добавить колонку</button>
-      <button id="sync-board-btn" class="btn-secondary" style="margin-left: 8px;">🔄 Синхронизировать</button>
+      <button id="add-column-btn" class="btn-secondary"><i class="fas fa-plus"></i> Добавить колонку</button>
+      <button id="sync-board-btn" class="btn-secondary"><i class="fas fa-sync-alt"></i> Синхронизировать</button>
     </div>
     
-    <!-- Контейнер с колонками -->
     <div id="kanban-container">
       <div class="columns-wrapper" id="columns-wrapper">
-        <div class="empty-state">Нет колонок. Нажмите "+ Добавить колонку"</div>
+        <div class="empty-state"><i class="fas fa-columns"></i> Нет колонок. Нажмите «Добавить колонку»</div>
       </div>
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ СОЗДАНИЯ КАНБАН-ДОСКИ -->
+  <!-- МОДАЛЬНЫЕ ОКНА -->
   <div class="modal" id="kanban-board-modal">
-    <h3>Новая канбан-доска</h3>
+    <h3><i class="fas fa-chalkboard"></i> Новая канбан-доска</h3>
     <div class="form-group">
       <label>Название доски</label>
       <input type="text" id="kanban-board-name-input" placeholder="Название">
     </div>
     <div class="modal-buttons">
-      <button id="confirm-create-kanban-board" class="btn-primary">Создать</button>
-      <button id="close-kanban-board-modal" class="btn-secondary">Отмена</button>
+      <button id="confirm-create-kanban-board" class="btn-primary"><i class="fas fa-check"></i> Создать</button>
+      <button id="close-kanban-board-modal" class="btn-secondary"><i class="fas fa-times"></i> Отмена</button>
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ КАНБАН-ДОСКИ -->
   <div class="modal" id="kanban-board-edit-modal">
-    <h3>Редактирование доски</h3>
+    <h3><i class="fas fa-edit"></i> Редактирование доски</h3>
     <div class="form-group">
       <label>Название доски</label>
       <input type="text" id="kanban-board-edit-name-input" placeholder="Название">
     </div>
     <div class="modal-buttons">
-      <button id="save-kanban-board-edit-btn" class="btn-primary">Сохранить</button>
-      <button id="delete-kanban-board-edit-btn" class="btn-danger">Удалить доску</button>
-      <button id="close-kanban-board-edit-modal" class="btn-secondary">Отмена</button>
+      <button id="save-kanban-board-edit-btn" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
+      <button id="delete-kanban-board-edit-btn" class="btn-danger"><i class="fas fa-trash-alt"></i> Удалить доску</button>
+      <button id="close-kanban-board-edit-modal" class="btn-secondary"><i class="fas fa-times"></i> Отмена</button>
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ КОЛОНКИ -->
   <div class="modal-overlay" id="modal-overlay"></div>
   
   <div class="modal" id="column-modal">
-    <h3 id="column-modal-title">Колонка</h3>
+    <h3 id="column-modal-title"><i class="fas fa-columns"></i> Колонка</h3>
     <input type="text" id="column-name-input" placeholder="Название колонки">
     <div class="modal-buttons">
-      <button id="save-column-btn" class="btn-primary">Сохранить</button>
-      <button id="delete-column-btn" class="btn-danger" style="display: none;">Удалить</button>
-      <button id="close-column-modal" class="btn-secondary">Отмена</button>
+      <button id="save-column-btn" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
+      <button id="delete-column-btn" class="btn-danger" style="display: none;"><i class="fas fa-trash-alt"></i> Удалить</button>
+      <button id="close-column-modal" class="btn-secondary"><i class="fas fa-times"></i> Отмена</button>
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ КАРТОЧКИ -->
   <div class="modal" id="card-modal">
-    <h3 id="card-modal-title">Заметка</h3>
+    <h3 id="card-modal-title"><i class="fas fa-sticky-note"></i> Заметка</h3>
     <input type="text" id="card-title-input" placeholder="Заголовок">
     <textarea id="card-content-input" rows="4" placeholder="Текст заметки..."></textarea>
     <div class="modal-buttons">
-      <button id="save-card-btn" class="btn-primary">Сохранить</button>
-      <button id="delete-card-btn" class="btn-danger" style="display: none;">Удалить</button>
-      <button id="close-card-modal" class="btn-secondary">Отмена</button>
+      <button id="save-card-btn" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
+      <button id="delete-card-btn" class="btn-danger" style="display: none;"><i class="fas fa-trash-alt"></i> Удалить</button>
+      <button id="close-card-modal" class="btn-secondary"><i class="fas fa-times"></i> Отмена</button>
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ДЛЯ НАСТРОЕК РАБОЧЕГО ПРОСТРАНСТВА -->
   <div class="modal" id="workspace-settings-modal">
-    <h3>Настройки пространства</h3>
+    <h3><i class="fas fa-cog"></i> Настройки пространства</h3>
     <div class="form-group">
       <label>Название пространства</label>
       <input type="text" id="workspace-settings-name">
     </div>
     <div class="modal-buttons">
-      <button id="save-workspace-settings-btn" class="btn-primary">Сохранить</button>
-      <button id="delete-workspace-btn" class="btn-danger">Удалить пространство</button>
-      <button id="close-workspace-settings-modal" class="btn-secondary">Отмена</button>
+      <button id="save-workspace-settings-btn" class="btn-primary"><i class="fas fa-save"></i> Сохранить</button>
+      <button id="delete-workspace-btn" class="btn-danger"><i class="fas fa-trash-alt"></i> Удалить пространство</button>
+      <button id="close-workspace-settings-modal" class="btn-secondary"><i class="fas fa-times"></i> Отмена</button>
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО ПРОФИЛЯ -->
   <div class="modal" id="profile-modal">
     <h3>Профиль</h3>
     <div class="profile-info">
-      <div class="profile-avatar">👤</div>
+      <div class="profile-avatar"><i class="fas fa-user fa-3x"></i></div>
       <div class="profile-details">
         <p><strong>Имя:</strong> <span id="profile-username"></span></p>
         <p><strong>Email:</strong> <span id="profile-email"></span></p>
-        <p><strong>Статус:</strong> <span id="profile-premium">Обычный</span></p>
       </div>
     </div>
     <div class="modal-buttons">
-      <button id="logout-from-modal" class="btn-danger">Выйти</button>
-      <button id="close-profile-modal" class="btn-secondary">Закрыть</button>
+      <button id="logout-from-modal" class="btn-danger"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+      <button id="close-profile-modal" class="btn-secondary"><i class="fas fa-times"></i> Закрыть</button>
     </div>
   </div>
 
