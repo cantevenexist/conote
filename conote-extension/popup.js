@@ -7,6 +7,10 @@ let currentEditCard = null;
 let isAuthenticated = false;
 let currentUser = null;
 
+// Переменные для drag & drop
+let draggedCard = null;
+let draggedColumn = null;
+
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('Popup opened - checking auth...');
@@ -347,6 +351,295 @@ async function generateIdOnServer(workspaceHash, objectType) {
   } catch (error) {
     console.error('Generate ID error:', error);
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+  }
+}
+
+// ==================== DRAG & DROP ДЛЯ КАРТОЧЕК ====================
+function setupCardDragAndDrop() {
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    card.setAttribute('draggable', 'true');
+    card.removeEventListener('dragstart', handleCardDragStart);
+    card.removeEventListener('dragend', handleCardDragEnd);
+    card.addEventListener('dragstart', handleCardDragStart);
+    card.addEventListener('dragend', handleCardDragEnd);
+  });
+  
+  const columnsCards = document.querySelectorAll('.column-cards');
+  columnsCards.forEach(columnCards => {
+    columnCards.removeEventListener('dragover', handleDragOver);
+    columnCards.removeEventListener('drop', handleCardDrop);
+    columnCards.addEventListener('dragover', handleDragOver);
+    columnCards.addEventListener('drop', handleCardDrop);
+  });
+}
+
+function handleCardDragStart(e) {
+  const card = e.target.closest('.card');
+  if (!card) {
+    e.preventDefault();
+    return false;
+  }
+  draggedCard = {
+    id: card.dataset.cardId,
+    columnId: card.dataset.columnId
+  };
+  e.dataTransfer.setData('text/plain', JSON.stringify(draggedCard));
+  card.style.opacity = '0.5';
+  e.stopPropagation();
+}
+
+function handleCardDragEnd(e) {
+  const card = e.target.closest('.card');
+  if (card) {
+    card.style.opacity = '';
+  }
+  draggedCard = null;
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+// Функция для определения позиции вставки
+function getDropIndex(container, mouseY) {
+  const cards = Array.from(container.querySelectorAll('.card'));
+  
+  for (let i = 0; i < cards.length; i++) {
+    const rect = cards[i].getBoundingClientRect();
+    const cardMiddle = rect.top + rect.height / 2;
+    if (mouseY < cardMiddle) {
+      return i;
+    }
+  }
+  return cards.length;
+}
+
+async function handleCardDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const targetColumnCards = e.target.closest('.column-cards');
+  if (!targetColumnCards) return;
+  
+  const targetColumnId = targetColumnCards.dataset.columnId;
+  let draggedData;
+  try {
+    draggedData = JSON.parse(e.dataTransfer.getData('text/plain'));
+  } catch (err) {
+    return;
+  }
+  
+  if (!draggedData || !draggedData.id) return;
+  
+  // Определяем позицию вставки
+  const dropIndex = getDropIndex(targetColumnCards, e.clientY);
+  
+  if (draggedData.columnId === targetColumnId) {
+    await reorderCardsInSameColumn(draggedData.id, targetColumnId, dropIndex);
+  } else {
+    await moveCardToAnotherColumn(draggedData.id, draggedData.columnId, targetColumnId, dropIndex);
+  }
+}
+
+async function reorderCardsInSameColumn(cardId, columnId, targetIndex) {
+  try {
+    const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+    let boardData = rawData.board_data || {};
+    
+    if (!boardData.card) boardData.card = {};
+    
+    const columnCards = Object.values(boardData.card).filter(c => c.columnId === columnId);
+    columnCards.sort((a, b) => (a.index || 0) - (b.index || 0));
+    
+    const draggedIndex = columnCards.findIndex(c => c.id === cardId);
+    if (draggedIndex === -1 || draggedIndex === targetIndex) return;
+    
+    const [movedCard] = columnCards.splice(draggedIndex, 1);
+    // Корректируем targetIndex если элемент перемещается вперед
+    const adjustedTarget = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    columnCards.splice(adjustedTarget, 0, movedCard);
+    
+    columnCards.forEach((card, idx) => {
+      if (boardData.card[card.id]) {
+        boardData.card[card.id].index = idx;
+      }
+    });
+    
+    const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+    
+    if (saveResponse.success) {
+      await renderKanban();
+    }
+  } catch (error) {
+    console.error('Reorder cards error:', error);
+  }
+}
+
+async function moveCardToAnotherColumn(cardId, fromColumnId, toColumnId, targetIndex) {
+  try {
+    const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+    let boardData = rawData.board_data || {};
+    
+    if (!boardData.card) boardData.card = {};
+    
+    // Обновляем колонку карточки
+    if (boardData.card[cardId]) {
+      boardData.card[cardId].columnId = toColumnId;
+    }
+    
+    // Получаем карточки в целевой колонке
+    let targetCards = Object.values(boardData.card).filter(c => c.columnId === toColumnId);
+    targetCards.sort((a, b) => (a.index || 0) - (b.index || 0));
+    
+    // Находим карточку которую перемещаем
+    const movedCard = boardData.card[cardId];
+    
+    // Удаляем карточку из исходной колонки
+    let sourceCards = Object.values(boardData.card).filter(c => c.columnId === fromColumnId && c.id !== cardId);
+    sourceCards.sort((a, b) => (a.index || 0) - (b.index || 0));
+    
+    // Вставляем карточку на нужную позицию в целевой колонке
+    targetCards.splice(targetIndex, 0, movedCard);
+    
+    // Обновляем индексы в целевой колонке
+    targetCards.forEach((card, idx) => {
+      if (boardData.card[card.id]) {
+        boardData.card[card.id].index = idx;
+      }
+    });
+    
+    // Обновляем индексы в исходной колонке
+    sourceCards.forEach((card, idx) => {
+      if (boardData.card[card.id]) {
+        boardData.card[card.id].index = idx;
+      }
+    });
+    
+    const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+    
+    if (saveResponse.success) {
+      await renderKanban();
+    }
+  } catch (error) {
+    console.error('Move card error:', error);
+  }
+}
+
+// ==================== DRAG & DROP ДЛЯ КОЛОНОК ====================
+function setupColumnDragAndDrop() {
+  const columnHeaders = document.querySelectorAll('.column-header');
+  columnHeaders.forEach(header => {
+    header.setAttribute('draggable', 'true');
+    header.removeEventListener('dragstart', handleColumnDragStart);
+    header.removeEventListener('dragend', handleColumnDragEnd);
+    header.addEventListener('dragstart', handleColumnDragStart);
+    header.addEventListener('dragend', handleColumnDragEnd);
+  });
+  
+  const columnsWrapper = document.getElementById('columns-wrapper');
+  if (columnsWrapper) {
+    columnsWrapper.removeEventListener('dragover', handleColumnDragOver);
+    columnsWrapper.removeEventListener('drop', handleColumnDrop);
+    columnsWrapper.addEventListener('dragover', handleColumnDragOver);
+    columnsWrapper.addEventListener('drop', handleColumnDrop);
+  }
+}
+
+function handleColumnDragStart(e) {
+  const column = e.target.closest('.column');
+  if (!column) {
+    e.preventDefault();
+    return false;
+  }
+  draggedColumn = {
+    id: column.dataset.columnId
+  };
+  e.dataTransfer.setData('text/plain', JSON.stringify(draggedColumn));
+  e.target.style.opacity = '0.5';
+  e.stopPropagation();
+}
+
+function handleColumnDragEnd(e) {
+  if (e.target) {
+    e.target.style.opacity = '';
+  }
+  draggedColumn = null;
+}
+
+function handleColumnDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+// Функция для определения позиции вставки колонки
+function getColumnDropIndex(container, mouseX) {
+  const columns = Array.from(container.querySelectorAll('.column'));
+  
+  for (let i = 0; i < columns.length; i++) {
+    const rect = columns[i].getBoundingClientRect();
+    const columnMiddle = rect.left + rect.width / 2;
+    if (mouseX < columnMiddle) {
+      return i;
+    }
+  }
+  return columns.length;
+}
+
+async function handleColumnDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const targetColumn = e.target.closest('.column');
+  if (!targetColumn) return;
+  
+  const targetColumnId = targetColumn.dataset.columnId;
+  let draggedData;
+  try {
+    draggedData = JSON.parse(e.dataTransfer.getData('text/plain'));
+  } catch (err) {
+    return;
+  }
+  
+  if (!draggedData || draggedData.id === targetColumnId) return;
+  
+  const columnsWrapper = document.getElementById('columns-wrapper');
+  const dropIndex = getColumnDropIndex(columnsWrapper, e.clientX);
+  
+  await reorderColumns(draggedData.id, dropIndex);
+}
+
+async function reorderColumns(draggedColumnId, targetIndex) {
+  try {
+    const rawData = await getRawWorkspaceData(currentWorkspace.url_hash);
+    let boardData = rawData.board_data || {};
+    
+    if (!boardData.column) boardData.column = {};
+    
+    const columns = Object.values(boardData.column).filter(c => c.boardId === currentKanbanBoard.id);
+    columns.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
+    const draggedIndex = columns.findIndex(c => c.id === draggedColumnId);
+    if (draggedIndex === -1 || draggedIndex === targetIndex) return;
+    
+    const [movedColumn] = columns.splice(draggedIndex, 1);
+    const adjustedTarget = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    columns.splice(adjustedTarget, 0, movedColumn);
+    
+    columns.forEach((col, idx) => {
+      if (boardData.column[col.id]) {
+        boardData.column[col.id].order = idx;
+      }
+    });
+    
+    const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
+    
+    if (saveResponse.success) {
+      await renderKanban();
+    }
+  } catch (error) {
+    console.error('Reorder columns error:', error);
   }
 }
 
@@ -820,12 +1113,14 @@ async function renderKanban() {
     const columnsData = boardData.column || {};
     const cardsData = boardData.card || {};
     
-    const filteredColumns = Object.values(columnsData).filter(col => col.boardId === currentKanbanBoard.id);
+    let filteredColumns = Object.values(columnsData).filter(col => col.boardId === currentKanbanBoard.id);
+    filteredColumns.sort((a, b) => (a.order || 0) - (b.order || 0));
     
     const columns = filteredColumns.map(col => ({
       id: col.id,
       title: col.title,
       boardId: col.boardId,
+      order: col.order || 0,
       cards: Object.values(cardsData)
         .filter(card => card.columnId === col.id)
         .map(card => ({
@@ -863,7 +1158,7 @@ async function renderKanban() {
   
   wrapper.innerHTML = columns.map(column => `
     <div class="column" data-column-id="${column.id}">
-      <div class="column-header" data-column-id="${column.id}">
+      <div class="column-header" draggable="true" data-column-id="${column.id}">
         <span class="column-title">${escapeHtml(column.title)}</span>
         <button class="column-menu-btn" data-column-id="${column.id}">⋮</button>
       </div>
@@ -874,6 +1169,9 @@ async function renderKanban() {
     </div>
   `).join('');
   
+  setupCardDragAndDrop();
+  setupColumnDragAndDrop();
+  
   document.querySelectorAll('.column-menu-btn').forEach(btn => {
     btn.removeEventListener('click', handleColumnMenuClick);
     btn.addEventListener('click', handleColumnMenuClick);
@@ -882,11 +1180,6 @@ async function renderKanban() {
   document.querySelectorAll('.add-card-btn').forEach(btn => {
     btn.removeEventListener('click', handleAddCardClick);
     btn.addEventListener('click', handleAddCardClick);
-  });
-  
-  document.querySelectorAll('.card').forEach(card => {
-    card.removeEventListener('click', handleCardClick);
-    card.addEventListener('click', handleCardClick);
   });
 }
 
@@ -902,17 +1195,6 @@ function handleAddCardClick(e) {
   e.stopPropagation();
   const columnId = e.currentTarget.dataset.columnId;
   showCreateNoteModal(columnId);
-}
-
-function handleCardClick(e) {
-  e.stopPropagation();
-  const card = e.currentTarget;
-  const cardId = card.dataset.cardId;
-  const columnId = card.dataset.columnId;
-  const columns = currentKanbanBoard.columns || [];
-  const column = columns.find(c => c.id === columnId);
-  const cardData = column?.cards?.find(c => c.id === cardId);
-  if (cardData) showCardModal(cardData, columnId);
 }
 
 function renderCards(cards, columnId) {
@@ -1096,10 +1378,14 @@ async function saveColumn() {
     } else {
       const columnId = await generateIdOnServer(currentWorkspace.url_hash, 'column');
       
+      const existingColumns = Object.values(boardData.column).filter(c => c.boardId === currentKanbanBoard.id);
+      const maxOrder = existingColumns.length;
+      
       boardData.column[columnId] = {
         id: columnId,
         title: name,
-        boardId: currentKanbanBoard.id
+        boardId: currentKanbanBoard.id,
+        order: maxOrder
       };
     }
     
