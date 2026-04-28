@@ -402,10 +402,8 @@ function handleDragOver(e) {
   e.dataTransfer.dropEffect = 'move';
 }
 
-// Функция для определения позиции вставки
 function getDropIndex(container, mouseY) {
   const cards = Array.from(container.querySelectorAll('.card'));
-  
   for (let i = 0; i < cards.length; i++) {
     const rect = cards[i].getBoundingClientRect();
     const cardMiddle = rect.top + rect.height / 2;
@@ -433,7 +431,6 @@ async function handleCardDrop(e) {
   
   if (!draggedData || !draggedData.id) return;
   
-  // Определяем позицию вставки
   const dropIndex = getDropIndex(targetColumnCards, e.clientY);
   
   if (draggedData.columnId === targetColumnId) {
@@ -457,7 +454,6 @@ async function reorderCardsInSameColumn(cardId, columnId, targetIndex) {
     if (draggedIndex === -1 || draggedIndex === targetIndex) return;
     
     const [movedCard] = columnCards.splice(draggedIndex, 1);
-    // Корректируем targetIndex если элемент перемещается вперед
     const adjustedTarget = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
     columnCards.splice(adjustedTarget, 0, movedCard);
     
@@ -484,33 +480,26 @@ async function moveCardToAnotherColumn(cardId, fromColumnId, toColumnId, targetI
     
     if (!boardData.card) boardData.card = {};
     
-    // Обновляем колонку карточки
     if (boardData.card[cardId]) {
       boardData.card[cardId].columnId = toColumnId;
     }
     
-    // Получаем карточки в целевой колонке
     let targetCards = Object.values(boardData.card).filter(c => c.columnId === toColumnId);
     targetCards.sort((a, b) => (a.index || 0) - (b.index || 0));
     
-    // Находим карточку которую перемещаем
     const movedCard = boardData.card[cardId];
     
-    // Удаляем карточку из исходной колонки
     let sourceCards = Object.values(boardData.card).filter(c => c.columnId === fromColumnId && c.id !== cardId);
     sourceCards.sort((a, b) => (a.index || 0) - (b.index || 0));
     
-    // Вставляем карточку на нужную позицию в целевой колонке
     targetCards.splice(targetIndex, 0, movedCard);
     
-    // Обновляем индексы в целевой колонке
     targetCards.forEach((card, idx) => {
       if (boardData.card[card.id]) {
         boardData.card[card.id].index = idx;
       }
     });
     
-    // Обновляем индексы в исходной колонке
     sourceCards.forEach((card, idx) => {
       if (boardData.card[card.id]) {
         boardData.card[card.id].index = idx;
@@ -573,10 +562,8 @@ function handleColumnDragOver(e) {
   e.dataTransfer.dropEffect = 'move';
 }
 
-// Функция для определения позиции вставки колонки
 function getColumnDropIndex(container, mouseX) {
   const columns = Array.from(container.querySelectorAll('.column'));
-  
   for (let i = 0; i < columns.length; i++) {
     const rect = columns[i].getBoundingClientRect();
     const columnMiddle = rect.left + rect.width / 2;
@@ -618,7 +605,7 @@ async function reorderColumns(draggedColumnId, targetIndex) {
     if (!boardData.column) boardData.column = {};
     
     const columns = Object.values(boardData.column).filter(c => c.boardId === currentKanbanBoard.id);
-    columns.sort((a, b) => (a.order || 0) - (b.order || 0));
+    columns.sort((a, b) => (a.index || 0) - (b.index || 0));
     
     const draggedIndex = columns.findIndex(c => c.id === draggedColumnId);
     if (draggedIndex === -1 || draggedIndex === targetIndex) return;
@@ -629,7 +616,7 @@ async function reorderColumns(draggedColumnId, targetIndex) {
     
     columns.forEach((col, idx) => {
       if (boardData.column[col.id]) {
-        boardData.column[col.id].order = idx;
+        boardData.column[col.id].index = idx;
       }
     });
     
@@ -1114,13 +1101,13 @@ async function renderKanban() {
     const cardsData = boardData.card || {};
     
     let filteredColumns = Object.values(columnsData).filter(col => col.boardId === currentKanbanBoard.id);
-    filteredColumns.sort((a, b) => (a.order || 0) - (b.order || 0));
+    filteredColumns.sort((a, b) => (a.index || 0) - (b.index || 0));
     
     const columns = filteredColumns.map(col => ({
       id: col.id,
       title: col.title,
       boardId: col.boardId,
-      order: col.order || 0,
+      index: col.index || 0,
       cards: Object.values(cardsData)
         .filter(card => card.columnId === col.id)
         .map(card => ({
@@ -1181,6 +1168,12 @@ async function renderKanban() {
     btn.removeEventListener('click', handleAddCardClick);
     btn.addEventListener('click', handleAddCardClick);
   });
+  
+  // Привязываем обработчик клика к карточкам (дублируем для надёжности)
+  document.querySelectorAll('.card').forEach(card => {
+    card.removeEventListener('click', handleCardClick);
+    card.addEventListener('click', handleCardClick);
+  });
 }
 
 function handleColumnMenuClick(e) {
@@ -1195,6 +1188,25 @@ function handleAddCardClick(e) {
   e.stopPropagation();
   const columnId = e.currentTarget.dataset.columnId;
   showCreateNoteModal(columnId);
+}
+
+function handleCardClick(e) {
+  e.stopPropagation();
+  const card = e.currentTarget.closest('.card');
+  if (!card) return;
+  
+  const cardId = card.dataset.cardId;
+  const columnId = card.dataset.columnId;
+  
+  const columns = currentKanbanBoard.columns || [];
+  const column = columns.find(c => c.id === columnId);
+  const cardData = column?.cards?.find(c => c.id === cardId);
+  if (cardData) {
+    console.log('Opening card modal for:', cardData);
+    showCardModal(cardData, columnId);
+  } else {
+    console.error('Card not found:', cardId, columnId);
+  }
 }
 
 function renderCards(cards, columnId) {
@@ -1379,13 +1391,13 @@ async function saveColumn() {
       const columnId = await generateIdOnServer(currentWorkspace.url_hash, 'column');
       
       const existingColumns = Object.values(boardData.column).filter(c => c.boardId === currentKanbanBoard.id);
-      const maxOrder = existingColumns.length;
+      const maxIndex = existingColumns.length;
       
       boardData.column[columnId] = {
         id: columnId,
         title: name,
         boardId: currentKanbanBoard.id,
-        order: maxOrder
+        index: maxIndex
       };
     }
     
@@ -1428,11 +1440,18 @@ async function deleteColumn() {
       
       delete boardData.column[currentEditColumn.id];
       
+      // Обновляем индексы оставшихся колонок
+      const remainingColumns = Object.values(boardData.column).filter(col => col.boardId === currentKanbanBoard.id);
+      remainingColumns.sort((a, b) => (a.index || 0) - (b.index || 0));
+      remainingColumns.forEach((col, idx) => {
+        if (boardData.column[col.id]) {
+          boardData.column[col.id].index = idx;
+        }
+      });
+      
       const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
       
       if (saveResponse.success) {
-        const remainingColumns = Object.values(boardData.column || {}).filter(col => col.boardId === currentKanbanBoard.id);
-        
         if (remainingColumns.length === 0) {
           await deleteKanbanBoardOnServer(currentWorkspace.url_hash, currentKanbanBoard.id);
           await loadKanbanBoardsIntoWorkspace();
@@ -1482,13 +1501,14 @@ function showCardModal(card, columnId) {
   const contentInput = document.getElementById('card-content-input');
   const deleteBtn = document.getElementById('delete-card-btn');
   
-  if (titleElem) titleElem.textContent = 'Редактирование';
+  if (titleElem) titleElem.textContent = 'Редактирование заметки';
   if (titleInput) titleInput.value = card.title || '';
   if (contentInput) contentInput.value = card.content || '';
   if (deleteBtn) deleteBtn.style.display = 'block';
   
   const modal = document.getElementById('card-modal');
   if (modal) modal.dataset.targetColumnId = columnId;
+  if (modal) modal.dataset.cardId = card.id;
   
   const overlay = document.getElementById('modal-overlay');
   if (overlay) overlay.classList.add('show');
@@ -1499,6 +1519,7 @@ async function saveCard() {
   const title = document.getElementById('card-title-input')?.value?.trim() || '';
   const content = document.getElementById('card-content-input')?.value || '';
   const targetColumnId = document.getElementById('card-modal')?.dataset.targetColumnId;
+  const editCardId = document.getElementById('card-modal')?.dataset.cardId;
   
   if (!targetColumnId) {
     alert('Ошибка: колонка не найдена');
@@ -1516,22 +1537,26 @@ async function saveCard() {
     
     if (!boardData.card) boardData.card = {};
     
-    if (currentEditCard) {
-      if (boardData.card[currentEditCard.id]) {
-        boardData.card[currentEditCard.id].title = title || 'Без названия';
-        boardData.card[currentEditCard.id].content = content;
+    if (currentEditCard || editCardId) {
+      // Редактируем существующую карточку
+      const cardId = currentEditCard ? currentEditCard.id : editCardId;
+      if (boardData.card[cardId]) {
+        boardData.card[cardId].title = title || 'Без названия';
+        boardData.card[cardId].content = content;
       }
     } else {
+      // Создаем новую карточку
       const cardId = await generateIdOnServer(currentWorkspace.url_hash, 'card');
       
       const existingCards = Object.values(boardData.card).filter(c => c.columnId === targetColumnId);
+      const newIndex = existingCards.length;
       
       boardData.card[cardId] = {
         id: cardId,
         title: title || 'Новая заметка',
         content: content,
         columnId: targetColumnId,
-        index: existingCards.length
+        index: newIndex
       };
     }
     
@@ -1565,6 +1590,15 @@ async function deleteCard() {
       if (!boardData.card) boardData.card = {};
       
       delete boardData.card[currentEditCard.id];
+      
+      // Обновляем индексы оставшихся карточек в этой колонке
+      const remainingCards = Object.values(boardData.card).filter(c => c.columnId === currentEditCard.columnId);
+      remainingCards.sort((a, b) => (a.index || 0) - (b.index || 0));
+      remainingCards.forEach((card, idx) => {
+        if (boardData.card[card.id]) {
+          boardData.card[card.id].index = idx;
+        }
+      });
       
       const saveResponse = await saveRawWorkspaceData(currentWorkspace.url_hash, boardData);
       

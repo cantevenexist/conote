@@ -48,7 +48,6 @@ class ExtensionAuthView(View):
                     'error': 'Неверный пароль'
                 }, status=400)
             
-            # СОЗДАЕМ ТОКЕН
             token, created = Token.objects.get_or_create(user=user)
             
             return JsonResponse({
@@ -68,7 +67,6 @@ class ExtensionAuthView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class ExtensionLogoutView(View):
     def post(self, request):
-        # Получаем токен из заголовка
         auth_header = request.headers.get('Authorization', '')
         token_key = auth_header.replace('Token ', '')
         
@@ -85,7 +83,6 @@ class ExtensionLogoutView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class ExtensionUserStatusView(View):
     def get(self, request):
-        # Получаем токен из заголовка
         auth_header = request.headers.get('Authorization', '')
         token_key = auth_header.replace('Token ', '')
         
@@ -108,23 +105,24 @@ class ExtensionUserStatusView(View):
         return JsonResponse({'authenticated': False})
 
 
-# ============ ОСТАЛЬНЫЕ КЛАССЫ БЕЗ ИЗМЕНЕНИЙ ============
-
 @method_decorator(csrf_exempt, name='dispatch')
 class ExtensionWorkspacesView(View):
     """Рабочие пространства (Board модели)"""
     
-    def get(self, request):
+    def _get_user(self, request):
         auth_header = request.headers.get('Authorization', '')
         token_key = auth_header.replace('Token ', '')
-        
         if not token_key:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
-        
+            return None
         try:
             token = Token.objects.get(key=token_key)
-            user = token.user
+            return token.user
         except Token.DoesNotExist:
+            return None
+    
+    def get(self, request):
+        user = self._get_user(request)
+        if not user:
             return JsonResponse({'error': 'Unauthorized'}, status=401)
         
         workspaces = []
@@ -155,16 +153,8 @@ class ExtensionWorkspacesView(View):
         return JsonResponse({'workspaces': workspaces})
     
     def post(self, request):
-        auth_header = request.headers.get('Authorization', '')
-        token_key = auth_header.replace('Token ', '')
-        
-        if not token_key:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
-        
-        try:
-            token = Token.objects.get(key=token_key)
-            user = token.user
-        except Token.DoesNotExist:
+        user = self._get_user(request)
+        if not user:
             return JsonResponse({'error': 'Unauthorized'}, status=401)
         
         try:
@@ -199,16 +189,8 @@ class ExtensionWorkspacesView(View):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
     def put(self, request, workspace_id):
-        auth_header = request.headers.get('Authorization', '')
-        token_key = auth_header.replace('Token ', '')
-        
-        if not token_key:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
-        
-        try:
-            token = Token.objects.get(key=token_key)
-            user = token.user
-        except Token.DoesNotExist:
+        user = self._get_user(request)
+        if not user:
             return JsonResponse({'error': 'Unauthorized'}, status=401)
         
         try:
@@ -226,16 +208,8 @@ class ExtensionWorkspacesView(View):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
     def delete(self, request, workspace_id):
-        auth_header = request.headers.get('Authorization', '')
-        token_key = auth_header.replace('Token ', '')
-        
-        if not token_key:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
-        
-        try:
-            token = Token.objects.get(key=token_key)
-            user = token.user
-        except Token.DoesNotExist:
+        user = self._get_user(request)
+        if not user:
             return JsonResponse({'error': 'Unauthorized'}, status=401)
         
         try:
@@ -286,27 +260,40 @@ class ExtensionKanbanBoardsView(View):
             
             kanban_boards = []
             for board_id, board_info in boards_dict.items():
-                columns = []
+                # Получаем колонки для этой доски
+                board_columns = []
                 for col_id, col_info in columns_dict.items():
                     if col_info.get('boardId') == board_id:
-                        cards = []
-                        for card_id, card_info in cards_dict.items():
-                            if card_info.get('columnId') == col_id:
-                                cards.append({
-                                    'id': card_id,
-                                    'title': card_info.get('title', ''),
-                                    'content': card_info.get('content', ''),
-                                    'columnId': card_info.get('columnId'),
-                                    'index': card_info.get('index', 0)
-                                })
-                        cards.sort(key=lambda x: x.get('index', 0))
-                        
-                        columns.append({
-                            'id': col_id,
-                            'title': col_info.get('title', ''),
-                            'boardId': col_info.get('boardId'),
-                            'cards': cards
-                        })
+                        # Добавляем index, если его нет - ставим 0
+                        if 'index' not in col_info:
+                            col_info['index'] = 0
+                        board_columns.append(col_info)
+                
+                # Сортируем по index
+                board_columns.sort(key=lambda x: x.get('index', 0))
+                
+                columns = []
+                for col_info in board_columns:
+                    col_id = col_info['id']
+                    cards = []
+                    for card_id, card_info in cards_dict.items():
+                        if card_info.get('columnId') == col_id:
+                            cards.append({
+                                'id': card_id,
+                                'title': card_info.get('title', ''),
+                                'content': card_info.get('content', ''),
+                                'columnId': card_info.get('columnId'),
+                                'index': card_info.get('index', 0)
+                            })
+                    cards.sort(key=lambda x: x.get('index', 0))
+                    
+                    columns.append({
+                        'id': col_id,
+                        'title': col_info.get('title', ''),
+                        'boardId': col_info.get('boardId'),
+                        'index': col_info.get('index', 0),
+                        'cards': cards
+                    })
                 
                 kanban_boards.append({
                     'id': board_id,
@@ -341,7 +328,6 @@ class ExtensionKanbanBoardsView(View):
             data = json.loads(request.body.decode('utf-8'))
             title = data.get('title', 'Новая доска')
             
-            # Координаты 0, 0
             x = 0
             y = 0
             
@@ -360,12 +346,10 @@ class ExtensionKanbanBoardsView(View):
             if 'card' not in board_data:
                 board_data['card'] = {}
             
-            # Генерируем ID для доски
             board_id = hashlib.sha256(
                 f"{workspace_hash}{title}{time.time()}{user.id}".encode('utf-8')
             ).hexdigest()
             
-            # Создаем доску
             board_data['board'][board_id] = {
                 'id': board_id,
                 'title': title,
@@ -373,7 +357,7 @@ class ExtensionKanbanBoardsView(View):
                 'y': y
             }
             
-            # Создаем колонку по умолчанию
+            # Создаем колонку по умолчанию с index = 0
             column_id = hashlib.sha256(
                 f"{workspace_hash}{board_id}default_column{time.time()}{user.id}".encode('utf-8')
             ).hexdigest()[:16]
@@ -381,7 +365,8 @@ class ExtensionKanbanBoardsView(View):
             board_data['column'][column_id] = {
                 'id': column_id,
                 'title': 'Новые задачи',
-                'boardId': board_id
+                'boardId': board_id,
+                'index': 0
             }
             
             json_content = json.dumps(board_data).encode('utf-8')
@@ -407,6 +392,7 @@ class ExtensionKanbanBoardsView(View):
                         'id': column_id,
                         'title': 'Новые задачи',
                         'boardId': board_id,
+                        'index': 0,
                         'cards': []
                     }]
                 }
@@ -472,19 +458,12 @@ class ExtensionKanbanBoardsView(View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class ExtensionGenerateIdView(View):
     def post(self, request):
-        auth_header = request.headers.get('Authorization', '')
-        token_key = auth_header.replace('Token ', '')
-        
-        if not token_key:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
-        
-        try:
-            token = Token.objects.get(key=token_key)
-            user = token.user
-        except Token.DoesNotExist:
+        user = self._get_user(request)
+        if not user:
             return JsonResponse({'error': 'Unauthorized'}, status=401)
         
         try:
@@ -502,6 +481,17 @@ class ExtensionGenerateIdView(View):
             return JsonResponse({'id': generated_id})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+    
+    def _get_user(self, request):
+        auth_header = request.headers.get('Authorization', '')
+        token_key = auth_header.replace('Token ', '')
+        if not token_key:
+            return None
+        try:
+            token = Token.objects.get(key=token_key)
+            return token.user
+        except Token.DoesNotExist:
+            return None
 
 
 @method_decorator(csrf_exempt, name='dispatch')
